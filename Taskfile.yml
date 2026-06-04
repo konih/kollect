@@ -67,18 +67,7 @@ tasks:
   scrub:
     desc: Fail if staged files contain forbidden company/legacy strings
     cmds:
-      - |
-        set -euo pipefail
-        files="$(git diff --cached --name-only 2>/dev/null || true)"
-        if [ -z "${files}" ]; then
-          echo "scrub: no staged files (ok)"
-          exit 0
-        fi
-        if echo "${files}" | xargs rg -il 'rewe|mkurator|titiseven|prod165|atlassian|code\.dev|ibm[-_ ]?mq|mqrest|messaging\.' 2>/dev/null; then
-          echo "scrub: forbidden strings in staged files" >&2
-          exit 1
-        fi
-        echo "scrub: ok"
+      - bash hack/scrub.sh
 
   lint:
     desc: Run golangci-lint v2
