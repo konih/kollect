@@ -18,3 +18,20 @@ resources:
 - metrics_auth_role.yaml
 - metrics_auth_role_binding.yaml
 - metrics_reader_role.yaml
+# For each CRD, "Admin", "Editor" and "Viewer" roles are scaffolded by
+# default, aiding admins in cluster management. Those roles are
+# not used by the kollect itself. You can comment the following lines
+# if you do not want those helpers be installed with your Project.
+- kollectinventory_admin_role.yaml
+- kollectinventory_editor_role.yaml
+- kollectinventory_viewer_role.yaml
+- kollecttarget_admin_role.yaml
+- kollecttarget_editor_role.yaml
+- kollecttarget_viewer_role.yaml
+- kollectsink_admin_role.yaml
+- kollectsink_editor_role.yaml
+- kollectsink_viewer_role.yaml
+- kollectprofile_admin_role.yaml
+- kollectprofile_editor_role.yaml
+- kollectprofile_viewer_role.yaml
+

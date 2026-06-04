@@ -1,11 +1,35 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  labels:
-    app.kubernetes.io/name: kollect
-    app.kubernetes.io/managed-by: kustomize
   name: manager-role
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - kollect.dev
+  resources:
+  - kollectinventories
+  - kollecttargets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kollect.dev
+  resources:
+  - kollectinventories/finalizers
+  - kollecttargets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kollect.dev
+  resources:
+  - kollectinventories/status
+  - kollecttargets/status
+  verbs:
+  - get
+  - patch
+  - update
