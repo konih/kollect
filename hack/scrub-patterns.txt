@@ -1,0 +1,10 @@
+rewe
+mkurator
+titiseven
+prod165
+atlassian
+code.dev
+ibm-mq
+ibm_mq
+mqrest
+messaging.mkurator
