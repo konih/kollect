@@ -46,12 +46,10 @@ jobs:
         run: |
           helm upgrade --install kollect charts/kollect \
             --namespace kollect-system --create-namespace \
+            -f charts/kollect/ci/e2e-tenant-values.yaml \
             --set image.repository=kollect-controller-manager \
             --set image.tag=dev \
             --set image.pullPolicy=IfNotPresent \
-            --set webhooks.enabled=false \
-            --set featureGates.inventoryHttp.enabled=true \
-            --set featureGates.inventoryHttp.authMode=disabled \
             --wait --timeout 120s
 
       - name: Wait for manager pod
@@ -126,6 +124,32 @@ jobs:
           sleep 3
           curl -sf http://127.0.0.1:18082/inventory | grep -q itemCount
           kill $PF_PID
+
+      - name: Multi-tenant namespace isolation
+        run: |
+          chmod +x hack/e2e/multitenant.sh
+          REPO_ROOT="${GITHUB_WORKSPACE}" hack/e2e/multitenant.sh
+
+      - name: Micro-benchmarks
+        run: task bench
+
+      - name: Upload bench artifact
+        uses: actions/upload-artifact@ea165f8d65d661de671f4242b1655b05aa3e2054 # v4.6.2
+        with:
+          name: bench-latest
+          path: artifacts/bench/latest.txt
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Git export assert (bare repo)
+        run: go test -count=1 -timeout=2m ./internal/sink/git/ -run TestExportBareRepoIntegration
+
+      - name: Git export remote (optional)
+        if: ${{ secrets.GITHUB_TOKEN != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "GITHUB_TOKEN is set; remote git push e2e is not wired yet — bare-repo assert above covers export path."
 
       - name: Delete kind cluster
         if: always()
