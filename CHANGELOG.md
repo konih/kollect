@@ -27,6 +27,8 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **docs:** Drop mkdocs nav to uncommitted pages [ae6cb01](https://github.com/konih/kollect/commit/ae6cb01ee751f98396c99127568c7b4d7397c50f)
+
 - **e2e:** Recreate unhealthy kind clusters [4dc6f35](https://github.com/konih/kollect/commit/4dc6f35106b93f714e2eb3316dd5651a7aec8370)
 
 - **ci:** Harden workflows for OpenSSF Scorecard [bbd0815](https://github.com/konih/kollect/commit/bbd08154179cf13c6d7edddb44d653874499523e)
@@ -117,6 +119,10 @@ anchor on an older commit.
 
 
 ### Features
+
+- **export:** Enforce object-store spill above 1 MiB [88e9158](https://github.com/konih/kollect/commit/88e91588486e66b0393f60aa070d637371eac743)
+
+- **api:** Add KollectSink spec.pathTemplate [cb45ae6](https://github.com/konih/kollect/commit/cb45ae654fff5d71fecd6dda719d7392acb2c30a)
 
 - **sink:** Add S3/GCS Parquet snapshot export [f66d3be](https://github.com/konih/kollect/commit/f66d3bee667b177c2445132bb7b7655b00635a22)
 
