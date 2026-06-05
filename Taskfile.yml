@@ -32,7 +32,7 @@ vars:
 
 includes:
   test:
-    taskfile: ./Taskfile.test.yml
+    taskfile: ./hack/task/Taskfile.test.yml
 
 tasks:
   default:

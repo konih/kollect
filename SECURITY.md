@@ -124,7 +124,7 @@ Release images are additionally scanned with **Trivy** (CRITICAL/HIGH, fixable o
 ## VEX (vulnerability exceptions)
 
 Kollect publishes an [OpenVEX](https://openvex.dev/) document at
-[`security/vex.json`](security/vex.json). The `statements` array is **empty** today — no CVE
+[`docs/security/vex.json`](docs/security/vex.json). The `statements` array is **empty** today — no CVE
 findings are suppressed. When a deferral or false positive requires a documented exception,
 add a VEX statement and link the GitHub issue or ADR in the statement metadata.
 

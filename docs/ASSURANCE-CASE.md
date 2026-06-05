@@ -89,7 +89,7 @@ flowchart TB
 | Security architecture ADR | [ADR-0104](adr/0104-security-model.md) |
 | Operator guidelines | [guidelines § 3](development/guidelines.md#3-security) |
 | Self security review (2026-06-05) | [SECURITY-REVIEW.md](SECURITY-REVIEW.md) |
-| VEX / vulnerability exceptions | [security/vex.json](../security/vex.json) |
+| VEX / vulnerability exceptions | [docs/security/vex.json](security/vex.json) |
 | SCA remediation SLAs | [SCA policy](security/sca-remediation-policy.md) |
 
 Revisit this assurance case when adding sink backends, changing tenancy, or after a
