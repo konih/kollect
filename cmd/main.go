@@ -14,6 +14,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/dynamic"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -23,9 +24,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
 	"github.com/konih/kollect/internal/controller"
 	"github.com/konih/kollect/internal/inventory"
 	"github.com/konih/kollect/internal/metrics"
+	"github.com/konih/kollect/internal/sink"
 	webhookv1alpha1 "github.com/konih/kollect/internal/webhook/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
@@ -174,16 +177,39 @@ func main() {
 		os.Exit(1)
 	}
 
+	dynamicClient, err := dynamic.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		setupLog.Error(err, "Failed to create dynamic client")
+		os.Exit(1)
+	}
+
+	collectStore := collect.NewStore()
+	collectEngine, err := collect.NewEngine(dynamicClient, collectStore)
+	if err != nil {
+		setupLog.Error(err, "Failed to create collection engine")
+		os.Exit(1)
+	}
+
+	if err := mgr.Add(collectEngine); err != nil {
+		setupLog.Error(err, "Failed to add collection engine")
+		os.Exit(1)
+	}
+
+	sinkRegistry := sink.NewRegistry()
+
 	if err := (&controller.KollectTargetReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Engine: collectEngine,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollecttarget")
 		os.Exit(1)
 	}
 	if err := (&controller.KollectInventoryReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Store:    collectStore,
+		Registry: sinkRegistry,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollectinventory")
 		os.Exit(1)
