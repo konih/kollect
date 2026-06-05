@@ -218,7 +218,7 @@ func (r *KollectTargetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if r.Recorder == nil {
-		r.Recorder = mgr.GetEventRecorderFor("kollecttarget-controller")
+		r.Recorder = mgr.GetEventRecorderFor("kollecttarget-controller") //nolint:staticcheck // SA1019: record API until events migration
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).

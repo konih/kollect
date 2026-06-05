@@ -150,7 +150,7 @@ func (r *KollectInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		metrics.ReconcileErrorsTotal.WithLabelValues("KollectInventory", kollecterrors.ClassOf(exportErr)).Inc()
 		reason := "Progressing"
 		if kollecterrors.IsTerminal(exportErr) {
-			reason = "ExportTerminal"
+			reason = kollectdevv1alpha1.ReasonExportTerminal
 		}
 		setSinkReachableFromExport(&inv.Status.Conditions, inv.Generation, exportErr)
 		setSyncedCondition(&inv.Status.Conditions, inv.Generation, false, reason, exportErr.Error())
@@ -368,7 +368,7 @@ func (r *KollectInventoryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if r.Recorder == nil {
-		r.Recorder = mgr.GetEventRecorderFor("kollectinventory-controller")
+		r.Recorder = mgr.GetEventRecorderFor("kollectinventory-controller") //nolint:staticcheck // SA1019: record API until events migration
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
