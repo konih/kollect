@@ -70,6 +70,13 @@ func ValidateProfileSpec(spec *kollectdevv1alpha1.KollectProfileSpec) field.Erro
 	names := make(map[string]struct{}, len(spec.Attributes))
 	attrPath := fldPath.Child("attributes")
 
+	attrNames := make(map[string]struct{}, len(spec.Attributes))
+	for _, attr := range spec.Attributes {
+		if attr.Name != "" {
+			attrNames[attr.Name] = struct{}{}
+		}
+	}
+
 	for i, attr := range spec.Attributes {
 		idxPath := attrPath.Index(i)
 
@@ -89,6 +96,77 @@ func ValidateProfileSpec(spec *kollectdevv1alpha1.KollectProfileSpec) field.Erro
 
 		if err := collect.ValidateAttributePath(extractor, attr.Path); err != nil {
 			allErrs = append(allErrs, field.Invalid(idxPath.Child("path"), attr.Path, err.Error()))
+		}
+	}
+
+	allErrs = append(allErrs, validateProfileMetrics(fldPath, spec.Metrics, attrNames)...)
+
+	return allErrs
+}
+
+const maxProfileMetricLabels = 5
+
+func validateProfileMetrics(
+	fldPath *field.Path,
+	metrics []kollectdevv1alpha1.MetricSpec,
+	attrNames map[string]struct{},
+) field.ErrorList {
+	if len(metrics) == 0 {
+		return nil
+	}
+
+	var allErrs field.ErrorList
+
+	metricPath := fldPath.Child("metrics")
+	names := make(map[string]struct{}, len(metrics))
+
+	for i, metric := range metrics {
+		idxPath := metricPath.Index(i)
+
+		if metric.Name == "" {
+			allErrs = append(allErrs, field.Required(idxPath.Child("name"), "name is required"))
+		} else if _, dup := names[metric.Name]; dup {
+			allErrs = append(allErrs, field.Duplicate(idxPath.Child("name"), metric.Name))
+		} else {
+			names[metric.Name] = struct{}{}
+		}
+
+		if metric.Path == "" {
+			allErrs = append(allErrs, field.Required(idxPath.Child("path"), "path is required"))
+
+			continue
+		}
+
+		if _, ok := attrNames[metric.Path]; !ok {
+			allErrs = append(allErrs, field.Invalid(
+				idxPath.Child("path"),
+				metric.Path,
+				"path must reference an attribute name from spec.attributes",
+			))
+		}
+
+		if len(metric.Labels) > maxProfileMetricLabels {
+			allErrs = append(allErrs, field.TooMany(
+				idxPath.Child("labels"),
+				len(metric.Labels),
+				maxProfileMetricLabels,
+			))
+		}
+
+		for j, label := range metric.Labels {
+			if label == "" {
+				allErrs = append(allErrs, field.Required(idxPath.Child("labels").Index(j), "label key is required"))
+
+				continue
+			}
+
+			if _, ok := attrNames[label]; !ok {
+				allErrs = append(allErrs, field.Invalid(
+					idxPath.Child("labels").Index(j),
+					label,
+					"label must reference an attribute name from spec.attributes",
+				))
+			}
 		}
 	}
 

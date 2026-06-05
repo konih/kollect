@@ -22,6 +22,7 @@ func ValidateClusterProfile(profile *kollectdevv1alpha1.KollectClusterProfile) f
 		Spec: kollectdevv1alpha1.KollectProfileSpec{
 			TargetGVK:  profile.Spec.TargetGVK,
 			Attributes: profile.Spec.Attributes,
+			Metrics:    profile.Spec.Metrics,
 		},
 	}
 
@@ -34,6 +35,7 @@ func ClusterProfileWarnings(profile *kollectdevv1alpha1.KollectClusterProfile) [
 		Spec: kollectdevv1alpha1.KollectProfileSpec{
 			TargetGVK:  profile.Spec.TargetGVK,
 			Attributes: profile.Spec.Attributes,
+			Metrics:    profile.Spec.Metrics,
 		},
 	}
 
