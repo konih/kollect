@@ -92,9 +92,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | Postgres/Kafka testcontainers in CI | ✅ |
 | SAR / RBAC scope degradation | ✅ |
 | Typed reconcile errors + circuit breakers | ⬜ |
-| Parallel reconcile workers (`MaxConcurrentReconciles`) | ⬜ |
-| Workqueue depth + reconcile latency metrics | ⬜ |
-| pprof server (feature-gated `:6060`) | ⬜ |
+| Parallel reconcile workers (`MaxConcurrentReconciles`) | ✅ |
+| Workqueue depth + reconcile latency metrics | ✅ |
+| pprof server (feature-gated `:6060`) | ✅ |
 | `task bench` / `task load-test` (bounded scale tests) | ✅ |
 | Secondary watches (Profile/Sink changes) | ⬜ |
 | Finalizers | ⬜ |
@@ -174,16 +174,17 @@ Cross-cutting NFRs accepted in [ADR-0026](adr/0026-performance-scalability.md). 
 | Bounded test tiers (500 default / 2000 opt-in load) | ✅ |
 | `task bench` (Go benchmarks, `-short`) | ✅ |
 | `task load-test` (`KOLECT_LOAD_TEST=1`, `-tags=load`) | ✅ |
-| `--max-concurrent-reconciles` flag + Helm values | ⬜ |
+| `--max-concurrent-reconciles-*` flags + Helm values | ✅ |
+| `--export-debounce` / `--reconcile-rate-limit` flags | ✅ |
 | `--informer-resync-period` flag | ⬜ |
-| pprof on `:6060` (feature gate) | ⬜ |
-| `kollect_workqueue_depth` / `kollect_reconcile_duration_seconds` metrics | ⬜ |
-| `kollect_informer_cache_objects` metric | ⬜ |
-| `BenchmarkExtract` in `internal/collect/` | ⬜ |
+| pprof on `:6060` (feature gate) | ✅ |
+| `kollect_workqueue_depth` / `kollect_reconcile_duration_seconds` metrics | ✅ |
+| `kollect_informer_objects` / `kollect_export_bytes_total` metrics | ✅ |
+| `BenchmarkExtract` in `internal/collect/` | ✅ |
 | envtest synthetic scale harness (cap 500) | ⬜ |
-| Load test package (`test/load/`, `-tags=load`) | ⬜ |
+| Load test package (`test/load/`, `-tags=load`) | ✅ |
 
-**Counts:** ✅ 4 · ⬜ 8
+**Counts:** ✅ 11 · ⬜ 2
 
 ---
 

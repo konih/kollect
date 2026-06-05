@@ -25,6 +25,7 @@ nav:
   - Home: index.md
   - Quick start: QUICKSTART.md
   - Development: DEVELOPMENT.md
+  - Performance: PERFORMANCE.md
   - Architecture: ARCHITECTURE.md
   - Roadmap: ROADMAP.md
   - Requirements: REQUIREMENTS.md
@@ -43,6 +44,7 @@ nav:
       - "0020 Error taxonomy": adr/0020-error-taxonomy.md
       - "0021 MkDocs GitHub Pages": adr/0021-mkdocs-github-pages.md
       - "0022 Multi-cluster sync (RFC)": adr/0022-multi-cluster-sync-rfc.md
+      - "0026 Performance and scalability": adr/0026-performance-scalability.md
       - "0026 Performance and scalability": adr/0026-performance-scalability.md
 
 markdown_extensions:
