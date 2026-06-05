@@ -43,7 +43,7 @@ func ResolveProjectRef(endpoint string) (ProjectRef, error) {
 	if err != nil {
 		return ProjectRef{}, fmt.Errorf("parse endpoint: %w", err)
 	}
-	if u.Scheme != "https" && u.Scheme != "http" {
+	if !isHTTPSEndpointScheme(u.Scheme) {
 		return ProjectRef{}, fmt.Errorf("gitlab endpoint must use https or http, got %q", u.Scheme)
 	}
 
@@ -96,13 +96,29 @@ func MergeRequestTitle(template, inventoryNamespace, inventoryName string) strin
 }
 
 // EnsureMergeRequest opens or updates a merge request for branch after a git push.
-// Stub — full workflow deferred to Phase 2 (see docs/ROADMAP.md GitLab MR section).
-func EnsureMergeRequest(_ context.Context, _ Config, cfg MergeRequestConfig, _ string) error {
-	if err := ValidateMergeRequestConfig(cfg); err != nil {
+func EnsureMergeRequest(
+	ctx context.Context,
+	cfg Config,
+	mrCfg MergeRequestConfig,
+	sourceBranch, inventoryNamespace, inventoryName, apiToken string,
+) error {
+	if err := ValidateMergeRequestConfig(mrCfg); err != nil {
 		return err
 	}
-	if cfg.Mode == MergeRequestModeBranchMR {
-		return fmt.Errorf("gitlab: merge request workflow not implemented (direct push only)")
+	if mrCfg.Mode != MergeRequestModeBranchMR {
+		return nil
 	}
-	return nil
+
+	project, err := ResolveProjectRef(cfg.Endpoint)
+	if err != nil {
+		return err
+	}
+
+	client, err := NewRESTClient(cfg.Endpoint, apiToken, nil)
+	if err != nil {
+		return err
+	}
+
+	title := MergeRequestTitle(mrCfg.TitleTemplate, inventoryNamespace, inventoryName)
+	return client.EnsureOpenMergeRequest(ctx, project, sourceBranch, mrCfg.TargetBranch, title)
 }

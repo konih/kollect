@@ -5,6 +5,8 @@ package gitlab
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -119,22 +121,43 @@ func TestEnsureMergeRequest(t *testing.T) {
 	ctx := context.Background()
 	cfg := Config{Endpoint: "https://gitlab.example.com/platform/inventory.git"}
 
-	if err := EnsureMergeRequest(ctx, cfg, MergeRequestConfig{}, "feature"); err != nil {
+	if err := EnsureMergeRequest(ctx, cfg, MergeRequestConfig{}, "feature", "default", "team", ""); err != nil {
 		t.Fatalf("direct mode: %v", err)
 	}
 
-	err := EnsureMergeRequest(ctx, cfg, MergeRequestConfig{
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasPrefix(r.URL.Path, "/api/v4/projects/") {
+			http.NotFound(w, r)
+			return
+		}
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte("[]"))
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(`{"iid":1}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	mrCfg := MergeRequestConfig{
 		Mode:         MergeRequestModeBranchMR,
 		TargetBranch: "main",
-	}, "kollect/default/team")
-	if err == nil {
-		t.Fatal("expected not-implemented error")
 	}
-	if !strings.Contains(err.Error(), "not implemented") {
-		t.Fatalf("unexpected error: %v", err)
+	gitEndpoint := srv.URL + "/platform/inventory.git"
+	err := EnsureMergeRequest(ctx, Config{Endpoint: gitEndpoint}, mrCfg,
+		"kollect/default/team", "default", "team", "tok")
+	if err != nil {
+		t.Fatalf("MR mode with token: %v", err)
 	}
 
-	if err := EnsureMergeRequest(ctx, cfg, MergeRequestConfig{Mode: MergeRequestModeBranchMR}, "x"); err == nil {
+	err = EnsureMergeRequest(ctx, cfg, mrCfg, "kollect/default/team", "default", "team", "")
+	if err == nil || !strings.Contains(err.Error(), "token") {
+		t.Fatalf("expected token error, got %v", err)
+	}
+
+	err = EnsureMergeRequest(ctx, cfg, MergeRequestConfig{Mode: MergeRequestModeBranchMR},
+		"x", "ns", "n", "")
+	if err == nil {
 		t.Fatal("expected validation error")
 	}
 }
