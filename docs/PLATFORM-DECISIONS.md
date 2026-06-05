@@ -112,6 +112,13 @@ Update the cited ADR when code merges.
 | `caBundle` vs `caSecretRef` | **Keep both** — `caSecretRef` preferred; **`caBundle` max 64 KiB** (webhook) | 1 |
 | `KollectClusterInventory` | **One platform rollup CR** — aggregates all `KollectClusterTarget`s; optional `targetRefs` | 3+ |
 
+### Documentation backlog
+
+- [ ] **CR reference guide** — detailed per-kind docs (spec, status, conditions, RBAC, samples);
+  coordinator assigns worker; see `agent-context/COORDINATION.md` Documentation TODO.
+- [x] **Architecture data flows** — [DATA-FLOWS.md](DATA-FLOWS.md) (debounce + collection + scope + connection test).
+- [x] **JSONPath `[*]` wildcard** — all array elements; deployment sample updated ([ADR-0003](adr/0003-cel-jsonpath-extraction.md)).
+
 ### TODOs explicitly requested
 
 - [x] **Argo `Application` contract test** — `internal/collect/argo_application_contract_test.go`

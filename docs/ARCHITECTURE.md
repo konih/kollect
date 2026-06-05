@@ -100,6 +100,9 @@ Key properties:
 - **Status holds summaries only** — full payload in sinks ([ADR-0006](adr/0006-etcd-limit.md)).
 - **HTTP inventory** — optional, off by default; debug/small installs only.
 
+**Diagrams:** collection, debouncing, scope gates, and connection-test lifecycle —
+[DATA-FLOWS.md](DATA-FLOWS.md).
+
 ## Where inventory lives
 
 | Layer | Durability | Role |

@@ -27,6 +27,7 @@ nav:
   - Development: DEVELOPMENT.md
   - Performance: PERFORMANCE.md
   - Architecture: ARCHITECTURE.md
+  - Data flows: DATA-FLOWS.md
   - Roadmap: ROADMAP.md
   - Platform decisions: PLATFORM-DECISIONS.md
   - Requirements: REQUIREMENTS.md
