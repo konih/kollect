@@ -6,6 +6,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -16,26 +17,34 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
 )
 
 // KollectTargetReconciler reconciles a KollectTarget object
 type KollectTargetReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+	Engine *collect.Engine
 }
 
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollecttargets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollecttargets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollecttargets/finalizers,verbs=update
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectprofiles,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch
 
-// Reconcile validates the target spec and referenced profile before collection is wired.
+// Reconcile validates the target spec, registers collection, and updates status.
 func (r *KollectTargetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
 
 	var target kollectdevv1alpha1.KollectTarget
 	if err := r.Get(ctx, req.NamespacedName, &target); err != nil {
 		if apierrors.IsNotFound(err) {
+			if r.Engine != nil {
+				r.Engine.UnregisterTarget(req.Namespace, req.Name)
+			}
+
 			return ctrl.Result{}, nil
 		}
 
@@ -44,8 +53,11 @@ func (r *KollectTargetReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	if target.Spec.Suspend {
 		log.Info("target suspended", "name", target.Name, "namespace", target.Namespace)
+		if r.Engine != nil {
+			r.Engine.UnregisterTarget(target.Namespace, target.Name)
+		}
 
-		return ctrl.Result{}, nil
+		return r.setDegraded(ctx, &target, "Suspended", "spec.suspend is true")
 	}
 
 	if target.Spec.ProfileRef == "" {
@@ -62,7 +74,18 @@ func (r *KollectTargetReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, err
 	}
 
-	return r.setReady(ctx, &target)
+	if r.Engine != nil {
+		if err := r.Engine.RegisterTarget(ctx, &target, &profile); err != nil {
+			return r.setDegraded(ctx, &target, "InformerRegistrationFailed", err.Error())
+		}
+	}
+
+	count := 0
+	if r.Engine != nil {
+		count = r.Engine.ItemCount(target.Namespace, target.Name)
+	}
+
+	return r.setReady(ctx, &target, count)
 }
 
 func (r *KollectTargetReconciler) setDegraded(
@@ -84,20 +107,25 @@ func (r *KollectTargetReconciler) setDegraded(
 func (r *KollectTargetReconciler) setReady(
 	ctx context.Context,
 	target *kollectdevv1alpha1.KollectTarget,
+	collected int,
 ) (ctrl.Result, error) {
 	apimeta.RemoveStatusCondition(&target.Status.Conditions, conditionDegraded)
 	target.Status.ObservedGeneration = target.Generation
 
+	msg := fmt.Sprintf("profileRef %q resolved; collecting %d resource(s)",
+		target.Spec.ProfileRef, collected)
 	if err := setTargetCondition(
 		ctx, r.Client, target, target.Generation, &target.Status.Conditions,
-		conditionReady, metav1.ConditionTrue, "ProfileResolved",
-		fmt.Sprintf("profileRef %q resolved", target.Spec.ProfileRef),
+		conditionReady, metav1.ConditionTrue, "Collecting",
+		msg,
 	); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: defaultCollectRequeue}, nil
 }
+
+const defaultCollectRequeue = 30 * time.Second
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *KollectTargetReconciler) SetupWithManager(mgr ctrl.Manager) error {
