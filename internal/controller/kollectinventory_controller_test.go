@@ -22,20 +22,20 @@ var _ = Describe("KollectInventory Controller", func() {
 		const resourceName = "test-resource"
 
 		var (
-			ctx                context.Context
+			reconcileCtx       context.Context
 			typeNamespacedName types.NamespacedName
 			kollectinventory   *kollectdevv1alpha1.KollectInventory
 		)
 
 		BeforeEach(func() {
-			ctx = context.Background()
+			reconcileCtx = context.Background()
 			typeNamespacedName = types.NamespacedName{
 				Name:      resourceName,
 				Namespace: "default",
 			}
 			kollectinventory = &kollectdevv1alpha1.KollectInventory{}
 			By("creating the custom resource for the Kind KollectInventory")
-			err := k8sClient.Get(ctx, typeNamespacedName, kollectinventory)
+			err := k8sClient.Get(reconcileCtx, typeNamespacedName, kollectinventory)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &kollectdevv1alpha1.KollectInventory{
 					ObjectMeta: metav1.ObjectMeta{
@@ -44,18 +44,18 @@ var _ = Describe("KollectInventory Controller", func() {
 					},
 					// TODO(user): Specify other spec details if needed.
 				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Create(reconcileCtx, resource)).To(Succeed())
 			}
 		})
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
 			resource := &kollectdevv1alpha1.KollectInventory{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
+			err := k8sClient.Get(reconcileCtx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Cleanup the specific resource instance KollectInventory")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			Expect(k8sClient.Delete(reconcileCtx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
@@ -64,7 +64,7 @@ var _ = Describe("KollectInventory Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+			_, err := controllerReconciler.Reconcile(reconcileCtx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())

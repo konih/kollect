@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -111,9 +112,23 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		return r.updateStatus(ctx, &inv, len(targets), itemCount, nil)
 	}
 
-	payload, err := r.marshalRollupPayload(targets)
+	result, err := r.reconcileRollupExport(ctx, req, &inv, targets, sinkNS, log)
 	if err != nil {
 		retErr = err
+	}
+	return result, err
+}
+
+func (r *KollectClusterInventoryReconciler) reconcileRollupExport(
+	ctx context.Context,
+	req ctrl.Request,
+	inv *kollectdevv1alpha1.KollectClusterInventory,
+	targets []kollectdevv1alpha1.KollectClusterTarget,
+	sinkNS string,
+	log logr.Logger,
+) (ctrl.Result, error) {
+	payload, err := r.marshalRollupPayload(targets)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -121,14 +136,14 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		msg := fmt.Sprintf("export payload %d bytes exceeds cap %d", len(payload), limit)
 		metrics.SinkErrorsTotal.WithLabelValues("payload_too_large").Inc()
 
-		return r.setDegraded(ctx, &inv, "PayloadTooLarge", msg)
+		return r.setDegraded(ctx, inv, "PayloadTooLarge", msg)
 	}
 
 	hash := payloadHash(payload)
 	key := req.String()
 
-	if r.shouldDebounce(&inv, key, hash) {
-		debounce := r.exportDebounce(&inv)
+	if r.shouldDebounce(inv, key, hash) {
+		debounce := r.exportDebounce(inv)
 		delay := debounce - time.Since(r.lastExportTime(key))
 		if delay < time.Second {
 			delay = time.Second
@@ -137,20 +152,20 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 
-	itemCount = r.countRollupItems(targets)
+	itemCount := r.countRollupItems(targets)
 
 	if len(inv.Spec.SinkRefs) == 0 {
 		setSyncedCondition(&inv.Status.Conditions, inv.Generation, true, "NoExport", "no sinkRefs configured")
-		return r.updateStatus(ctx, &inv, len(targets), itemCount, nil)
+		return r.updateStatus(ctx, inv, len(targets), itemCount, nil)
 	}
 
 	if r.Registry == nil {
-		return r.setDegraded(ctx, &inv, "ExportUnavailable", "sink registry is not configured")
+		return r.setDegraded(ctx, inv, "ExportUnavailable", "sink registry is not configured")
 	}
 
 	var exportErr error
 	for _, sinkName := range inv.Spec.SinkRefs {
-		if err := r.exportToSink(ctx, &inv, sinkNS, sinkName, payload); err != nil {
+		if err := r.exportToSink(ctx, inv, sinkNS, sinkName, payload); err != nil {
 			log.Error(err, "cluster export failed", "sink", sinkName)
 			exportErr = err
 		}
@@ -164,9 +179,9 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		}
 		setSinkReachableFromExport(&inv.Status.Conditions, inv.Generation, exportErr)
 		setSyncedCondition(&inv.Status.Conditions, inv.Generation, false, reason, exportErr.Error())
-		recordWarning(r.Recorder, &inv, reason, exportErr.Error())
+		recordWarning(r.Recorder, inv, reason, exportErr.Error())
 
-		result, err := r.setDegraded(ctx, &inv, reason, exportErr.Error())
+		result, err := r.setDegraded(ctx, inv, reason, exportErr.Error())
 		if kollecterrors.IsTerminal(exportErr) {
 			result.RequeueAfter = 0
 		}
@@ -174,9 +189,9 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		return result, err
 	}
 
-	r.recordExport(&inv, key, hash)
+	r.recordExport(inv, key, hash)
 
-	return r.updateStatus(ctx, &inv, len(targets), itemCount, nil)
+	return r.updateStatus(ctx, inv, len(targets), itemCount, nil)
 }
 
 func (r *KollectClusterInventoryReconciler) exportDebounce(
