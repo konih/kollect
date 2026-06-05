@@ -4,74 +4,55 @@
 [![Docs](https://github.com/konih/kollect/actions/workflows/docs.yaml/badge.svg)](https://github.com/konih/kollect/actions/workflows/docs.yaml)
 [![License: MIT](https://img.shields.io/github/license/konih/kollect)](https://github.com/konih/kollect/blob/main/LICENSE)
 [![Go](https://img.shields.io/github/go-mod/go-version/konih/kollect)](https://pkg.go.dev/github.com/konih/kollect)
-[![Go Reference](https://pkg.go.dev/badge/github.com/konih/kollect.svg)](https://pkg.go.dev/github.com/konih/kollect)
 [![Docs site](https://img.shields.io/badge/docs-konih.github.io%2Fkollect-blue)](https://konih.github.io/kollect/)
 [![Container](https://img.shields.io/badge/ghcr.io-konih%2Fkollect-2496ED?logo=docker&logoColor=white)](https://github.com/konih/kollect/pkgs/container/kollect)
 
-Generic Kubernetes **inventory export operator** (`kollect.dev/v1alpha1`).
+**kollect** is a Kubernetes inventory operator. Point it at any API resource (any GVK), describe
+the fields you care about with CEL or JSONPath, and export live cluster state to **Postgres**,
+**Kafka**, **Git**, and more — no bespoke collector per CRD, no batch cron jobs scraping the API.
 
-Platform and application teams need **stakeholder-visible inventory** without bespoke collectors
-per resource type: what is deployed, where, and which attributes matter for audits, cost, or
-developer portals. Batch scripts and hardcoded schemas do not scale across clusters and CRDs.
+Stakeholders who never touch `kubectl` still get auditable, versioned snapshots they can diff,
+query, or feed into developer portals and compliance workflows.
 
-**kollect** watches arbitrary API resources, extracts attributes with CEL or JSONPath, aggregates
-results, and exports to pluggable sinks (Git, GitLab, S3, GCS, Postgres, Kafka). Exporting cluster
-state to Git gives auditable, diffable snapshots that
-developer portals and compliance workflows can consume alongside live API access — so stakeholders
-without `kubectl` or repo access still see versioned, traceable system state.
+**Read the docs:** **[konih.github.io/kollect](https://konih.github.io/kollect/)** — install guides,
+CR references, architecture, and examples. This README is the front door; the site is the map.
 
 ## Quick start
 
-**Prerequisites:** Docker, [kind](https://kind.sigs.k8s.io/), kubectl, Go, and [Task](https://taskfile.dev/).
+Try kollect on a local kind cluster in a few minutes:
 
-```sh
-kind create cluster --name kollect-dev
-task build
-task install:crds
-task docker:build
-kind load docker-image kollect-controller-manager:dev --name kollect-dev
-task deploy:operator
-kubectl apply -k config/samples/
-```
+1. **Create a cluster** — `kind create cluster --name kollect-dev`
+2. **Build and deploy** — `task build`, `task install:crds`, `task docker:build`, load the image, `task deploy:operator`
+3. **Apply samples** — `kubectl apply -k config/samples/` (profile → sink → target → inventory)
+4. **Verify** — watch `KollectInventory` status and check your sink (Postgres, Kafka, or the [demo Git repo](https://github.com/konih/kollect-inventory-demo))
 
-Full step-by-step guide with verification and maturity notes:
-**[docs/QUICKSTART.md](docs/QUICKSTART.md)**
+Full copy-paste commands, prerequisites, and maturity notes:
+**[Quick start on the docs site →](https://konih.github.io/kollect/QUICKSTART/)**
 
-## Documentation
+## Why kollect?
 
-| Guide | Description |
+| | |
 | --- | --- |
-| [Quick start](docs/QUICKSTART.md) | Install on kind, apply samples |
-| [CR reference](docs/CR-REFERENCE.md) | Per-kind fields, RBAC, failure modes |
-| [Data flows](docs/DATA-FLOWS.md) | Debouncing, collection, scope gates |
-| [Platform decisions](docs/PLATFORM-DECISIONS.md) | Locked architecture (2026-06-05) |
-| [Development](docs/DEVELOPMENT.md) | Build, test, codegen, lint |
-| [Architecture](docs/ARCHITECTURE.md) | CRD model and reconciliation |
-| [Roadmap](docs/ROADMAP.md) | Build-order phases |
-| [Example walkthrough](docs/examples/deployment-inventory.md) | Profile → sink → target → inventory |
-| [ADRs](docs/adr/) | Architecture decisions |
+| **Event-driven** | Dynamic informers react to changes — inventory stays current without polling loops. |
+| **CRD-native** | Declare profiles, sinks, targets, and inventory in Kubernetes; GitOps-friendly from day one. |
+| **Multi-tenant** | `KollectScope` gates which teams and namespaces can export to which sinks. |
+| **Hub / spoke** | Run a central hub that aggregates inventory from spoke clusters via `KollectClusterTarget`. |
 
-Preview docs locally: `mkdocs serve` (see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#documentation-site-mkdocs)).
-Published site: **[konih.github.io/kollect](https://konih.github.io/kollect/)**.
+kollect is early and moving fast — issues, ideas, and PRs are welcome. See where we're headed in the
+[roadmap](https://konih.github.io/kollect/ROADMAP/).
 
-## Project layout
+## Learn more
 
-| Path | Purpose |
+| Topic | Link |
 | --- | --- |
-| `api/v1alpha1/` | CRD Go types (`KollectProfile`, `KollectSink`, `KollectTarget`, `KollectInventory`) |
-| `internal/controller/` | Reconcilers for `KollectTarget` and `KollectInventory` |
-| `config/crd/bases/` | Generated CRD YAML |
-| `config/samples/` | Example CR instances |
-| `hack/verify.sh` | Codegen drift gate (also `task verify`) |
+| CR fields, RBAC, failure modes | [CR reference](https://konih.github.io/kollect/CR-REFERENCE/) |
+| Debouncing, collection, scope gates | [Data flows](https://konih.github.io/kollect/DATA-FLOWS/) |
+| Build-order phases and status | [Roadmap](https://konih.github.io/kollect/ROADMAP/) |
+| Example: Deployment → Git export | [Walkthrough](https://konih.github.io/kollect/examples/deployment-inventory/) |
+| Live demo inventory (Git sink) | [kollect-inventory-demo](https://github.com/konih/kollect-inventory-demo) |
 
-Static config kinds (`KollectProfile`, `KollectSink`) are validated via the API; reconciled
-kinds (`KollectTarget`, `KollectInventory`) run controllers. See [GUIDELINES.md](GUIDELINES.md) for
-engineering rules and [docs/adr/](docs/adr/) for architecture decisions.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Run `task lint`, `task test`, and `task verify` before
-opening a PR.
+Developers: `task lint`, `task test`, and `task verify` before opening a PR — details in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Security
 
