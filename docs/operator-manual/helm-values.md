@@ -108,6 +108,7 @@ with the **`kollect.dev/test-connection: "true"`** annotation when needed. CI an
 | `resources` | CPU/memory requests and limits | See `values.yaml` |
 | `metrics.enabled` | Prometheus metrics listener | `true` |
 | `metrics.serviceMonitor.enabled` | Prometheus Operator `ServiceMonitor` | `false` |
+| `metrics.prometheusRule.enabled` | Default `PrometheusRule` alerts | `false` |
 | `controller.maxConcurrentReconciles.*` | Per-controller concurrency | See `values.yaml` |
 | `extraArgs` | Additional manager flags (debug only) | `[]` |
 
@@ -117,6 +118,6 @@ Webhook serving certificates: cert-manager default or self-signed bootstrap —
 
 ## See also
 
-- [Operator manual](../OPERATOR-MANUAL.md) · [Upgrading Kollect](upgrading.md)
+- [Operator manual](../OPERATOR-MANUAL.md) · [Upgrading Kollect](upgrading.md) · [Metrics](metrics.md)
 - [ADR-0704: Helm chart and CRD lifecycle](../adr/0704-helm-chart-crd-lifecycle.md)
 - [High availability](../OPERATOR-MANUAL.md#high-availability) — `replicaCount` and leader election

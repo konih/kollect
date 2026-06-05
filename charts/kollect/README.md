@@ -121,6 +121,38 @@ CI/samples may set `connectionTest: true`.
 Hub/spoke transport defaults to **`inprocess`** until an external backend passes integration tests.
 Do not enable Redis/NATS/Kafka in chart values without explicit ops choice ([ADR-0502](../../docs/adr/0502-lean-queue-transport.md)).
 
+## Prometheus Operator monitoring
+
+Requires Prometheus Operator CRDs (e.g. **kube-prometheus-stack**). Metrics scrape and alerts are **off by default**
+— enable when your cluster runs the operator.
+
+```yaml
+metrics:
+  enabled: true
+  secure: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      release: kube-prometheus-stack   # must match Prometheus serviceMonitorSelector
+  prometheusRule:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack   # must match Prometheus ruleSelector
+    additionalRules: []                # optional extra rules in kollect.rules group
+```
+
+The `ServiceMonitor` targets Service `<release>-kollect-controller-manager` port **`metrics`**
+(HTTPS with bearer token when `metrics.secure: true`). Bind a **metrics-reader** `ClusterRole`
+to your Prometheus service account so SAR succeeds on `/metrics`.
+
+Starter alerts (group `kollect.rules`): metrics target down, operator not ready, reconcile errors,
+inventory export errors, sink export failures, connection test failures, high export latency,
+workqueue backlog, hub spoke report failures. See [operator metrics reference](../../docs/operator-manual/metrics.md).
+
+CI overlay: [`ci/monitoring-values.yaml`](ci/monitoring-values.yaml).
+
 ## Inventory HTTP authentication
 
 When `featureGates.inventoryHttp.enabled` is `true`, the operator serves a read-only inventory API.
