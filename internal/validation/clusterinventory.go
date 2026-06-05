@@ -65,7 +65,10 @@ func ValidateClusterInventorySpec(spec *kollectdevv1alpha1.KollectClusterInvento
 }
 
 // ClusterExportMinIntervalFor returns the effective export debounce for a cluster inventory.
-func ClusterExportMinIntervalFor(spec *kollectdevv1alpha1.KollectClusterInventorySpec, fallback time.Duration) time.Duration {
+func ClusterExportMinIntervalFor(
+	spec *kollectdevv1alpha1.KollectClusterInventorySpec,
+	fallback time.Duration,
+) time.Duration {
 	if spec != nil && spec.ExportMinInterval != nil {
 		d := spec.ExportMinInterval.Duration
 		if d > 0 {

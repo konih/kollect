@@ -26,13 +26,13 @@ var _ = Describe("KollectTarget Controller", func() {
 		)
 
 		var (
-			ctx                context.Context
+			reconcileCtx       context.Context
 			typeNamespacedName types.NamespacedName
 			kollecttarget      *kollectdevv1alpha1.KollectTarget
 		)
 
 		BeforeEach(func() {
-			ctx = context.Background()
+			reconcileCtx = context.Background()
 			typeNamespacedName = types.NamespacedName{
 				Name:      resourceName,
 				Namespace: "default",
@@ -47,10 +47,10 @@ var _ = Describe("KollectTarget Controller", func() {
 					},
 				},
 			}
-			Expect(k8sClient.Create(ctx, profile)).To(Succeed())
+			Expect(k8sClient.Create(reconcileCtx, profile)).To(Succeed())
 
 			kollecttarget = &kollectdevv1alpha1.KollectTarget{}
-			err := k8sClient.Get(ctx, typeNamespacedName, kollecttarget)
+			err := k8sClient.Get(reconcileCtx, typeNamespacedName, kollecttarget)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &kollectdevv1alpha1.KollectTarget{
 					ObjectMeta: metav1.ObjectMeta{
@@ -61,21 +61,21 @@ var _ = Describe("KollectTarget Controller", func() {
 						ProfileRef: profileName,
 					},
 				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Create(reconcileCtx, resource)).To(Succeed())
 			}
 		})
 
 		AfterEach(func() {
 			target := &kollectdevv1alpha1.KollectTarget{}
-			err := k8sClient.Get(ctx, typeNamespacedName, target)
+			err := k8sClient.Get(reconcileCtx, typeNamespacedName, target)
 			if err == nil {
-				Expect(k8sClient.Delete(ctx, target)).To(Succeed())
+				Expect(k8sClient.Delete(reconcileCtx, target)).To(Succeed())
 			}
 
 			profile := &kollectdevv1alpha1.KollectProfile{}
-			err = k8sClient.Get(ctx, types.NamespacedName{Name: profileName, Namespace: "default"}, profile)
+			err = k8sClient.Get(reconcileCtx, types.NamespacedName{Name: profileName, Namespace: "default"}, profile)
 			if err == nil {
-				Expect(k8sClient.Delete(ctx, profile)).To(Succeed())
+				Expect(k8sClient.Delete(reconcileCtx, profile)).To(Succeed())
 			}
 		})
 
@@ -85,13 +85,13 @@ var _ = Describe("KollectTarget Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+			_, err := controllerReconciler.Reconcile(reconcileCtx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
 			updated := &kollectdevv1alpha1.KollectTarget{}
-			Expect(k8sClient.Get(ctx, typeNamespacedName, updated)).To(Succeed())
+			Expect(k8sClient.Get(reconcileCtx, typeNamespacedName, updated)).To(Succeed())
 
 			ready := apimeta.FindStatusCondition(updated.Status.Conditions, conditionReady)
 			Expect(ready).NotTo(BeNil())
@@ -100,13 +100,13 @@ var _ = Describe("KollectTarget Controller", func() {
 		})
 
 		It("should not resolve a profile from a different namespace", func() {
-			Expect(k8sClient.Delete(ctx, &kollectdevv1alpha1.KollectProfile{
+			Expect(k8sClient.Delete(reconcileCtx, &kollectdevv1alpha1.KollectProfile{
 				ObjectMeta: metav1.ObjectMeta{Name: profileName, Namespace: "default"},
 			})).To(Succeed())
 
 			otherNS := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "other"}}
-			Expect(k8sClient.Create(ctx, otherNS)).To(Succeed())
-			defer func() { _ = k8sClient.Delete(ctx, otherNS) }()
+			Expect(k8sClient.Create(reconcileCtx, otherNS)).To(Succeed())
+			defer func() { _ = k8sClient.Delete(reconcileCtx, otherNS) }()
 
 			otherProfile := &kollectdevv1alpha1.KollectProfile{
 				ObjectMeta: metav1.ObjectMeta{Name: profileName, Namespace: "other"},
@@ -117,9 +117,9 @@ var _ = Describe("KollectTarget Controller", func() {
 					},
 				},
 			}
-			Expect(k8sClient.Create(ctx, otherProfile)).To(Succeed())
+			Expect(k8sClient.Create(reconcileCtx, otherProfile)).To(Succeed())
 			defer func() {
-				Expect(k8sClient.Delete(ctx, otherProfile)).To(Succeed())
+				Expect(k8sClient.Delete(reconcileCtx, otherProfile)).To(Succeed())
 			}()
 
 			controllerReconciler := &KollectTargetReconciler{
@@ -127,13 +127,13 @@ var _ = Describe("KollectTarget Controller", func() {
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+			_, err := controllerReconciler.Reconcile(reconcileCtx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
 			updated := &kollectdevv1alpha1.KollectTarget{}
-			Expect(k8sClient.Get(ctx, typeNamespacedName, updated)).To(Succeed())
+			Expect(k8sClient.Get(reconcileCtx, typeNamespacedName, updated)).To(Succeed())
 
 			degraded := apimeta.FindStatusCondition(updated.Status.Conditions, conditionDegraded)
 			Expect(degraded).NotTo(BeNil())
@@ -142,22 +142,22 @@ var _ = Describe("KollectTarget Controller", func() {
 
 		It("should mark the target Degraded when profileRef is missing", func() {
 			target := &kollectdevv1alpha1.KollectTarget{}
-			Expect(k8sClient.Get(ctx, typeNamespacedName, target)).To(Succeed())
+			Expect(k8sClient.Get(reconcileCtx, typeNamespacedName, target)).To(Succeed())
 			target.Spec.ProfileRef = "missing-profile"
-			Expect(k8sClient.Update(ctx, target)).To(Succeed())
+			Expect(k8sClient.Update(reconcileCtx, target)).To(Succeed())
 
 			controllerReconciler := &KollectTargetReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
+			_, err := controllerReconciler.Reconcile(reconcileCtx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())
 
 			updated := &kollectdevv1alpha1.KollectTarget{}
-			Expect(k8sClient.Get(ctx, typeNamespacedName, updated)).To(Succeed())
+			Expect(k8sClient.Get(reconcileCtx, typeNamespacedName, updated)).To(Succeed())
 
 			degraded := apimeta.FindStatusCondition(updated.Status.Conditions, conditionDegraded)
 			Expect(degraded).NotTo(BeNil())
