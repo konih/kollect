@@ -1,0 +1,8 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/konih/kollect/security/vex.json",
+  "author": "Konrad Heimel <konrad.heimel@gmail.com>",
+  "timestamp": "2026-06-05T00:00:00Z",
+  "version": 1,
+  "statements": []
+}

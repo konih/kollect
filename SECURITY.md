@@ -121,6 +121,13 @@ exception in this file (module, advisory ID, rationale, review date) before supp
 Release images are additionally scanned with **Trivy** (CRITICAL/HIGH, fixable only) in
 [`.github/workflows/release.yaml`](.github/workflows/release.yaml).
 
+## VEX (vulnerability exceptions)
+
+Kollect publishes an [OpenVEX](https://openvex.dev/) document at
+[`security/vex.json`](security/vex.json). The `statements` array is **empty** today — no CVE
+findings are suppressed. When a deferral or false positive requires a documented exception,
+add a VEX statement and link the GitHub issue or ADR in the statement metadata.
+
 ## OpenSSF Scorecard
 
 Supply-chain posture is tracked via the [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/konih/kollect)
