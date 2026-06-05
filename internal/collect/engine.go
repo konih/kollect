@@ -35,6 +35,13 @@ type targetState struct {
 }
 
 // Engine registers dynamic informers per profile GVK and writes extracted attributes to Store.
+//
+// Scale notes (10k+ objects / 100+ clusters):
+//   - dispatch() scans all targets for a GVR on every informer event — O(targets) per event;
+//     split profiles/GVKs when target count grows.
+//   - Cluster-wide informers (metav1.NamespaceAll) cache every object for a GVR; namespace-scoped
+//     watches are preferred when targets agree on one namespace via namespaceSelector.
+//   - extract + store.Upsert run on the informer thread; slow CEL paths block cache delivery.
 type Engine struct {
 	dynamic   dynamic.Interface
 	kube      kubernetes.Interface
@@ -258,7 +265,7 @@ func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, 
 
 		if deleted {
 			e.store.Remove(target.Namespace, target.Name, string(u.GetUID()))
-			metrics.CollectItemsTotal.Set(float64(e.store.TotalCount()))
+			metrics.CollectItemsTotal.Set(float64(e.store.Len()))
 
 			continue
 		}
@@ -310,7 +317,7 @@ func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, 
 		})
 		metrics.CollectedObjects.WithLabelValues(target.Spec.ProfileRef, gvkLabel).
 			Set(float64(e.store.CountForTarget(target.Namespace, target.Name)))
-		metrics.CollectItemsTotal.Set(float64(e.store.TotalCount()))
+		metrics.CollectItemsTotal.Set(float64(e.store.Len()))
 	}
 }
 

@@ -22,8 +22,13 @@ type Item struct {
 }
 
 // Store holds collected items keyed by target namespace/name and resource UID.
-// Memory use is O(n) in the number of collected objects (one map entry per resource UID).
-// A single RWMutex protects the nested maps; reads use RLock for snapshot/export paths.
+//
+// Scale notes (10k+ objects / 100+ clusters):
+//   - Memory is O(n) in collected object count; one map entry per resource UID.
+//   - A single RWMutex guards nested maps — export snapshots hold RLock for O(n) copies;
+//     at 10k+ rows consider namespace-sharded stores (shard key = target namespace) to
+//     reduce lock contention and snapshot payload size.
+//   - Hub deployments should not mirror full spoke stores; push summarized deltas only.
 type Store struct {
 	mu       sync.RWMutex
 	items    map[string]map[string]Item
@@ -175,6 +180,11 @@ func (s *Store) MarshalNamespaceJSON(namespace string) ([]byte, error) {
 
 // TotalCount returns the number of items across all targets.
 func (s *Store) TotalCount() int {
+	return s.Len()
+}
+
+// Len returns the number of items across all targets (used by metrics and HTTP summary).
+func (s *Store) Len() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
