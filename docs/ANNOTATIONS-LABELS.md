@@ -104,6 +104,22 @@ HTTP header `X-Kollect-Cluster-Id` carries cluster identity on hub ingest paths.
     Prefer indirect references (e.g. cert-manager status) when possible
     ([KollectClusterProfile](crds/kollectclusterprofile.md)).
 
+## Export payload spill
+
+Not an annotation — operator policy for marshalled inventory size
+([ADR-0103](adr/0103-etcd-limit.md), [KollectSink spill](crds/kollectsink.md#export-payload-spill)):
+
+| Signal | When | Meaning |
+| --- | --- | --- |
+| Log `export payload exceeds spill warn threshold` | Payload ≥ **1 MiB** | Approaching mandatory object-store spill |
+| `kollect_export_spill_warn_total` | Payload ≥ **1 MiB** | Counter — tune targets or add S3/GCS before hard block |
+| Inventory `Degraded` `SpillRequired` | Payload > **1 MiB**, no `s3`/`gcs` in `sinkRefs` | Add object-store sink or reduce payload |
+| Inventory `Degraded` `PayloadTooLarge` | Payload > **`maxExportBytes`** (~1.5 MiB default) | Split targets, trim attributes, or raise cap within global limit |
+| `kollect_sink_errors_total{reason="spill_required"}` | Spill gate blocked export | Same remediation as `SpillRequired` |
+
+`KollectSink.spec.pathTemplate` controls where spill payloads land in Git/S3/GCS (not related to watch
+labels above).
+
 ## Tenant and example labels
 
 Sample manifests and e2e fixtures use conventional labels — not enforced by the operator unless

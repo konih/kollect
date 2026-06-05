@@ -61,6 +61,8 @@ Export debouncing and payload flow: [DATA-FLOWS.md](../DATA-FLOWS.md#1-export-de
 | `spec.tls` | object | No | `insecureSkipVerify`, `caSecretRef`, `caBundle` (max 64 KiB) |
 | `spec.connectionTest` | bool | No | Probe on create/update when true |
 | `spec.cluster` | string | No | Cluster label for multi-cluster exports |
+| `spec.pathTemplate` | string | No | Git/object-store object path layout ([ADR-0407](../adr/0407-git-object-store-layout.md)); default `inventory/{namespace}/{name}.json` |
+| `spec.objectStore` | object | No | S3/GCS snapshot format (`json` or `parquet`) and Parquet hot columns |
 | `spec.postgres` | object | No | `databaseRef`, `table`, `schema` |
 | `spec.kafka` | object | No | `brokers[]`, `topic`, optional `secretRef` |
 | `spec.gitlab` | object | No | GitLab-only: `mergeRequest` block when `type: gitlab` |
@@ -98,6 +100,49 @@ When `spec.type: gitlab` and `spec.gitlab.mergeRequest.mode: merge_request`:
 and `api` (project access token or personal access token with equivalent scopes).
 
 Direct mode (`merge_request` unset or `mode: direct`) pushes to the endpoint default branch only.
+
+### Object path template
+
+`spec.pathTemplate` controls where snapshot backends write each inventory export
+([ADR-0407](../adr/0407-git-object-store-layout.md)). Applies to `git`, `gitlab`, `s3`, and `gcs`
+when `spec.objectStore.format` is unset or `json`. Parquet mode uses a fixed Hive-style layout instead.
+
+| Placeholder | Substituted with |
+| --- | --- |
+| `{cluster}` | `spec.cluster`, or `default` when empty |
+| `{namespace}` | Inventory namespace |
+| `{name}` | Inventory name |
+| `{generation}` | Export generation counter |
+| `{extension}` | File extension (default `.json`) |
+
+**Default:** `inventory/{namespace}/{name}.json`
+
+**Validation:** relative path only (no leading `/`, no `..` segments); must include `{namespace}` and
+`{name}`; unsupported placeholders are rejected at admission.
+
+Example multi-cluster layout:
+
+```yaml
+spec:
+  type: s3
+  cluster: prod-eu
+  pathTemplate: "clusters/{cluster}/inventory/{namespace}/{name}{extension}"
+```
+
+### Export payload spill
+
+Large exports are bounded per [ADR-0103](../adr/0103-etcd-limit.md) and
+[REQUIREMENTS.md](../REQUIREMENTS.md#6-resolved-requirement-questions-2026-06-05):
+
+| Threshold | Behavior |
+| --- | --- |
+| **≥ 1 MiB** | Operator logs a warn and increments `kollect_export_spill_warn_total` |
+| **> 1 MiB** | **Mandatory object-store spill** — inventory must reference an `s3` or `gcs` sink in `sinkRefs` |
+| **> `maxExportBytes`** (~1.5 MiB global default) | Export blocked — inventory `Degraded`, reason `PayloadTooLarge` |
+
+When spill is mandatory, `git` / `gitlab` snapshot exports are **skipped** for that payload; `s3` /
+`gcs` backends still receive the full JSON. If no object-store sink is configured, inventory surfaces
+`Degraded=True`, reason `SpillRequired`. Pair a Git audit sink with S3/GCS for large inventories.
 
 ## Sample usage
 
@@ -172,6 +217,8 @@ Restrict Secret access to operator ServiceAccount; never put credentials in CR s
 | `TLSInsecure` warning | `insecureSkipVerify: true` | Mount CA via `tls.caSecretRef` (GitLab Phase 2) |
 | Postgres upsert errors | Schema/table mismatch | Align `postgres.table` / `schema` with DB migration |
 | No Git commits | Missing `secretRef` for private repo | Create push credentials Secret; set `spec.secretRef` |
+| No Git commits (large inventory) | Payload > 1 MiB — Git skipped by spill policy | Add `s3` or `gcs` to inventory `sinkRefs`; verify object-store export |
+| Inventory `SpillRequired` | Payload > 1 MiB without object-store sink | Add `s3`/`gcs` sink ref or trim attributes / split targets |
 
 ## See also
 
