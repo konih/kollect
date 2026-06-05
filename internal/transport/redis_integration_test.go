@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/testcontainers/testcontainers-go/modules/redis"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestRedisTransportRoundTrip(t *testing.T) {
@@ -23,7 +25,7 @@ func TestRedisTransportRoundTrip(t *testing.T) {
 
 	container, err := redis.Run(ctx, "redis:7-alpine")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 

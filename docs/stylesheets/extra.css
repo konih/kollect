@@ -1,4 +1,4 @@
-/* kollect docs — readable Material theme with light brand accents */
+/* kollect docs — brand palette (#326CE5 / #18B6A3); dark (slate) is default */
 
 [data-md-color-scheme="default"] {
   --md-primary-fg-color: #326ce5;
@@ -14,6 +14,10 @@
   --md-primary-fg-color--dark: #2859c7;
   --md-accent-fg-color: #18b6a3;
   --md-accent-fg-color--transparent: rgba(24, 182, 163, 0.1);
+  --md-default-bg-color: #081a4b;
+  --md-default-bg-color--light: #0c2258;
+  --md-default-bg-color--lighter: #122a66;
+  --md-default-bg-color--lightest: #1a3578;
 }
 
 /* Subtle brand border on the light header only */
@@ -49,6 +53,15 @@
     rgba(50, 108, 229, 0.1) 0%,
     rgba(24, 182, 163, 0.05) 55%,
     transparent 100%
+  );
+}
+
+[data-md-color-scheme="slate"] .kollect-hero {
+  background: linear-gradient(
+    145deg,
+    rgba(50, 108, 229, 0.18) 0%,
+    rgba(24, 182, 163, 0.08) 55%,
+    rgba(8, 26, 75, 0.4) 100%
   );
 }
 
@@ -106,4 +119,31 @@
 /* Slightly stronger tab underline on dark palette */
 [data-md-color-scheme="slate"] .md-tabs__link--active {
   opacity: 1;
+}
+
+/* Branded illustrations — authored for Deep Navy #081A4B canvas */
+.kollect-illus {
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  margin: 1.25rem auto 1.75rem;
+  border-radius: 0.35rem;
+}
+
+.kollect-illus--wide {
+  max-width: 56rem;
+}
+
+.kollect-illus--portrait {
+  max-width: 26rem;
+}
+
+[data-md-color-scheme="slate"] .kollect-illus {
+  border: 1px solid rgba(50, 108, 229, 0.22);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.22);
+}
+
+[data-md-color-scheme="default"] .kollect-illus {
+  border: 1px solid rgba(50, 108, 229, 0.15);
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
 }

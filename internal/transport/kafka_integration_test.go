@@ -13,6 +13,8 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"github.com/testcontainers/testcontainers-go/modules/redpanda"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestKafkaTransportRoundTrip(t *testing.T) {
@@ -25,7 +27,7 @@ func TestKafkaTransportRoundTrip(t *testing.T) {
 
 	container, err := redpanda.Run(ctx, "docker.redpanda.com/redpandadata/redpanda:v24.2.4")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 

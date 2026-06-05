@@ -89,8 +89,7 @@ done
 
 if [[ "${RUN_CHECK}" -eq 1 ]]; then
   # shellcheck source=lib/check.sh
-  source "${SCRIPT_DIR}/lib/check.sh"
-  exit $?
+  DEMO_CHECK_STANDALONE=1 source "${SCRIPT_DIR}/lib/check.sh"
 fi
 
 demo_require_gum
@@ -104,7 +103,7 @@ _choose_persona() {
     export DEMO_PERSONA
     return 0
   fi
-  if command -v gum >/dev/null 2>&1; then
+  if command -v gum >/dev/null 2>&1 && [[ -t 0 && -t 1 ]]; then
     DEMO_PERSONA="$(gum choose --header "Demo persona" \
       "full — 8 GVK showcase + Git export" \
       "security — CVE/TLS/secrets headline, lighter fleet" \
@@ -137,7 +136,7 @@ if [[ "${DEMO_SKIP_CONTRAST:-}" != "1" ]]; then
   demo_info "Four teams, four tools, no durable history — stakeholders cannot live-list the apiserver forever."
   if demo_confirm "Show apiserver scatter contrast (kubectl get -A)?"; then
     demo_spin "Scattered cluster state (sample)..." \
-      bash -c "${KUBECTL} get deploy,svc,certificate,externalsecret -A 2>/dev/null | head -20 || true"
+      bash "${SCRIPT_DIR}/lib/cmd/contrast-scatter.sh"
     demo_info "Kollect answer: **one inventory**, many projections — Scope → Profile → Target → Inventory → Sink."
   fi
 fi
@@ -146,7 +145,9 @@ demo_confirm "Ready to bootstrap the Kollect wide-scope demo on kind?" || exit 0
 
 demo_step 1 "Prerequisites"
 # shellcheck source=lib/check.sh
-source "${SCRIPT_DIR}/lib/check.sh"
+if ! source "${SCRIPT_DIR}/lib/check.sh"; then
+  demo_fail "Prerequisite check failed — fix items above and re-run."
+fi
 
 if demo_persona_git_enabled; then
   if [[ -z "${GITHUB_TOKEN:-}" ]]; then
@@ -174,7 +175,7 @@ demo_info "Event-driven informers per GVK → debounced export → Git snapshot 
 _kind_bootstrap() {
   if [[ "${FRESH_CLUSTER}" -eq 1 ]]; then
     demo_spin "Deleting existing cluster ${CLUSTER_NAME}..." \
-      bash -c "cd '${REPO_ROOT}' && task kind-dev-down" || true
+      bash "${SCRIPT_DIR}/lib/cmd/kind-dev-down.sh" || true
   fi
   if [[ "${REUSE_CLUSTER}" -eq 1 ]]; then
     if kind get clusters 2>/dev/null | grep -qx "${CLUSTER_NAME}" \
@@ -185,12 +186,18 @@ _kind_bootstrap() {
     fi
     demo_info "Cluster missing or unhealthy — running full bootstrap."
   fi
-  demo_spin "Starting kind cluster (KOLLECT_DEV_MINIMAL=1, demo-values UI)..." \
-    bash -c "cd '${REPO_ROOT}' && DEV_VALUES='${DEMO_HELM_VALUES}' KOLLECT_DEV_MINIMAL=1 task kind-dev-up"
+  if ! demo_spin "Starting kind cluster (KOLLECT_DEV_MINIMAL=1, demo-values UI)..." \
+    bash "${SCRIPT_DIR}/lib/cmd/kind-dev-up.sh"; then
+    return 1
+  fi
 }
 
-_kind_bootstrap
-"${KUBECTL}" config use-context "kind-${CLUSTER_NAME}"
+if ! _kind_bootstrap; then
+  demo_fail "kind bootstrap failed — task kind-dev-up exited non-zero. Check Docker, controller build, and port conflicts above."
+fi
+if ! "${KUBECTL}" config use-context "kind-${CLUSTER_NAME}"; then
+  demo_fail "kubectl could not switch to context kind-${CLUSTER_NAME}."
+fi
 
 if [[ "${SKIP_PLATFORM}" -eq 0 ]]; then
   demo_step 3 "Upstream CRDs — security, TLS, secrets"
@@ -203,9 +210,7 @@ fi
 if demo_persona_git_enabled && [[ -n "${GITHUB_TOKEN:-}" ]]; then
   demo_step 4 "Git credentials"
   demo_spin "Creating git-push-credentials..." \
-    bash -c "${KUBECTL} create secret generic git-push-credentials -n default \
-      --from-literal=token='${GITHUB_TOKEN}' \
-      --dry-run=client -o yaml | ${KUBECTL} apply -f -"
+    bash "${SCRIPT_DIR}/lib/cmd/apply-git-credentials.sh"
 else
   demo_step 4 "Git credentials"
   demo_info "Skipped — local persona or no token."
@@ -214,8 +219,11 @@ fi
 demo_step 5 "Kollect configuration + demo fleet"
 demo_info "Apply overlay **${DEMO_PERSONA}**: Scope → Profiles → Targets → Sink → Inventory → workloads."
 
-demo_spin "kubectl apply -k ${overlay_rel}..." \
-  bash -c "cd '${REPO_ROOT}' && ${KUBECTL} apply -k '${overlay_path}'"
+export DEMO_OVERLAY_PATH="${overlay_path}"
+if ! demo_spin "kubectl apply -k ${overlay_rel}..." \
+  bash "${SCRIPT_DIR}/lib/cmd/apply-overlay.sh"; then
+  demo_fail "kubectl apply -k '${overlay_path}' failed — check overlay path and cluster connectivity."
+fi
 
 demo_step 6 "Wait for export pipeline"
 if demo_persona_git_enabled; then
@@ -240,9 +248,7 @@ vuln_count="$("${KUBECTL}" get vulnerabilityreports -A --no-headers 2>/dev/null 
   if [[ "${SKIP_PLATFORM}" -eq 0 && "${vuln_count}" == "0" ]]; then
     demo_info "Trivy **VulnerabilityReport** rows: 0 so far — security inventory typically populates in **~2–5 min** as scans complete."
     if demo_wait_for "Waiting up to 3m for first VulnerabilityReport..." \
-      bash -c "deadline=\$((SECONDS+180)); while (( SECONDS < deadline )); do
-      c=\$(${KUBECTL} get vulnerabilityreports -A --no-headers 2>/dev/null | wc -l | tr -d ' ')
-      [[ \"\$c\" != \"0\" ]] && exit 0; sleep 10; done; exit 1" 2>/dev/null; then
+      bash "${SCRIPT_DIR}/lib/cmd/wait-vuln-reports.sh" 2>/dev/null; then
     vuln_count="$("${KUBECTL}" get vulnerabilityreports -A --no-headers 2>/dev/null | wc -l | tr -d ' ')"
     demo_outcome "First VulnerabilityReports appeared (${vuln_count} rows)."
   fi

@@ -5,8 +5,9 @@
 # Prerequisite checker for the wide-scope demo (--check / task demo-check).
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEMO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# Private dir var — sourcing must not clobber the caller's SCRIPT_DIR.
+_CHECK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEMO_DIR="$(cd "${_CHECK_LIB_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${DEMO_DIR}/../../.." && pwd)"
 
 readonly MIN_KIND_VERSION="0.20.0"
@@ -28,7 +29,7 @@ _cmd_version() {
     docker) docker version --format '{{.Client.Version}}' 2>/dev/null ;;
     gh) gh version 2>/dev/null | awk '{print $3; exit}' ;;
     go) go version 2>/dev/null | awk '{print $3}' | tr -d go ;;
-    kustomize) kustomize version --short 2>/dev/null | awk '{print $1}' | tr -d v ;;
+    kustomize) kustomize version 2>/dev/null | head -1 | tr -d v ;;
     task) task --version 2>/dev/null | awk '{print $2}' ;;
     gum) gum --version 2>/dev/null | awk '{print $NF}' ;;
     *) echo "" ;;
@@ -60,6 +61,14 @@ _check_one() {
   return 0
 }
 
+_demo_check_finish() {
+  local code="$1"
+  if [[ "${DEMO_CHECK_STANDALONE:-0}" -eq 1 ]]; then
+    exit "$code"
+  fi
+  return "$code"
+}
+
 fail=0
 echo "Kollect wide-scope demo — prerequisite check"
 echo "Repo: ${REPO_ROOT}"
@@ -73,7 +82,7 @@ _check_one task required "task --version in repo root" || fail=1
 _check_one docker required "Docker or compatible runtime for kind" || fail=1
 _check_one gh optional "Git export proof — gh auth login" || true
 _check_one go optional "auto-install Charm Gum via go install" || true
-_check_one gum optional "guided UX — or go install github.com/charmbracelet/gum@latest" || true
+_check_one gum optional "guided UX — or go install github.com/charmbracelet/gum@v0.17.0" || true
 
 echo ""
 if ! kustomize build "${DEMO_DIR}" >/dev/null 2>&1; then
@@ -86,7 +95,7 @@ fi
 echo ""
 if [[ "$fail" -ne 0 ]]; then
   echo "Fix failures above, then re-run: bash hack/demo/kind-wide-scope/demo.sh --check"
-  exit 1
+  _demo_check_finish 1
 fi
 echo "All required checks passed."
-exit 0
+_demo_check_finish 0

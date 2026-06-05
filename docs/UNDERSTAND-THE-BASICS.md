@@ -46,6 +46,8 @@ Start here after this page:
 - [CR-REFERENCE.md](CR-REFERENCE.md) — pipeline diagram and per-kind index
 - [adr/0201-crd-model.md](adr/0201-crd-model.md) — why these kinds exist
 
+![Vertical K-shaped funnel diagram showing Kubernetes resources filtered by Scope and Target, attributes extracted by Profile, aggregated into Inventory rows, and exported to sinks.](assets/illustrations/k-funnel-crd-pipeline-dark.webp){ .kollect-illus .kollect-illus--portrait width="320" }
+
 !!! note "Pre-beta API"
     Fields and status conditions may change until beta. Check [ROADMAP.md](ROADMAP.md) before
     production rollout.
@@ -91,6 +93,8 @@ attributes on change; inventory controllers debounce and export to sinks
 
 The in-memory inventory snapshot is **canonical**; sinks are **projections** classified by role
 ([ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md)):
+
+![Central in-memory inventory snapshot with equal projection arrows to Git, object store, Postgres, NATS, and Kafka sinks grouped by snapshot, relational, and event roles.](assets/illustrations/canonical-snapshot-projections-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
 
 | Role | Shipped `spec.type` values | Typical use |
 | --- | --- | --- |

@@ -8,7 +8,6 @@ package nats
 import (
 	"context"
 	"encoding/json"
-	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +16,8 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/aggregate"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestExportNATS(t *testing.T) {
@@ -27,7 +28,7 @@ func TestExportNATS(t *testing.T) {
 	ctx := context.Background()
 	container, err := nats.Run(ctx, "nats:2.11")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -153,17 +154,4 @@ func TestExportNATS(t *testing.T) {
 	if si.State.Msgs != 1 {
 		t.Fatalf("stream messages = %d, want 1 after duplicate export (Msg-Id dedupe)", si.State.Msgs)
 	}
-}
-
-func isDockerUnavailable(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "cannot connect to the docker daemon") ||
-		strings.Contains(msg, "docker.sock") ||
-		strings.Contains(msg, "executable file not found") ||
-		strings.Contains(msg, "permission denied")
 }

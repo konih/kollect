@@ -46,6 +46,7 @@ Enforcement diagram: [DATA-FLOWS.md §4](../DATA-FLOWS.md#4-kollectscope-enforce
 | `spec.allowedNamespaces[]` | list | No | Permitted workload namespaces (empty = any allowed by targets) |
 | `spec.deniedNamespaces[]` | list | No | Platform namespace blacklist — not overridable by Targets |
 | `spec.sinkRefs[]` | list | No | Permitted `KollectSink` names for export |
+| `spec.minExportInterval` | duration | No | Tenancy floor — inventory/sink intervals below this are rejected |
 
 ## Sample usage
 
@@ -70,6 +71,10 @@ Allow-list sinks for inventory:
 # Inventory sinkRefs must be subset of scope.sinkRefs
 kubectl get kinv -n team-a -o jsonpath='{.items[*].status.conditions[?(@.type=="Degraded")]}'
 ```
+
+Set `spec.minExportInterval` to enforce a tenancy floor — inventory and sink intervals below this
+value are rejected at admission ([ADR-0413](../adr/0413-export-interval-scheduling.md)). Sample:
+`config/samples/kollect_v1alpha1_kollectscope_team-a.yaml` uses `minExportInterval: 1m`.
 
 ## Status conditions
 

@@ -10,6 +10,8 @@ Kafka for portal queries
 ([ADR-0703](../adr/0703-platform-architecture-pivot.md),
 [ADR-0501](../adr/0501-multi-cluster-sync-rfc.md)).
 
+![Three spoke clusters each export labeled inventory into a shared Postgres and Git backend, with an optional de-emphasized hub path shown dashed.](../assets/illustrations/fleet-shared-sink-topology-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
+
 There is **no `KollectHub` CRD**. Hub merge uses `mode: hub` on a management cluster
 ([charts/kollect/README.md](../../charts/kollect/README.md)).
 

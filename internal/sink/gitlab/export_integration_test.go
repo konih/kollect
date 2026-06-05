@@ -23,6 +23,8 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/sink/git"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestExportGitLabDirectPush(t *testing.T) {
@@ -37,7 +39,7 @@ func TestExportGitLabDirectPush(t *testing.T) {
 	ctx := context.Background()
 	container, err := forgejo.Run(ctx, "codeberg.org/forgejo/forgejo:11")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -156,17 +158,4 @@ func forgejoCloneURL(gitEndpoint, user, pass string) (string, error) {
 	u.User = url.UserPassword(user, pass)
 
 	return u.String(), nil
-}
-
-func isDockerUnavailable(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "cannot connect to the docker daemon") ||
-		strings.Contains(msg, "docker.sock") ||
-		strings.Contains(msg, "executable file not found") ||
-		strings.Contains(msg, "permission denied")
 }

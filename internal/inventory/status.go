@@ -21,6 +21,8 @@ import (
 
 const statusUnknown = "unknown"
 
+const statusDegraded = "degraded"
+
 // StatusReader lists CRD status for optional Read API proxy endpoints (B3).
 type StatusReader interface {
 	ListInventoryStatus(ctx context.Context, namespace string) ([]ResourceStatus, error)
@@ -132,7 +134,7 @@ func exportStatusFromInventory(inv *kollectdevv1alpha1.KollectInventory) []Expor
 		case metav1.ConditionTrue:
 			status = "ok"
 		case metav1.ConditionFalse:
-			status = "degraded"
+			status = statusDegraded
 		default:
 			status = statusUnknown
 		}
@@ -146,13 +148,43 @@ func exportStatusFromInventory(inv *kollectdevv1alpha1.KollectInventory) []Expor
 	}
 
 	out := make([]ExportStatus, 0, len(inv.Spec.SinkRefs))
-	for _, sinkName := range inv.Spec.SinkRefs {
+	for _, ref := range inv.Spec.SinkRefs {
+		sinkStatus := status
+		sinkMessage := message
+		lastExportSink := lastExport
+
+		for i := range inv.Status.SinkExports {
+			if inv.Status.SinkExports[i].Name != ref.Name {
+				continue
+			}
+			se := &inv.Status.SinkExports[i]
+			if se.LastExportTime != nil {
+				lastExportSink = se.LastExportTime.UTC().Format(time.RFC3339)
+			}
+			if syncedCond := apimeta.FindStatusCondition(se.Conditions, kollectdevv1alpha1.ConditionSynced); syncedCond != nil {
+				switch syncedCond.Status {
+				case metav1.ConditionTrue:
+					sinkStatus = "ok"
+				case metav1.ConditionFalse:
+					if syncedCond.Reason == kollectdevv1alpha1.ReasonDebounced {
+						sinkStatus = "debounced"
+					} else {
+						sinkStatus = statusDegraded
+					}
+				default:
+					sinkStatus = statusUnknown
+				}
+				sinkMessage = syncedCond.Message
+			}
+			break
+		}
+
 		out = append(out, ExportStatus{
-			SinkName:       sinkName,
+			SinkName:       ref.Name,
 			SinkNamespace:  inv.Namespace,
-			Status:         status,
-			LastExportTime: lastExport,
-			Message:        message,
+			Status:         sinkStatus,
+			LastExportTime: lastExportSink,
+			Message:        sinkMessage,
 		})
 	}
 
