@@ -85,7 +85,7 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		return r.setDegraded(ctx, &inv, "NoTargets", "no KollectClusterTarget objects matched")
 	}
 
-	itemCount, degradedTargets := r.rollupCounts(targets)
+	itemCount, degradedTargets := r.rollupCounts(&inv, targets)
 	if len(degradedTargets) > 0 {
 		msg := fmt.Sprintf("%d target(s) not Ready: %v", len(degradedTargets), degradedTargets)
 		return r.setDegraded(ctx, &inv, "TargetDegraded", msg)
@@ -150,7 +150,7 @@ func (r *KollectClusterInventoryReconciler) reconcileRollupExport(
 		return ctrl.Result{RequeueAfter: delay}, nil
 	}
 
-	itemCount := r.countRollupItems(targets)
+	itemCount := r.countRollupItems(inv, targets)
 
 	if len(inv.Spec.SinkRefs) == 0 {
 		setSyncedCondition(&inv.Status.Conditions, inv.Generation, true, "NoExport", "no sinkRefs configured")
@@ -204,6 +204,7 @@ func (r *KollectClusterInventoryReconciler) exportDebounce(
 }
 
 func (r *KollectClusterInventoryReconciler) collectRollupItems(
+	inv *kollectdevv1alpha1.KollectClusterInventory,
 	targets []kollectdevv1alpha1.KollectClusterTarget,
 ) []collect.Item {
 	var items []collect.Item
@@ -214,20 +215,21 @@ func (r *KollectClusterInventoryReconciler) collectRollupItems(
 		}
 	}
 
-	return aggregate.MergeRows(items, aggregate.DedupeByResourceUID)
+	return aggregate.MergeRows(items, aggregate.DedupeModeFromSpec(&inv.Spec))
 }
 
 func (r *KollectClusterInventoryReconciler) countRollupItems(
+	inv *kollectdevv1alpha1.KollectClusterInventory,
 	targets []kollectdevv1alpha1.KollectClusterTarget,
 ) int {
-	return len(r.collectRollupItems(targets))
+	return len(r.collectRollupItems(inv, targets))
 }
 
 func (r *KollectClusterInventoryReconciler) marshalRollupPayload(
 	inv *kollectdevv1alpha1.KollectClusterInventory,
 	targets []kollectdevv1alpha1.KollectClusterTarget,
 ) ([]byte, string, error) {
-	items := r.collectRollupItems(targets)
+	items := r.collectRollupItems(inv, targets)
 	fingerprint, err := export.ItemsFingerprint(items)
 	if err != nil {
 		return nil, "", err
@@ -438,6 +440,7 @@ func clusterTargetMatchesInventoryNS(
 }
 
 func (r *KollectClusterInventoryReconciler) rollupCounts(
+	inv *kollectdevv1alpha1.KollectClusterInventory,
 	targets []kollectdevv1alpha1.KollectClusterTarget,
 ) (itemCount int, degraded []string) {
 	for i := range targets {
@@ -448,7 +451,7 @@ func (r *KollectClusterInventoryReconciler) rollupCounts(
 	}
 
 	if r.Engine != nil && r.Store != nil {
-		return len(r.collectRollupItems(targets)), degraded
+		return len(r.collectRollupItems(inv, targets)), degraded
 	}
 
 	for i := range targets {

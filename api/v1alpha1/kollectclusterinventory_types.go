@@ -7,8 +7,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Dedupe mode values for KollectClusterInventory.spec.dedupe (ADR-0305).
+const (
+	ClusterInventoryDedupeKeepAll       = "keepAll"
+	ClusterInventoryDedupeByResourceUID = "byResourceUID"
+)
+
 // KollectClusterInventorySpec defines platform-wide rollup across KollectClusterTarget objects
-// (ADR-0703). No collection controller is registered in Phase 1 — API + webhook + samples only.
+// (ADR-0703). Reconciled by KollectClusterInventoryReconciler.
 type KollectClusterInventorySpec struct {
 	// profileRef names a KollectClusterProfile stub for shared extraction schema (optional).
 	// +optional
@@ -44,12 +50,18 @@ type KollectClusterInventorySpec struct {
 	// +optional
 	ExportMinInterval *metav1.Duration `json:"exportMinInterval,omitempty"`
 
-	// suspend pauses reconciliation when set to true (reserved for future controller).
+	// dedupe selects how overlapping target rows collapse on export (ADR-0305).
+	// +kubebuilder:validation:Enum=keepAll;byResourceUID
+	// +kubebuilder:default=keepAll
+	// +optional
+	Dedupe string `json:"dedupe,omitempty"`
+
+	// suspend pauses reconciliation when set to true.
 	// +optional
 	Suspend bool `json:"suspend,omitempty"`
 }
 
-// KollectClusterInventoryStatus is reserved for a future cluster-scoped rollup controller.
+// KollectClusterInventoryStatus holds rollup export status for platform operators.
 type KollectClusterInventoryStatus struct {
 	// conditions represent the current state of the KollectClusterInventory resource.
 	// +listType=map

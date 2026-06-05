@@ -1,5 +1,12 @@
 description: spec defines the desired state of KollectClusterInventory
 properties:
+  dedupe:
+    default: keepAll
+    description: dedupe selects how overlapping target rows collapse on export (ADR-0305).
+    enum:
+    - keepAll
+    - byResourceUID
+    type: string
   exportMinInterval:
     default: 30s
     description: |-
@@ -68,8 +75,7 @@ properties:
       type: string
     type: array
   suspend:
-    description: suspend pauses reconciliation when set to true (reserved for future
-      controller).
+    description: suspend pauses reconciliation when set to true.
     type: boolean
   targetRefs:
     description: |-
