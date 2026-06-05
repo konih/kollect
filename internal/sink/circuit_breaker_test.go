@@ -19,7 +19,11 @@ import (
 
 func TestRunExportItems_circuitBreakerTripsAfterRepeatedFailures(t *testing.T) {
 	t.Parallel()
-	ResetBreakersForTest()
+
+	const (
+		sinkNamespace = "cb-test-ns"
+		sinkName      = "cb-test-sink"
+	)
 
 	scheme := runtime.NewScheme()
 	if err := kollectdevv1alpha1.AddToScheme(scheme); err != nil {
@@ -27,7 +31,7 @@ func TestRunExportItems_circuitBreakerTripsAfterRepeatedFailures(t *testing.T) {
 	}
 
 	sinkObj := &kollectdevv1alpha1.KollectSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "git-sink", Namespace: "team-a"},
+		ObjectMeta: metav1.ObjectMeta{Name: sinkName, Namespace: sinkNamespace},
 		Spec:       kollectdevv1alpha1.KollectSinkSpec{Type: "stub", Endpoint: "https://example.com/repo.git"},
 	}
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(sinkObj).Build()
@@ -45,9 +49,9 @@ func TestRunExportItems_circuitBreakerTripsAfterRepeatedFailures(t *testing.T) {
 		Ctx:           t.Context(),
 		Client:        cl,
 		Registry:      reg,
-		SinkNamespace: "team-a",
-		SinkName:      "git-sink",
-		ObjectPath:    "team-a/inv.json",
+		SinkNamespace: sinkNamespace,
+		SinkName:      sinkName,
+		ObjectPath:    sinkNamespace + "/inv.json",
 		Items:         []collect.Item{{Name: "demo"}},
 	}
 
