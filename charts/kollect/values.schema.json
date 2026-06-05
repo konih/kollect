@@ -142,6 +142,66 @@
           "type": "boolean"
         }
       }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Expose controller /metrics endpoint."
+        },
+        "bindAddress": {
+          "type": "string",
+          "minLength": 1
+        },
+        "secure": {
+          "type": "boolean",
+          "description": "When true, metrics are served over HTTPS with Kubernetes API authn/authz."
+        },
+        "serviceMonitor": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Create a ServiceMonitor CR (requires Prometheus Operator CRDs)."
+            },
+            "interval": {
+              "type": "string"
+            },
+            "scrapeTimeout": {
+              "type": "string"
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "prometheusRule": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Create default PrometheusRule alerts (requires Prometheus Operator CRDs)."
+            },
+            "labels": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "additionalRules": {
+              "type": "array",
+              "description": "Extra alert rules appended to the kollect.rules group."
+            }
+          }
+        }
+      }
     }
   }
 }

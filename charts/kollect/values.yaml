@@ -88,11 +88,19 @@ metrics:
   enabled: true
   bindAddress: ":8443"
   secure: true
+  # Prometheus Operator integration (requires monitoring.coreos.com CRDs, e.g. kube-prometheus-stack).
   serviceMonitor:
     enabled: false
     interval: 30s
     scrapeTimeout: 10s
+    # Labels must match your Prometheus serviceMonitorSelector (kube-prometheus-stack default: release: kube-prometheus-stack).
     labels: {}
+  prometheusRule:
+    enabled: false
+    # Labels must match your Prometheus ruleSelector (kube-prometheus-stack default: release: kube-prometheus-stack).
+    labels: {}
+    # Optional extra PrometheusRule entries appended to the kollect.rules group.
+    additionalRules: []
 
 webhooks:
   enabled: true

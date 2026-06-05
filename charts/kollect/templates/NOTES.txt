@@ -1,5 +1,20 @@
 kollect operator installed in namespace {{ .Release.Namespace }}.
 
+{{- if and .Values.metrics.enabled (dig "serviceMonitor" "enabled" false .Values.metrics) }}
+Prometheus: ServiceMonitor {{ include "kollect.fullname" . }}-controller-manager created.
+  Ensure Prometheus Operator is installed and metrics.serviceMonitor.labels match
+  your Prometheus serviceMonitorSelector (e.g. release: kube-prometheus-stack).
+{{- else if .Values.metrics.enabled }}
+Metrics: HTTPS /metrics on Service {{ include "kollect.fullname" . }}-controller-manager:8443
+  (Kubernetes API auth when metrics.secure=true). Enable metrics.serviceMonitor.enabled
+  when Prometheus Operator is present.
+{{- end }}
+
+{{- if and .Values.metrics.enabled (dig "prometheusRule" "enabled" false .Values.metrics) }}
+Alerts: PrometheusRule {{ include "kollect.fullname" . }} created (kollect.rules group).
+  Set metrics.prometheusRule.labels to match your Prometheus ruleSelector.
+{{- end }}
+
 {{- if .Values.featureGates.inventoryHttp.enabled }}
 Inventory HTTP: GET http://<pod-ip>:{{ .Values.featureGates.inventoryHttp.port }}/inventory
 {{- end }}
