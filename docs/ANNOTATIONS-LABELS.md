@@ -1,0 +1,142 @@
+# Annotations and labels
+
+Lookup for **Kollect**-owned metadata keys on Kubernetes objects and Helm-managed operator resources.
+Constants live in `api/v1alpha1/constants.go`.
+
+!!! tip "Assumptions"
+    This reference assumes you understand watch scope and sink probes. For context, read
+    [Understand the basics](UNDERSTAND-THE-BASICS.md) and [ADR-0205](adr/0205-watch-labels.md).
+
+## Watch scope
+
+Control which namespaces and resources the collection engine watches
+([ADR-0205](adr/0205-watch-labels.md)).
+
+| Key | Type | On | Values | Effect |
+| --- | --- | --- | --- | --- |
+| `kollect.dev/watch` | Label | Namespace, namespaced resource | `enabled`, `disabled` | Opt in or out a namespace or single resource |
+| `kollect.dev/namespace-watch` | Annotation | Namespace | `enabled`, `disabled` | Applies to **all resources** in the namespace unless a resource label overrides |
+
+### Precedence (`ShouldCollect`)
+
+1. Resource label `kollect.dev/watch: disabled` — **always skip** (wins over everything).
+2. Resource label `kollect.dev/watch: enabled` — **collect** (overrides namespace disabled).
+3. Namespace label `kollect.dev/watch: disabled` or annotation `kollect.dev/namespace-watch: disabled` — skip all resources in namespace (unless step 2).
+4. `KollectTarget.spec.watchMode: OptIn` — require namespace or resource `enabled`; otherwise skip.
+5. `watchMode: All` (default) — collect when selectors match and no opt-out applies.
+
+!!! note "Interaction with `watchMode`"
+    Under `OptIn`, only explicitly `enabled` namespaces or resources are collected. Under `All`,
+    matching selectors are collected except where `disabled` applies. See
+    [Multi-tenant watch scope](examples/multi-tenant-watch-namespaces.md).
+
+### Examples
+
+**Opt-out a noisy namespace** (default `All` mode):
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+  annotations:
+    kollect.dev/namespace-watch: disabled
+```
+
+**Opt-in cluster** (`watchMode: OptIn` on the target):
+
+```sh
+kubectl label namespace team-a kollect.dev/watch=enabled --overwrite
+```
+
+**Opt-out one Deployment** in an otherwise watched namespace:
+
+```yaml
+metadata:
+  labels:
+    kollect.dev/watch: disabled
+```
+
+## Connection test
+
+| Key | Type | On | Values | Effect |
+| --- | --- | --- | --- | --- |
+| `kollect.dev/test-connection` | Annotation | `KollectSink` | `"true"` | One-shot connectivity probe; sets `ConnectionVerified` on status |
+
+Equivalent to `spec.connectionTest: true` on the sink CR ([ADR-0403](adr/0403-connection-test.md)).
+The reconciler removes the annotation after a successful probe (kept when the probe fails).
+
+!!! warning "Production probes"
+    Keep `spec.connectionTest: false` in Git-managed manifests. Use the annotation for ad-hoc
+    re-tests:
+
+```sh
+kubectl annotate kollectsink <name> -n <namespace> \
+  kollect.dev/test-connection=true --overwrite
+kubectl wait --for=condition=ConnectionVerified kollectsink/<name> \
+  -n <namespace> --timeout=60s
+```
+
+See [Connection test example](examples/connection-test.md).
+
+## Multi-cluster registration
+
+Used when registering spoke clusters at the hub ([ADR-0503](adr/0503-hub-cluster-auth-istio-pattern.md)).
+
+| Key | Type | On | Values | Effect |
+| --- | --- | --- | --- | --- |
+| `kollect.dev/multiCluster` | Label | Secret (remote-cluster credential) | `"true"` | Marks Istio-style remote secret for hub registration |
+| `kollect.dev/cluster` | Annotation | Secret | cluster ID string | Spoke identity for merge and auth |
+| `kollect.dev/spokePrincipal` | Annotation | `KollectRemoteCluster` | username | Optional binding — must match authenticated spoke principal |
+
+HTTP header `X-Kollect-Cluster-Id` carries cluster identity on hub ingest paths.
+
+## Profile and export metadata
+
+| Key | Type | On | Values | Effect |
+| --- | --- | --- | --- | --- |
+| `kollect.dev/allow-secret-extraction` | Annotation | `KollectProfile`, `KollectClusterProfile` | `"true"` | Admission allows CEL/JSONPath paths into `Secret.data` |
+| `kollect.dev/collectedGeneration` | Annotation | Exported source objects (metadata) | `"<n>"` | Records source `metadata.generation` for staleness detection |
+| `kollect.dev/requestedAt` | Annotation | Reconciled Kollect CRs | RFC3339 timestamp | Manual reconcile trigger ([ADR-0201](adr/0201-crd-model.md)) |
+
+!!! warning "Secret extraction"
+    Profiles that read `Secret.data` require explicit opt-in via `kollect.dev/allow-secret-extraction: "true"`.
+    Prefer indirect references (e.g. cert-manager status) when possible
+    ([KollectClusterProfile](crds/kollectclusterprofile.md)).
+
+## Tenant and example labels
+
+Sample manifests and e2e fixtures use conventional labels — not enforced by the operator unless
+referenced in target selectors:
+
+| Key | Example value | Usage |
+| --- | --- | --- |
+| `kollect.dev/tenant` | `platform`, `team-a` | Tenant isolation in samples and cluster rollup selectors |
+| `kollect.dev/collect-certificates` | `enabled` | cert-manager example target selector |
+
+## Helm chart labels
+
+Standard labels on operator Deployments, Services, and webhooks
+(`charts/kollect/templates/_helpers.tpl`):
+
+| Label | Value | Meaning |
+| --- | --- | --- |
+| `helm.sh/chart` | `kollect-<version>` | Chart identity |
+| `app.kubernetes.io/name` | `kollect` | Application name |
+| `app.kubernetes.io/version` | Chart `AppVersion` | Operator version |
+| `app.kubernetes.io/managed-by` | Helm release service | Managed by Helm |
+| `control-plane` | `controller-manager` | Selector for manager pods |
+
+List operator pods:
+
+```sh
+kubectl get pods -n kollect-system -l app.kubernetes.io/name=kollect
+```
+
+## Related
+
+- [ADR-0205: Watch labels](adr/0205-watch-labels.md)
+- [ADR-0403: Connection test](adr/0403-connection-test.md)
+- [ADR-0503: Hub cluster auth](adr/0503-hub-cluster-auth-istio-pattern.md)
+- [Operator manual — Watch scope](OPERATOR-MANUAL.md#watch-scope)
+- [Troubleshooting](TROUBLESHOOTING.md) · [Best practices](BEST-PRACTICES.md)

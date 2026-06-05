@@ -16,7 +16,7 @@ upgrade, see [Operator manual](OPERATOR-MANUAL.md). For pipeline walkthroughs, s
 Helm installs CRDs from `crds/` on first install but **does not upgrade them** on `helm upgrade`.
 Kollect documents an explicit two-step path: `kubectl apply -f dist/install-crds.yaml`, then
 `helm upgrade` ([ADR-0704](adr/0704-helm-chart-crd-lifecycle.md),
-[Operator manual — Upgrade](OPERATOR-MANUAL.md#upgrade)).
+[Operator manual — Upgrade](operator-manual/upgrading.md)).
 
 ### Should I delete CRDs to fix a schema mismatch?
 
