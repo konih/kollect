@@ -22,6 +22,7 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/scope"
 )
 
 // KollectClusterTargetReconciler wires cluster-scoped targets to the collection engine per
@@ -80,14 +81,40 @@ func (r *KollectClusterTargetReconciler) Reconcile(ctx context.Context, req ctrl
 		return ctrl.Result{}, nil
 	}
 
-	matched, err := r.matchedNamespaces(ctx, ct.Spec.NamespaceSelector)
+	matched, err := r.matchedNamespaces(ctx, &ct)
 	if err != nil {
 		retErr = err
 		return ctrl.Result{}, err
 	}
 
+	clusterBinding, err := scope.LoadCluster(ctx, r.Client)
+	if err != nil {
+		retErr = err
+		return ctrl.Result{}, err
+	}
+
+	ceiling := collect.ScopeCeiling{}
+	if clusterBinding.Enforced {
+		ceiling = collect.ScopeCeilingFromClusterScope(clusterBinding.Scope)
+	}
+
+	nsMeta := listNamespaceMeta(ctx, r.Client)
+	defaults := collect.NamespaceDefaults{}
 	if r.Engine != nil {
-		if err := r.syncEngineTargets(ctx, &ct, profile, matched); err != nil {
+		defaults = r.Engine.NamespaceDefaultsSnapshot()
+	}
+
+	_, effective, activeRules := collect.ComputeFilterStatus(
+		ct.Spec.CollectionFilterSpec,
+		ct.Spec.NamespaceSelector,
+		nsMeta,
+		ceiling,
+		defaults,
+	)
+	updateClusterTargetFilterStatus(&ct, matched, effective, activeRules)
+
+	if r.Engine != nil {
+		if err := r.syncEngineTargets(ctx, &ct, profile, effective, ceiling); err != nil {
 			if degErr := r.setDegraded(ctx, &ct, "InformerRegistrationFailed", err.Error()); degErr != nil {
 				retErr = degErr
 				return ctrl.Result{}, degErr
@@ -97,30 +124,35 @@ func (r *KollectClusterTargetReconciler) Reconcile(ctx context.Context, req ctrl
 		}
 	}
 
-	return r.setReady(ctx, &ct, matched)
+	return r.setReady(ctx, &ct, effective)
 }
 
 func (r *KollectClusterTargetReconciler) matchedNamespaces(
 	ctx context.Context,
-	selector *metav1.LabelSelector,
+	ct *kollectdevv1alpha1.KollectClusterTarget,
 ) ([]string, error) {
 	var nsList corev1.NamespaceList
 	if err := r.List(ctx, &nsList); err != nil {
 		return nil, fmt.Errorf("list namespaces: %w", err)
 	}
 
-	sel, err := metav1.LabelSelectorAsSelector(selector)
-	if err != nil {
-		return nil, fmt.Errorf("namespaceSelector: %w", err)
-	}
-
-	matched := make([]string, 0)
+	meta := make(map[string]collect.NamespaceMeta, len(nsList.Items))
 	for i := range nsList.Items {
 		ns := &nsList.Items[i]
-		if sel.Matches(labels.Set(ns.Labels)) {
-			matched = append(matched, ns.Name)
-		}
+		meta[ns.Name] = collect.NamespaceMeta{Labels: labels.Set(ns.Labels)}
 	}
+
+	defaults := collect.NamespaceDefaults{}
+	if r.Engine != nil {
+		defaults = r.Engine.NamespaceDefaultsSnapshot()
+	}
+
+	matched := collect.MatchIntentNamespaces(
+		ct.Spec.CollectionFilterSpec,
+		ct.Spec.NamespaceSelector,
+		meta,
+		defaults,
+	)
 
 	return matched, nil
 }
@@ -129,10 +161,11 @@ func (r *KollectClusterTargetReconciler) syncEngineTargets(
 	ctx context.Context,
 	ct *kollectdevv1alpha1.KollectClusterTarget,
 	profile *kollectdevv1alpha1.KollectProfile,
-	matched []string,
+	effective []string,
+	ceiling collect.ScopeCeiling,
 ) error {
-	want := make(map[string]struct{}, len(matched))
-	for _, ns := range matched {
+	want := make(map[string]struct{}, len(effective))
+	for _, ns := range effective {
 		want[ns] = struct{}{}
 
 		synthetic := &kollectdevv1alpha1.KollectTarget{
@@ -141,7 +174,8 @@ func (r *KollectClusterTargetReconciler) syncEngineTargets(
 				Namespace: ns,
 			},
 			Spec: kollectdevv1alpha1.KollectTargetSpec{
-				ProfileRef: ct.Spec.ProfileRef,
+				ProfileRef:           ct.Spec.ProfileRef,
+				CollectionFilterSpec: ct.Spec.CollectionFilterSpec,
 				NamespaceSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						corev1.LabelMetadataName: ns,
@@ -150,7 +184,10 @@ func (r *KollectClusterTargetReconciler) syncEngineTargets(
 			},
 		}
 
-		if err := r.Engine.RegisterTarget(ctx, synthetic, profile); err != nil {
+		if err := r.Engine.RegisterTarget(ctx, synthetic, profile, collect.RegisterTargetOptions{
+			ScopeCeiling:        ceiling,
+			EffectiveNamespaces: []string{ns},
+		}); err != nil {
 			return err
 		}
 	}
@@ -226,6 +263,9 @@ func (r *KollectClusterTargetReconciler) setReady(
 
 	apimeta.RemoveStatusCondition(&ct.Status.Conditions, conditionDegraded)
 	ct.Status.ObservedGeneration = ct.Generation
+	updateClusterTargetFilterStatus(
+		ct, ct.Status.MatchedNamespaces, ct.Status.EffectiveNamespaces, ct.Status.ActiveResourceRules,
+	)
 	setSyncedCondition(&ct.Status.Conditions, ct.Generation, true, "Collecting", msg)
 	if err := setClusterTargetCondition(
 		ctx, r.Client, ct, ct.Generation, &ct.Status.Conditions,

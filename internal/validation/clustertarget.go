@@ -35,6 +35,8 @@ func ValidateClusterTargetSpec(spec *kollectdevv1alpha1.KollectClusterTargetSpec
 			"namespaceSelector is required — empty selector would collect cluster-wide"))
 	}
 
+	allErrs = append(allErrs, ValidateCollectionFilterSpec(&spec.CollectionFilterSpec, field.NewPath("spec"))...)
+
 	return allErrs
 }
 

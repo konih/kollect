@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Konrad Heimel
+
+package controller
+
+import (
+	"context"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/scope"
+)
+
+func scopeCeilingForTarget(ctx context.Context, c client.Client, tenantNS string) collect.ScopeCeiling {
+	binding, err := scope.Load(ctx, c, tenantNS)
+	if err != nil || !binding.Enforced {
+		return collect.ScopeCeiling{}
+	}
+
+	return collect.ScopeCeilingFromScope(binding.Scope)
+}
+
+func resolveTargetFilterStatus(
+	ctx context.Context,
+	c client.Client,
+	engine *collect.Engine,
+	target *kollectdevv1alpha1.KollectTarget,
+) (matched, effective []string, activeRules int, ceiling collect.ScopeCeiling) {
+	ceiling = scopeCeilingForTarget(ctx, c, target.Namespace)
+
+	var nsMeta map[string]collect.NamespaceMeta
+	defaults := collect.NamespaceDefaults{}
+	if engine != nil {
+		nsMeta = engine.NamespaceMetaSnapshot()
+		defaults = engine.NamespaceDefaultsSnapshot()
+	} else {
+		nsMeta = listNamespaceMeta(ctx, c)
+	}
+
+	matched, effective, activeRules = collect.ComputeFilterStatus(
+		target.Spec.CollectionFilterSpec,
+		target.Spec.NamespaceSelector,
+		nsMeta,
+		ceiling,
+		defaults,
+	)
+
+	return matched, effective, activeRules, ceiling
+}
+
+func listNamespaceMeta(ctx context.Context, c client.Client) map[string]collect.NamespaceMeta {
+	var nsList corev1.NamespaceList
+	if err := c.List(ctx, &nsList); err != nil {
+		return nil
+	}
+
+	meta := make(map[string]collect.NamespaceMeta, len(nsList.Items))
+	for i := range nsList.Items {
+		ns := &nsList.Items[i]
+		meta[ns.Name] = collect.NamespaceMeta{
+			Labels:      labels.Set(ns.Labels),
+			Annotations: ns.Annotations,
+		}
+	}
+
+	return meta
+}

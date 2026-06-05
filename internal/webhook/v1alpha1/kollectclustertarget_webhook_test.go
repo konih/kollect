@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 )
@@ -15,7 +17,9 @@ import (
 func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 	t.Parallel()
 
-	v := &kollectClusterTargetValidator{}
+	scheme := runtime.NewScheme()
+	_ = kollectdevv1alpha1.AddToScheme(scheme)
+	v := &kollectClusterTargetValidator{client: fake.NewClientBuilder().WithScheme(scheme).Build()}
 
 	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "bad"},
@@ -44,7 +48,7 @@ func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 func TestKollectClusterTargetValidator_ValidateUpdateDeletion(t *testing.T) {
 	t.Parallel()
 
-	v := &kollectClusterTargetValidator{}
+	v := &kollectClusterTargetValidator{client: fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build()}
 	now := metav1.Now()
 	target := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct"},

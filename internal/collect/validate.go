@@ -49,3 +49,15 @@ func ValidateAttributePath(extractor *Extractor, path string) error {
 
 	return nil
 }
+
+// ValidateMatchPolicyExpression compile-checks a Target resourceRules matchPolicy CEL expression.
+func ValidateMatchPolicyExpression(expr string) error {
+	ext, err := NewExtractor()
+	if err != nil {
+		return err
+	}
+
+	_, err = compileMatchPolicy(ext.celEnv, expr)
+
+	return err
+}

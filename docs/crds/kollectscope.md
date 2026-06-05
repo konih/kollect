@@ -11,6 +11,8 @@
 A `KollectScope` defines a **tenancy boundary** for a team namespace: which GVKs may be collected,
 which workload namespaces targets may scrape, and which sinks inventories may export to. Inspired by
 Argo CD AppProject-style policy ([ADR-0203](../adr/0203-namespaced-multi-tenancy.md)).
+**Target intent** (include/exclude, `resourceRules`) lives on `KollectTarget`; Scope is the
+**ceiling** only ([ADR-0207](../adr/0207-target-collection-filtering.md)).
 
 The scope object itself is static — no dedicated controller. **Target** and **inventory**
 reconcilers load the scope in the same namespace and **hard-degrade** (no collect, no export) on
@@ -42,6 +44,7 @@ Enforcement diagram: [DATA-FLOWS.md §4](../DATA-FLOWS.md#4-kollectscope-enforce
 | --- | --- | --- | --- |
 | `spec.allowedGVKs[]` | list | No | Permitted target resource kinds (`group`, `version`, `kind`) |
 | `spec.allowedNamespaces[]` | list | No | Permitted workload namespaces (empty = any allowed by targets) |
+| `spec.deniedNamespaces[]` | list | No | Platform namespace blacklist — not overridable by Targets |
 | `spec.sinkRefs[]` | list | No | Permitted `KollectSink` names for export |
 
 ## Sample usage

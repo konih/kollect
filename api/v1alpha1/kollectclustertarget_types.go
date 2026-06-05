@@ -18,6 +18,8 @@ type KollectClusterTargetSpec struct {
 	// +optional
 	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 
+	CollectionFilterSpec `json:",inline"`
+
 	// suspend pauses reconciliation when set to true (reserved for future controller).
 	// +optional
 	Suspend bool `json:"suspend,omitempty"`
@@ -34,6 +36,8 @@ type KollectClusterTargetStatus struct {
 	// observedGeneration is the most recent generation observed by a controller.
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	CollectionFilterStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true

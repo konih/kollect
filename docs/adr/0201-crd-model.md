@@ -64,7 +64,7 @@ API group `kollect.dev/v1alpha1`. All kinds are **prefixed** (`Kollect*`) to avo
 - **`KollectClusterSink`** (cluster) — platform-shared export backends ([ADR-0703](0703-platform-architecture-pivot.md)).
 - **`KollectClusterInventory`** (cluster) — aggregates **`KollectClusterTarget`** rows; platform rollup. **No controller in MVP** — pairs with cluster target.
 - **`KollectClusterScope`** (cluster) — platform tenancy boundary when namespaced `KollectScope` is
-  insufficient; addition after namespaced scope enforcement ships (Phase 3).
+  insufficient; ships with collection ceiling fields ([ADR-0207](0207-target-collection-filtering.md)).
 
 Short names: `kprof`, `ksink`, `kscope`, `ktgt`, `kinv` (reserved: `kcinv`, `kcscope`). `kpub` was
 reserved for rejected `KollectPublication` — do not use.
@@ -99,6 +99,10 @@ Credential material stays in `secretRef` (tokens, SSH keys) — never in spec/st
 
 **Deferred:** sink-side or target-side JSONPath *filters* (post-extraction row filtering) are not
 Phase 1 API. Schema clarity and aggregation matter more than where filtering runs ([REQUIREMENTS.md](../REQUIREMENTS.md)).
+
+**Pre-store collection gates** (namespace allow/deny, `resourceRules`, CEL `matchPolicy`) live on
+`KollectTarget` / `KollectClusterTarget` — see [ADR-0207](0207-target-collection-filtering.md). That
+is distinct from export-time Inventory row filters, which remain deferred.
 
 ## Consequences
 

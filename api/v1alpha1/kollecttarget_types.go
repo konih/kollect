@@ -20,6 +20,8 @@ type KollectTargetSpec struct {
 	// +optional
 	NamespaceSelector *metav1.LabelSelector `json:"namespaceSelector,omitempty"`
 
+	CollectionFilterSpec `json:",inline"`
+
 	// labelSelector restricts collection to resources matching the selector.
 	// +optional
 	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
@@ -66,6 +68,8 @@ type KollectTargetStatus struct {
 	// observedGeneration is the most recent generation observed by the controller.
 	// +optional
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	CollectionFilterStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true

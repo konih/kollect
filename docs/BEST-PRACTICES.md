@@ -47,6 +47,10 @@ Cluster-wide rollup uses `KollectClusterInventory` with `spec.sinkNamespace` ins
 
 ### Watch labels and `KollectScope`
 
+- Exclude platform namespaces with Target `excludedNamespaces` or Scope `deniedNamespaces` — no
+  Namespace patch RBAC ([ADR-0207](adr/0207-target-collection-filtering.md)).
+- Trivy HIGH-only collection: `resourceRules` with label match OR CEL `matchPolicy` — see
+  [examples/kollecttarget_trivy-high.yaml](examples/kollecttarget_trivy-high.yaml).
 - Run platform targets with `watchMode: All`; let teams opt **out** noisy namespaces via
   `kollect.dev/namespace-watch: disabled` ([ANNOTATIONS-LABELS.md](ANNOTATIONS-LABELS.md)).
 - Use `watchMode: OptIn` only in shared clusters where most tenants should be ignored by default.

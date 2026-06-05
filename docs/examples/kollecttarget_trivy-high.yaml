@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Konrad Heimel
+#
+# Example: Trivy HIGH/critical VulnerabilityReport collection (ADR-0207).
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectScope
+metadata:
+  name: sec-ops-scope
+  namespace: sec-ops
+spec:
+  allowedGVKs:
+    - group: aquasecurity.github.io
+      version: v1alpha1
+      kind: VulnerabilityReport
+  allowedNamespaces: [sec-ops, team-a, team-b]
+  deniedNamespaces: [kube-system, kube-public]
+  sinkRefs: [sec-ops-git]
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectProfile
+metadata:
+  name: trivy-vulnerability-summary
+  namespace: sec-ops
+spec:
+  targetGVK:
+    group: aquasecurity.github.io
+    version: v1alpha1
+    kind: VulnerabilityReport
+  attributes:
+    - name: namespace
+      path: object.metadata.namespace
+    - name: highestSeverity
+      path: object.status.summary.highestSeverity
+    - name: criticalCount
+      path: object.status.summary.criticalCount
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectTarget
+metadata:
+  name: trivy-high-critical
+  namespace: sec-ops
+spec:
+  profileRef: trivy-vulnerability-summary
+  includedNamespaces: [sec-ops, team-a, team-b]
+  excludedNamespaces: [kube-system]
+  resourceRules:
+    - gvk:
+        group: aquasecurity.github.io
+        version: v1alpha1
+        kind: VulnerabilityReport
+      matchLabels:
+        trivy-operator.resource.criticality: high
+    - gvk:
+        group: aquasecurity.github.io
+        version: v1alpha1
+        kind: VulnerabilityReport
+      matchPolicy: |
+        has(object.status.summary) &&
+        object.status.summary.criticalCount > 0
+  watchMode: All
