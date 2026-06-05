@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
@@ -17,11 +18,25 @@ import (
 
 const defaultSubject = "inventory/reports"
 
+type inventoryKey struct {
+	namespace string
+	name      string
+}
+
+type publishSnapshot struct {
+	generation int64
+	items      map[string]collect.Item
+}
+
+var (
+	stateMu   sync.Mutex
+	lastState = make(map[inventoryKey]publishSnapshot)
+)
+
 // TryPublishReport publishes a summarized SpokeReport when spoke env is configured.
 //
-// Phase 2 stub: no-op when KOLLECT_SPOKE_CLUSTER is unset. When set, publishes JSON to the
-// configured transport subject (see ADR-0022 hub-and-spoke path). Full delta coalescing and
-// cross-cluster auth are follow-up work.
+// No-op when KOLLECT_SPOKE_CLUSTER is unset. When set, publishes a delta JSON payload
+// (changed/new items and removed UIDs) via the configured transport subject.
 func TryPublishReport(
 	ctx context.Context,
 	store *collect.Store,
@@ -32,27 +47,38 @@ func TryPublishReport(
 		return nil
 	}
 
+	if os.Getenv("KOLLECT_TRANSPORT_TYPE") == "" {
+		return nil
+	}
+
 	if store == nil || inv == nil {
 		return fmt.Errorf("spoke publish: store and inventory are required")
 	}
 
-	transportType := os.Getenv("KOLLECT_TRANSPORT_TYPE")
-	if transportType == "" {
-		transportType = string(transport.TypeInProcess)
-	}
+	cfg := transport.ConfigFromEnv()
 
-	cfg := transport.Config{
-		Type:   transport.Type(transportType),
-		Stream: defaultSubject,
-	}
-	if cfg.Type == transport.TypeRedis {
-		cfg.Redis.URL = os.Getenv("KOLLECT_REDIS_URL")
-	}
-
-	pub, _, err := transport.NewTransport(cfg)
+	pub, err := publisherFor(cfg)
 	if err != nil {
 		return fmt.Errorf("spoke publish transport: %w", err)
 	}
+
+	key := inventoryKey{namespace: inv.Namespace, name: inv.Name}
+	current := store.SnapshotNamespace(inv.Namespace)
+
+	stateMu.Lock()
+	prev, hasPrev := lastState[key]
+	if hasPrev && prev.generation == inv.Generation && !snapshotChanged(prev.items, current) {
+		stateMu.Unlock()
+
+		return nil
+	}
+
+	items, removed := deltaItems(prev.items, current, hasPrev)
+	lastState[key] = publishSnapshot{
+		generation: inv.Generation,
+		items:      indexByUID(current),
+	}
+	stateMu.Unlock()
 
 	report := hub.SpokeReport{
 		APIVersion: "kollect.dev/v1alpha1",
@@ -61,8 +87,9 @@ func TryPublishReport(
 			Namespace: inv.Namespace,
 			Name:      inv.Name,
 		},
-		Generation: inv.Generation,
-		Items:      store.SnapshotNamespace(inv.Namespace),
+		Generation:  inv.Generation,
+		Items:       items,
+		RemovedUIDs: removed,
 	}
 
 	payload, err := json.Marshal(report)
@@ -80,4 +107,69 @@ func TryPublishReport(
 	}
 
 	return nil
+}
+
+func indexByUID(items []collect.Item) map[string]collect.Item {
+	out := make(map[string]collect.Item, len(items))
+	for _, item := range items {
+		out[item.UID] = item
+	}
+
+	return out
+}
+
+func snapshotChanged(prev map[string]collect.Item, current []collect.Item) bool {
+	if len(prev) != len(current) {
+		return true
+	}
+
+	for _, item := range current {
+		old, ok := prev[item.UID]
+		if !ok || !itemEqual(old, item) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func itemEqual(a, b collect.Item) bool {
+	ab, errA := json.Marshal(a)
+	bb, errB := json.Marshal(b)
+
+	return errA == nil && errB == nil && string(ab) == string(bb)
+}
+
+func deltaItems(
+	prev map[string]collect.Item,
+	current []collect.Item,
+	hasPrev bool,
+) (changed []collect.Item, removed []string) {
+	currentByUID := indexByUID(current)
+
+	if !hasPrev {
+		return append([]collect.Item(nil), current...), nil
+	}
+
+	for uid, item := range currentByUID {
+		old, ok := prev[uid]
+		if !ok || !itemEqual(old, item) {
+			changed = append(changed, item)
+		}
+	}
+
+	for uid := range prev {
+		if _, ok := currentByUID[uid]; !ok {
+			removed = append(removed, uid)
+		}
+	}
+
+	return changed, removed
+}
+
+// resetPublishState clears delta coalescing state (tests only).
+func resetPublishState() {
+	stateMu.Lock()
+	lastState = make(map[inventoryKey]publishSnapshot)
+	stateMu.Unlock()
 }
