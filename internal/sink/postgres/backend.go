@@ -23,6 +23,8 @@ const TypeName = "postgres"
 
 const typeName = TypeName
 
+const connectTimeout = 30 * time.Second
+
 // Backend upserts inventory rows into PostgreSQL.
 type Backend struct {
 	cfg  Config
@@ -31,6 +33,7 @@ type Backend struct {
 
 // NewBackend constructs a postgres sink backend.
 func NewBackend(
+	ctx context.Context,
 	spec kollectdevv1alpha1.KollectSinkSpec,
 	databaseSecret map[string][]byte,
 ) (*Backend, error) {
@@ -39,13 +42,20 @@ func NewBackend(
 		return nil, err
 	}
 
-	pool, err := pgxpool.New(context.Background(), cfg.DSN)
+	connectCtx := ctx
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		connectCtx, cancel = context.WithTimeout(ctx, connectTimeout)
+		defer cancel()
+	}
+
+	pool, err := pgxpool.New(connectCtx, cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("postgres connect: %w", err)
 	}
 
 	b := &Backend{cfg: cfg, pool: pool}
-	if err := b.ensureTable(context.Background()); err != nil {
+	if err := b.ensureTable(connectCtx); err != nil {
 		pool.Close()
 
 		return nil, err

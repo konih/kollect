@@ -99,7 +99,12 @@ func newGCSBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (B
 }
 
 func newPostgresBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {
-	return postgres.NewBackend(spec, ctx.DatabaseSecretData)
+	connectCtx := ctx.Ctx
+	if connectCtx == nil {
+		connectCtx = context.Background()
+	}
+
+	return postgres.NewBackend(connectCtx, spec, ctx.DatabaseSecretData)
 }
 
 func newKafkaBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {

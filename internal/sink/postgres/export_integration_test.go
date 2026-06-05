@@ -64,7 +64,7 @@ func TestExportPostgres(t *testing.T) {
 		},
 	}
 
-	backend, err := NewBackend(spec, map[string][]byte{"dsn": []byte(connStr)})
+	backend, err := NewBackend(ctx, spec, map[string][]byte{"dsn": []byte(connStr)})
 	if err != nil {
 		t.Fatal(err)
 	}
