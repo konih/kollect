@@ -61,6 +61,14 @@ func ValidateClusterInventorySpec(spec *kollectdevv1alpha1.KollectClusterInvento
 		))
 	}
 
+	dedupePath := field.NewPath("spec").Child("dedupe")
+	switch spec.Dedupe {
+	case "", kollectdevv1alpha1.ClusterInventoryDedupeKeepAll, kollectdevv1alpha1.ClusterInventoryDedupeByResourceUID:
+	default:
+		allErrs = append(allErrs, field.NotSupported(dedupePath, spec.Dedupe,
+			[]string{kollectdevv1alpha1.ClusterInventoryDedupeKeepAll, kollectdevv1alpha1.ClusterInventoryDedupeByResourceUID}))
+	}
+
 	return allErrs
 }
 

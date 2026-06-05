@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"time"
 
+	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
 )
 
@@ -131,4 +132,18 @@ func MergeRows(items []collect.Item, mode DedupeMode) []collect.Item {
 	}
 
 	return out
+}
+
+// DedupeModeFromSpec maps KollectClusterInventory.spec.dedupe to MergeRows mode (ADR-0305).
+func DedupeModeFromSpec(spec *kollectdevv1alpha1.KollectClusterInventorySpec) DedupeMode {
+	if spec == nil {
+		return DedupeKeepAll
+	}
+
+	switch spec.Dedupe {
+	case kollectdevv1alpha1.ClusterInventoryDedupeByResourceUID:
+		return DedupeByResourceUID
+	default:
+		return DedupeKeepAll
+	}
 }

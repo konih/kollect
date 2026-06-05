@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
 )
 
@@ -87,6 +88,33 @@ func TestMergeRowsByResourceUID(t *testing.T) {
 
 	if got := byUID[0].Attributes["replicas"]; got != 3 {
 		t.Fatalf("last row wins: replicas = %v, want 3", got)
+	}
+}
+
+func TestDedupeModeFromSpec(t *testing.T) {
+	t.Parallel()
+
+	if got := DedupeModeFromSpec(nil); got != DedupeKeepAll {
+		t.Fatalf("nil spec = %v, want DedupeKeepAll", got)
+	}
+
+	keepAll := DedupeModeFromSpec(&kollectdevv1alpha1.KollectClusterInventorySpec{
+		Dedupe: kollectdevv1alpha1.ClusterInventoryDedupeKeepAll,
+	})
+	if keepAll != DedupeKeepAll {
+		t.Fatalf("keepAll = %v", keepAll)
+	}
+
+	byUID := DedupeModeFromSpec(&kollectdevv1alpha1.KollectClusterInventorySpec{
+		Dedupe: kollectdevv1alpha1.ClusterInventoryDedupeByResourceUID,
+	})
+	if byUID != DedupeByResourceUID {
+		t.Fatalf("byResourceUID = %v", byUID)
+	}
+
+	defaultMode := DedupeModeFromSpec(&kollectdevv1alpha1.KollectClusterInventorySpec{})
+	if defaultMode != DedupeKeepAll {
+		t.Fatalf("empty dedupe = %v, want DedupeKeepAll", defaultMode)
 	}
 }
 

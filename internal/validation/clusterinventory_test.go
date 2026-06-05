@@ -47,3 +47,17 @@ func TestValidateClusterInventorySpec_validMinimal(t *testing.T) {
 		t.Fatalf("unexpected errors: %v", errs)
 	}
 }
+
+func TestValidateClusterInventorySpec_rejectsInvalidDedupe(t *testing.T) {
+	t.Parallel()
+
+	errs := ValidateClusterInventorySpec(&kollectdevv1alpha1.KollectClusterInventorySpec{
+		NamespaceSelector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{"kollect.dev/tenant": "platform"},
+		},
+		Dedupe: "collapseAll",
+	})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 dedupe error, got %d: %v", len(errs), errs)
+	}
+}
