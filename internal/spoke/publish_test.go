@@ -26,3 +26,17 @@ func TestTryPublishReportNoOpWithoutEnv(t *testing.T) {
 		t.Fatalf("expected no-op, got %v", err)
 	}
 }
+
+func TestTryPublishReportNoOpWithoutTransport(t *testing.T) {
+	t.Setenv("KOLLECT_SPOKE_CLUSTER", "spoke-a")
+	t.Setenv("KOLLECT_TRANSPORT_TYPE", "")
+
+	store := collect.NewStore()
+	inv := &kollectdevv1alpha1.KollectInventory{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "inv", Generation: 1},
+	}
+
+	if err := spoke.TryPublishReport(context.Background(), store, inv); err != nil {
+		t.Fatalf("expected no-op, got %v", err)
+	}
+}
