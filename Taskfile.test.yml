@@ -48,13 +48,15 @@ tasks:
       - echo "wrote coverage.html"
 
   e2e:
-    desc: Run end-to-end tests (requires kind cluster; optional in CI)
+    desc: Run kind e2e smoke (setup, smoke, teardown — CI parity with e2e-nightly)
     env:
       CGO_ENABLED: "1"
-      KIND_CLUSTER:
-        sh: echo "${KIND_CLUSTER:-kollect-e2e}"
+      CLUSTER_NAME:
+        sh: echo "${CLUSTER_NAME:-kollect-e2e}"
     cmds:
-      - make test-e2e
+      - bash hack/kind/e2e/setup.sh
+      - bash hack/kind/e2e/smoke.sh
+      - defer: bash hack/kind/e2e/teardown.sh
 
   bench:
     desc: Run Go micro-benchmarks (-short, -benchmem); safe for dev/CI

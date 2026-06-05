@@ -71,6 +71,11 @@ jobs:
       - name: Git export assert (bare repo)
         run: go test -count=1 -timeout=2m ./internal/sink/git/ -run TestExportBareRepoIntegration -tags=integration
 
+      - name: Object store sink integration (S3/GCS)
+        run: |
+          go test -count=1 -timeout=10m -tags=integration \
+            ./internal/sink/s3/... ./internal/sink/gcs/...
+
       - name: Delete kind cluster
         if: always()
         run: bash hack/kind/e2e/teardown.sh
