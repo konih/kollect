@@ -169,7 +169,33 @@ E2E is also available as a manual GitHub Actions workflow (`.github/workflows/te
 ### Nightly kind smoke (CI)
 
 Scheduled and manual workflow `.github/workflows/e2e-nightly.yaml`: kind + Helm install, sample
-CRs, bounded `kubectl wait` (120s). No reinstall loops.
+CRs, bounded `kubectl wait` (120s), `task bench` with artifact upload, and a local bare-repo
+git export assert. Optional remote git push step is skipped unless `GITHUB_TOKEN` is configured
+(no dedicated test repo wired yet).
+
+### Multi-tenant e2e (default pattern)
+
+Nightly smoke uses **dynamic tenant namespaces** (`kollect-tenant-a`, `kollect-tenant-b`) — not
+shared `default` — to prove per-namespace inventory rollup isolation:
+
+```sh
+# After operator is running on kind (see nightly workflow or local Helm install):
+chmod +x hack/e2e/multitenant.sh
+REPO_ROOT="$(pwd)" hack/e2e/multitenant.sh
+```
+
+The script:
+
+1. Creates two tenant namespaces with distinct label selectors on `KollectTarget`.
+2. Seeds one Deployment per tenant.
+3. Asserts each `KollectInventory.status.itemCount` is **1** (no cross-tenant leakage).
+4. Probes `GET /inventory?namespace=<tenant>` and verifies HTTP payloads stay scoped.
+
+Fixtures live under `test/e2e/fixtures/multitenant/`. Helm CI values:
+`charts/kollect/ci/e2e-tenant-values.yaml`.
+
+Unit tests: `TestKollectInventoryReconciler_aggregatesSameNamespaceOnly`,
+`TestStoreNamespaceIsolation`, `TestCacheOptionsForWatchNamespaces_scopedNamespaces`.
 
 ### Coverage
 
