@@ -78,12 +78,11 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 		return fmt.Errorf("worktree: %w", err)
 	}
 
-	target := filepath.Join(tmp, filepath.FromSlash(objectPath))
-	if mkdirErr := os.MkdirAll(filepath.Dir(target), 0o750); mkdirErr != nil { //nolint:gosec // G301: temp dir
+	if mkdirErr := wt.Filesystem.MkdirAll(filepath.Dir(objectPath), 0o750); mkdirErr != nil {
 		return fmt.Errorf("mkdir object parent: %w", mkdirErr)
 	}
 
-	if writeErr := os.WriteFile(target, payload, 0o600); writeErr != nil { //nolint:gosec // G306: temp file
+	if writeErr := util.WriteFile(wt.Filesystem, objectPath, payload, 0o600); writeErr != nil {
 		return fmt.Errorf("write object: %w", writeErr)
 	}
 
