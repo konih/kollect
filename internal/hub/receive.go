@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/export"
 )
 
 // ValidateClusterWire ensures wire metadata matches the report body (ADR-0503 queue + HTTP ingest).
@@ -51,8 +52,10 @@ func ReceiveReport(
 		return SpokeReport{}, 0, fmt.Errorf("hub receive: unmarshal report: %w", err)
 	}
 
-	if report.APIVersion == "" {
-		report.APIVersion = reportAPIVersion
+	NormalizeReport(&report)
+
+	if err := export.ValidateSchemaVersion(report.SchemaVersion); err != nil {
+		return SpokeReport{}, 0, fmt.Errorf("hub receive: %w", err)
 	}
 
 	if report.Cluster == "" && strings.TrimSpace(wireCluster) != "" {

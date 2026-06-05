@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 )
 
 const (
-	reportAPIVersion      = "kollect.dev/v1alpha1"
 	defaultInventoryName  = "default"
 	defaultHubMetricLabel = "default"
 )
@@ -24,12 +24,26 @@ type InventoryRef struct {
 
 // SpokeReport is the spoke → hub inventory payload (ADR-0502 sketch).
 type SpokeReport struct {
-	APIVersion   string         `json:"apiVersion"`
-	Cluster      string         `json:"cluster"`
-	InventoryRef InventoryRef   `json:"inventoryRef"`
-	Generation   int64          `json:"generation,omitempty"`
-	Items        []collect.Item `json:"items,omitempty"`
-	RemovedUIDs  []string       `json:"removedUIDs,omitempty"`
+	APIVersion    string         `json:"apiVersion"`
+	SchemaVersion string         `json:"schemaVersion"`
+	Cluster       string         `json:"cluster"`
+	InventoryRef  InventoryRef   `json:"inventoryRef"`
+	Generation    int64          `json:"generation,omitempty"`
+	Items         []collect.Item `json:"items,omitempty"`
+	RemovedUIDs   []string       `json:"removedUIDs,omitempty"`
+}
+
+// NormalizeReport fills default apiVersion and schemaVersion on unmarshaled reports.
+func NormalizeReport(report *SpokeReport) {
+	if report == nil {
+		return
+	}
+
+	if report.APIVersion == "" {
+		report.APIVersion = export.WireAPIVersion
+	}
+
+	report.SchemaVersion = export.NormalizeSchemaVersion(report.SchemaVersion)
 }
 
 // Merger applies spoke reports into a hub-side collection store.
@@ -80,9 +94,7 @@ func (m *Merger) ApplyJSON(payload []byte) (int, error) {
 		return 0, fmt.Errorf("hub merger: unmarshal report: %w", err)
 	}
 
-	if report.APIVersion == "" {
-		report.APIVersion = reportAPIVersion
-	}
+	NormalizeReport(&report)
 
 	return m.Apply(report)
 }

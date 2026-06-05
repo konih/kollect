@@ -17,6 +17,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/redpanda"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/export"
 )
 
 func TestExportKafka(t *testing.T) {
@@ -90,6 +91,10 @@ func TestExportKafka(t *testing.T) {
 	var envelope EventEnvelope
 	if err := json.Unmarshal(msg.Value, &envelope); err != nil {
 		t.Fatalf("unmarshal envelope: %v", err)
+	}
+
+	if envelope.SchemaVersion != export.SchemaVersion {
+		t.Fatalf("schemaVersion = %q, want %q", envelope.SchemaVersion, export.SchemaVersion)
 	}
 
 	if envelope.Cluster != "test-cluster" {

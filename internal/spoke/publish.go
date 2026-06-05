@@ -12,6 +12,7 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 	"github.com/konih/kollect/internal/hub"
 	"github.com/konih/kollect/internal/transport"
 )
@@ -81,8 +82,9 @@ func TryPublishReport(
 	stateMu.Unlock()
 
 	report := hub.SpokeReport{
-		APIVersion: "kollect.dev/v1alpha1",
-		Cluster:    cluster,
+		APIVersion:    export.WireAPIVersion,
+		SchemaVersion: export.SchemaVersion,
+		Cluster:       cluster,
 		InventoryRef: hub.InventoryRef{
 			Namespace: inv.Namespace,
 			Name:      inv.Name,

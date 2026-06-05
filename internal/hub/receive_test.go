@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 	"github.com/konih/kollect/internal/hub"
 )
 
@@ -96,6 +97,60 @@ func TestReceiveReportRejectsUnregisteredCluster(t *testing.T) {
 	_, _, err = hub.ReceiveReport("rogue", payload, merger, []string{"spoke-a"}, true)
 	if err == nil {
 		t.Fatal("expected acl error")
+	}
+
+	if store.TotalCount() != 0 {
+		t.Fatalf("store count = %d, want 0", store.TotalCount())
+	}
+}
+
+func TestReceiveReportDefaultsLegacySchemaVersion(t *testing.T) {
+	t.Parallel()
+
+	store := collect.NewStore()
+	merger := hub.NewMerger(store)
+
+	payload := []byte(`{
+		"apiVersion":"kollect.dev/v1alpha1",
+		"cluster":"spoke-a",
+		"inventoryRef":{"namespace":"team-a","name":"inv"},
+		"items":[{"namespace":"apps","name":"demo","uid":"uid-1","version":"v1","kind":"Deployment"}]
+	}`)
+
+	got, applied, err := hub.ReceiveReport("spoke-a", payload, merger, nil, false)
+	if err != nil {
+		t.Fatalf("receive: %v", err)
+	}
+
+	if applied != 1 {
+		t.Fatalf("applied = %d", applied)
+	}
+
+	if got.SchemaVersion != export.SchemaVersion {
+		t.Fatalf("schemaVersion = %q, want %q", got.SchemaVersion, export.SchemaVersion)
+	}
+}
+
+func TestReceiveReportRejectsUnsupportedSchemaVersion(t *testing.T) {
+	t.Parallel()
+
+	store := collect.NewStore()
+	merger := hub.NewMerger(store)
+
+	report := hub.SpokeReport{
+		APIVersion:    export.WireAPIVersion,
+		SchemaVersion: "kollect.dev/v99",
+		Cluster:       "spoke-a",
+	}
+
+	payload, err := json.Marshal(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, err = hub.ReceiveReport("spoke-a", payload, merger, nil, false)
+	if err == nil {
+		t.Fatal("expected schemaVersion error")
 	}
 
 	if store.TotalCount() != 0 {
