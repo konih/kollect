@@ -56,6 +56,16 @@ before export.
 cross-namespace rollup. `KollectClusterTarget` and `KollectClusterInventory` controllers reconcile
 and export; `KollectClusterProfile` remains admission-only (no controller).
 
+### Snapshot export layout and spill
+
+`KollectSink.spec.pathTemplate` selects the Git/object-store object path (default
+`inventory/{namespace}/{name}.json`; placeholders `{cluster}`, `{namespace}`, `{name}`,
+`{generation}`, `{extension}`) — see [ADR-0407](adr/0407-git-object-store-layout.md).
+
+Payloads **≥ 1 MiB** warn; **> 1 MiB** require an `s3` or `gcs` sink in inventory `sinkRefs` (Git
+receives smaller exports only). Hard cap ~**1.5 MiB** `maxExportBytes` blocks export entirely. Details:
+[KollectSink — spill policy](crds/kollectsink.md#export-payload-spill).
+
 ## Kinds
 
 | Kind | Scope | Reconciled | Reference |
