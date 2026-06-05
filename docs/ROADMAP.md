@@ -324,20 +324,20 @@ Scaffold (`553117cc`) reuses the shared **HTTPS git push** path: `internal/sink/
 `spec.endpoint` + `tls.caSecretRef` / `caBundle`, then delegates to `internal/sink/git.Export`
 (direct push to the default branch). Connection probe runs `git ls-remote` with custom CA trust.
 
-**Partial** — CRD + validation + export wire landed; REST MR create/update still stubbed:
+**Partial** — CRD + validation + export wire + REST client stub landed; feature-branch git push still deferred:
 
 | Gap | Status |
 | --- | --- |
 | **CRD fields** | ✅ `spec.gitlab.mergeRequest` (mode `direct` \| `merge_request`), `targetBranch`, `branchPrefix`, `titleTemplate`, `autoMerge` |
 | **Branch + push** | 🚧 branch naming helper wired; feature-branch git push not yet implemented |
-| **GitLab REST API v4** | 🚧 `ResolveProjectRef` helper; `EnsureMergeRequest` stub after export |
+| **GitLab REST API v4** | ✅ `RESTClient` list/create MR; `EnsureMergeRequest` after export when token + `merge_request` mode |
 | **Token scopes** | 🚧 document `write_repository` + `api` in sink CR reference |
 | **Export integration** | ✅ `Backend.Export` calls `EnsureMergeRequest` after `git.Export` |
-| **Integration test** | 🚧 GitLab CE testcontainer or recorded HTTP mock; nightly optional when `GITLAB_TEST_*` secret set |
+| **Integration test** | ✅ httptest MR client unit tests; GitLab CE testcontainer optional when `GITLAB_TEST_*` secret set |
 | **Hub/cluster sinks** | Same contract applies to `KollectClusterSink` when implemented (Phase 3) |
 
-**Stub:** `EnsureMergeRequest` returns not-implemented for `merge_request` mode until REST client
-lands. Default behavior remains direct push.
+**Default:** `direct` mode pushes to the default branch. `merge_request` mode opens/updates an MR via
+GitLab API v4 when `secretRef` provides an API token (`token` or `password` key).
 
 ## CI and end-to-end testing
 
