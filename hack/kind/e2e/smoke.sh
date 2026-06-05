@@ -77,4 +77,9 @@ trap 'kill "$PF_PID" 2>/dev/null || true' EXIT
 sleep 3
 curl -sf http://127.0.0.1:18082/inventory | grep -q itemCount
 
+_log "Generic CRD collection (cert-manager Certificate)..."
+chmod +x "${REPO_ROOT}/hack/e2e/cert-manager.sh"
+REPO_ROOT="${REPO_ROOT}" CLUSTER_NAME="${CLUSTER_NAME}" \
+  bash "${REPO_ROOT}/hack/e2e/cert-manager.sh"
+
 _log "Smoke checks passed."
