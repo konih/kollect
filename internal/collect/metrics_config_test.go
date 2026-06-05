@@ -46,3 +46,39 @@ func TestRecordTargetSnapshotMetricsConfiguredPaths(t *testing.T) {
 		t.Fatalf("configured paths should not auto-emit ignored attribute, got %v", v)
 	}
 }
+
+func TestRecordTargetSnapshotMetricsWithLabels(t *testing.T) {
+	ensureMetricsRegistered()
+
+	paths := []metrics.MetricPathSpec{{
+		Name:   "ready_total",
+		Path:   "ready_replicas",
+		Labels: []string{"zone", "tier"},
+	}}
+	recordTargetSnapshotMetrics("deployments-labeled", "apps/v1/Deployment", []Item{
+		{Attributes: map[string]any{"ready_replicas": 2, "zone": "east", "tier": "prod"}},
+		{Attributes: map[string]any{"ready_replicas": 1, "zone": "east", "tier": "prod"}},
+		{Attributes: map[string]any{"ready_replicas": 4, "zone": "west", "tier": "prod"}},
+	}, paths)
+
+	got, ok := metrics.CustomResourceLabeledSeriesValue(
+		"deployments-labeled", "apps/v1/Deployment", "ready_total",
+		map[string]string{"zone": "east", "tier": "prod"},
+	)
+	if !ok || got != 3 {
+		t.Fatalf("east/prod ready_total = %v ok=%v, want 3 true", got, ok)
+	}
+
+	got, ok = metrics.CustomResourceLabeledSeriesValue(
+		"deployments-labeled", "apps/v1/Deployment", "ready_total",
+		map[string]string{"zone": "west", "tier": "prod"},
+	)
+	if !ok || got != 4 {
+		t.Fatalf("west/prod ready_total = %v ok=%v, want 4 true", got, ok)
+	}
+
+	aggregate := metrics.CustomResourceSeries.WithLabelValues("deployments-labeled", "apps/v1/Deployment", "ready_total")
+	if v := testutil.ToFloat64(aggregate); v != 0 {
+		t.Fatalf("labeled path should not emit aggregate series, got %v", v)
+	}
+}

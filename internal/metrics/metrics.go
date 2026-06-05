@@ -152,6 +152,7 @@ func Register() {
 		InformerObjects,
 		ExportBytesTotal,
 		CustomResourceSeries,
+		customResourceLabeledCollector{},
 		HubSpokeReportsTotal,
 		HubMergedItemsTotal,
 	)

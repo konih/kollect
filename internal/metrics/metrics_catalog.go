@@ -119,6 +119,14 @@ var Catalog = []CatalogEntry{
 		AgentHint:  "Phase 4 KSM-style paths; misconfigured series names explode cardinality.",
 	},
 	{
+		Name:       "kollect_custom_resource_labeled_series",
+		Type:       "gauge",
+		Labels:     []string{"profile", "gvk", "series", "<attribute labels>"},
+		Help:       "Domain metric series with attribute label dimensions from spec.metrics[].labels.",
+		PromQLHint: "sum by (profile, gvk, series) (kollect_custom_resource_labeled_series)",
+		AgentHint:  "Per-label-tuple sums when profile metrics declare labels; bounded by distinct tuples.",
+	},
+	{
 		Name:       "kollect_hub_spoke_reports_total",
 		Type:       "counter",
 		Labels:     []string{"hub", "result"},
