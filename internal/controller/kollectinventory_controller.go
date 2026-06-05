@@ -23,6 +23,7 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/metrics"
 	"github.com/konih/kollect/internal/sink"
 )
 
@@ -50,6 +51,10 @@ type KollectInventoryReconciler struct {
 // Reconcile aggregates collected items in the namespace and exports to configured sinks.
 func (r *KollectInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logf.FromContext(ctx)
+	resultLabel := metrics.ResultSuccess
+	defer func() {
+		metrics.ReconcileTotal.WithLabelValues("kollectinventory", resultLabel).Inc()
+	}()
 
 	var inv kollectdevv1alpha1.KollectInventory
 	if err := r.Get(ctx, req.NamespacedName, &inv); err != nil {
@@ -97,6 +102,9 @@ func (r *KollectInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	r.recordExport(key, hash)
 
 	if exportErr != nil {
+		resultLabel = metrics.ResultFailure
+		metrics.ReconcileErrorsTotal.WithLabelValues("KollectInventory", metrics.ErrorClassTransient).Inc()
+
 		return r.setInventoryDegraded(ctx, &inv, itemCount, exportErr)
 	}
 
@@ -135,7 +143,11 @@ func (r *KollectInventoryReconciler) exportToSink(
 
 	objectPath := fmt.Sprintf("inventory/%s/%s.json", inv.Namespace, inv.Name)
 
-	return backend.Export(ctx, payload, objectPath)
+	start := time.Now()
+	err = backend.Export(ctx, payload, objectPath)
+	metrics.ExportDurationSeconds.WithLabelValues(ks.Spec.Type).Observe(time.Since(start).Seconds())
+
+	return err
 }
 
 func (r *KollectInventoryReconciler) shouldDebounce(key, hash string) bool {

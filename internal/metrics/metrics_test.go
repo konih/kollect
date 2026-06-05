@@ -14,9 +14,34 @@ func TestRegister(t *testing.T) {
 
 	Register()
 
-	InventoryItemsTotal.Set(0)
-	if v := testutil.ToFloat64(InventoryItemsTotal); v != 0 {
+	InventoryItemsTotal.Set(3)
+	if v := testutil.ToFloat64(InventoryItemsTotal); v != 3 {
 		t.Fatalf("inventory items gauge: got %v", v)
+	}
+
+	CollectItemsTotal.Set(5)
+	if v := testutil.ToFloat64(CollectItemsTotal); v != 5 {
+		t.Fatalf("collect items gauge: got %v", v)
+	}
+
+	CollectedObjects.WithLabelValues("deployments", "apps/v1/Deployment").Set(2)
+	if v := testutil.ToFloat64(CollectedObjects.WithLabelValues("deployments", "apps/v1/Deployment")); v != 2 {
+		t.Fatalf("collected objects gauge: got %v", v)
+	}
+
+	ReconcileTotal.WithLabelValues("kollecttarget", ResultSuccess).Inc()
+	if v := testutil.ToFloat64(ReconcileTotal.WithLabelValues("kollecttarget", ResultSuccess)); v < 1 {
+		t.Fatalf("reconcile counter: got %v", v)
+	}
+
+	ReconcileErrorsTotal.WithLabelValues("KollectTarget", ErrorClassForbidden).Inc()
+	if v := testutil.ToFloat64(ReconcileErrorsTotal.WithLabelValues("KollectTarget", ErrorClassForbidden)); v < 1 {
+		t.Fatalf("reconcile errors counter: got %v", v)
+	}
+
+	ExportDurationSeconds.WithLabelValues("git").Observe(0.5)
+	if count := testutil.CollectAndCount(ExportDurationSeconds); count != 1 {
+		t.Fatalf("export duration histogram count: got %d", count)
 	}
 
 	SinkConnectionTestTotal.WithLabelValues("git", ResultSuccess).Inc()
