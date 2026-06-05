@@ -40,10 +40,14 @@ jobs:
     # contents: write — create/update GitHub Release assets (softprops/action-gh-release, git-cliff)
     # packages: write — push container image and OCI Helm chart to GHCR
     # id-token: write — cosign keyless signing via Sigstore OIDC
+    # attestations: write — publish SLSA provenance to GH attestations API
+    # artifact-metadata: write — registry storage records for attested images
     permissions:
       contents: write
       packages: write
       id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -179,8 +183,50 @@ jobs:
           registry-username: ${{ github.repository_owner }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Attest operator image (SLSA provenance)
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.2.0
+        with:
+          subject-name: ${{ steps.image.outputs.repository }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest operator image (SBOM)
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.2.0
+        with:
+          subject-name: ${{ steps.image.outputs.repository }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: dist/sbom.spdx.json
+          push-to-registry: true
+
+      - name: Attest kollect-ui image (SLSA provenance)
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.2.0
+        with:
+          subject-name: ${{ steps.ui-image.outputs.repository }}
+          subject-digest: ${{ steps.ui-build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest kollect-ui image (SBOM)
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.2.0
+        with:
+          subject-name: ${{ steps.ui-image.outputs.repository }}
+          subject-digest: ${{ steps.ui-build.outputs.digest }}
+          sbom-path: dist/sbom-ui.spdx.json
+          push-to-registry: true
+
       - name: Build release assets
         run: bash hack/release-assets.sh "${{ steps.version.outputs.version }}" "${{ steps.image.outputs.repository }}"
+
+      - name: Sign GitHub Release assets
+        run: bash hack/sign-release-assets.sh dist
+
+      - name: Attest GitHub Release assets (SLSA provenance)
+        id: attest-release
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.2.0
+        with:
+          subject-checksums: dist/checksums.txt
+
+      - name: Export release provenance bundle
+        run: cp "${{ steps.attest-release.outputs.bundle-path }}" dist/release-provenance.intoto.jsonl
 
       - id: chart
         run: |
@@ -244,3 +290,5 @@ jobs:
             dist/sbom.spdx.json
             dist/sbom-ui.spdx.json
             dist/checksums.txt
+            dist/release-provenance.intoto.jsonl
+            dist/*.sigstore.json

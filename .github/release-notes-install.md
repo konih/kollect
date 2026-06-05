@@ -6,7 +6,8 @@ ${IMAGE_REPO}:${VERSION}
 
 Multi-arch (`linux/amd64`, `linux/arm64`), distroless nonroot base.
 
-OCI attestations (SBOM + SLSA provenance) are attached in GHCR. Verify the signature:
+OCI attestations (SBOM + SLSA provenance) are attached in GHCR and on the repository
+[Attestations](https://github.com/${GITHUB_REPOSITORY}/attestations) page. Verify the signature:
 
 ```sh
 cosign verify \
@@ -62,4 +63,6 @@ helm upgrade --install kollect kollect-${VERSION}.tgz \
   --set ui.image.tag=${VERSION}
 ```
 
-Verify checksums with `sha256sum -c checksums.txt`.
+Verify checksums with `sha256sum -c checksums.txt`. Each release asset includes a
+`<file>.sigstore.json` Sigstore bundle; `release-provenance.intoto.jsonl` attests all assets.
+See [docs/RELEASE.md](https://github.com/${GITHUB_REPOSITORY}/blob/main/docs/RELEASE.md#verify-after-release).

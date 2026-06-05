@@ -33,8 +33,12 @@ operator how-to; this ADR is the rationale.
 1. **SBOM** — buildx `sbom: true` plus an SPDX-JSON SBOM (`anchore/sbom-action`) published as a release
    asset (`dist/sbom.spdx.json`).
 2. **Provenance** — buildx `provenance: mode=max` (SLSA-style).
-3. **Signing** — **cosign keyless** (Sigstore OIDC, `id-token: write`) signs the image **by digest**.
-4. **Vulnerability gate** — **Trivy** scans both release images and **fails the release** on fixable
+3. **Signing** — **cosign keyless** (Sigstore OIDC, `id-token: write`) signs images and Helm chart
+   OCI artifacts **by digest**; GitHub Release assets are signed with `cosign sign-blob` (`.sigstore.json`
+   bundles for OpenSSF Scorecard).
+4. **Attestations** — **`actions/attest`** publishes SLSA provenance and SPDX SBOM attestations to GHCR
+   and the repository attestations API; release-level provenance is exported as `release-provenance.intoto.jsonl`.
+5. **Vulnerability gate** — **Trivy** scans both release images and **fails the release** on fixable
    `CRITICAL`/`HIGH` (`ignore-unfixed: true`).
 
 ### Action hardening
@@ -46,7 +50,8 @@ operator how-to; this ADR is the rationale.
 
 Each GitHub Release publishes: `install-crds.yaml` and `install.yaml` (kubectl install paths —
 [ADR-0704](0704-helm-chart-crd-lifecycle.md)), the Helm chart `.tgz` **also pushed as OCI** to GHCR,
-`sbom.spdx.json`, `sbom-ui.spdx.json`, and `checksums.txt`.
+`sbom.spdx.json`, `sbom-ui.spdx.json`, `checksums.txt`, per-asset `*.sigstore.json` bundles, and
+`release-provenance.intoto.jsonl`.
 
 ## Consequences
 
@@ -91,8 +96,8 @@ linters and `govulncheck` — not a replacement.
 
 ## Decided follow-ups (2026-06-05, planned post-`v0.1.0-rc`)
 
-- **YES:** Publish signed **provenance + SBOM attestations** (`cosign attest`) attached to the image,
-  in addition to the release-asset SBOM.
+- **DONE:** Publish signed **provenance + SBOM attestations** (`actions/attest` → GHCR + attestations
+  API) and **release-asset signatures** (`cosign sign-blob` + `release-provenance.intoto.jsonl`).
 - **DONE:** OpenSSF **Scorecard** workflow + badge (`.github/workflows/scorecard.yaml`).
 - **DONE:** **Sign the Helm chart** (`cosign sign` the OCI chart artifact) — see release workflow.
 - **TODO:** Add **`slsa-verifier`** check in release CI for provenance verification.
