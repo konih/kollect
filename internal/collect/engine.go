@@ -190,8 +190,17 @@ func (e *Engine) startInformer(ctx context.Context, gvr schema.GroupVersionResou
 
 		return nil
 	}
+	e.mu.Unlock()
 
 	watchNS := e.watchNamespaceForGVR(gvr)
+
+	e.mu.Lock()
+	if e.started[gvr] {
+		e.mu.Unlock()
+
+		return nil
+	}
+
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 		e.dynamic,
 		informerResync,
