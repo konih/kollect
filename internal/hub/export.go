@@ -51,10 +51,6 @@ func (e *Exporter) ExportAfterMerge(ctx context.Context, report SpokeReport) err
 		return fmt.Errorf("hub export: marshal target payload: %w", err)
 	}
 
-	if len(payload) == 0 || string(payload) == "[]" || string(payload) == "null" {
-		return nil
-	}
-
 	invNS := report.InventoryRef.Namespace
 	if invNS == "" {
 		invNS = e.Config.ExportNamespace
@@ -127,11 +123,16 @@ func (e *Exporter) exportToSink(
 		return err
 	}
 
+	exportPayload, skip := sink.ExportPayload(backend.Capabilities(), payload)
+	if skip {
+		return nil
+	}
+
 	start := time.Now()
-	err = backend.Export(ctx, payload, objectPath)
+	err = backend.Export(ctx, exportPayload, objectPath)
 	elapsed := time.Since(start).Seconds()
 	metrics.ExportDurationSeconds.WithLabelValues(ks.Spec.Type).Observe(elapsed)
-	metrics.ExportBytesTotal.WithLabelValues(ks.Spec.Type).Add(float64(len(payload)))
+	metrics.ExportBytesTotal.WithLabelValues(ks.Spec.Type).Add(float64(len(exportPayload)))
 
 	if err != nil {
 		reason := exportSinkErrorReason(err)

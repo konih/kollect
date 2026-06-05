@@ -261,11 +261,16 @@ func (r *KollectClusterInventoryReconciler) exportToSink(
 
 	objectPath := fmt.Sprintf("inventory/cluster/%s.json", inv.Name)
 
+	exportPayload, skip := sink.ExportPayload(backend.Capabilities(), payload)
+	if skip {
+		return nil
+	}
+
 	start := time.Now()
-	err = backend.Export(ctx, payload, objectPath)
+	err = backend.Export(ctx, exportPayload, objectPath)
 	elapsed := time.Since(start).Seconds()
 	metrics.ExportDurationSeconds.WithLabelValues(ks.Spec.Type).Observe(elapsed)
-	metrics.ExportBytesTotal.WithLabelValues(ks.Spec.Type).Add(float64(len(payload)))
+	metrics.ExportBytesTotal.WithLabelValues(ks.Spec.Type).Add(float64(len(exportPayload)))
 
 	if err != nil {
 		reason := sinkErrorReason(err)

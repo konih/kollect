@@ -14,6 +14,7 @@ import (
 	"github.com/segmentio/kafka-go/sasl/scram"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/sink/cap"
 )
 
 // EventEnvelope is the JSON message published to Kafka topics.
@@ -58,6 +59,11 @@ func NewBackend(
 // Type returns the sink type identifier.
 func (b *Backend) Type() string {
 	return typeName
+}
+
+// Capabilities reports stream event emission (ADR-0401).
+func (b *Backend) Capabilities() cap.Capabilities {
+	return cap.StreamEmitter()
 }
 
 // Close releases the Kafka writer.

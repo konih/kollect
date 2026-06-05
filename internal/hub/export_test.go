@@ -26,6 +26,10 @@ type recordingBackend struct {
 
 func (r *recordingBackend) Type() string { return "recording" }
 
+func (r *recordingBackend) Capabilities() sink.Capabilities {
+	return sink.SnapshotStoreCapabilities()
+}
+
 func (r *recordingBackend) Export(_ context.Context, _ []byte, _ string) error {
 	r.mu.Lock()
 	r.exported++

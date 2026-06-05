@@ -7,6 +7,7 @@ import (
 	"context"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/sink/cap"
 )
 
 // Backend exports inventory payloads to a git remote.
@@ -32,6 +33,11 @@ func NewBackend(
 // Type returns the sink type identifier.
 func (b *Backend) Type() string {
 	return TypeName
+}
+
+// Capabilities reports whole-snapshot export (ADR-0401).
+func (b *Backend) Capabilities() cap.Capabilities {
+	return cap.SnapshotStore()
 }
 
 // Config exposes the resolved configuration (for connection tests).

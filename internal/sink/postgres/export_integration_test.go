@@ -132,6 +132,61 @@ WHERE inventory_namespace = $1 AND inventory_name = $2 AND source_uid = $3
 	if replicas != 3 {
 		t.Fatalf("replicas = %v, want 3", replicas)
 	}
+
+	// Export a snapshot with an extra row, then a reduced snapshot — stale row must be deleted (ADR-0401).
+	reduced := updated
+	extra := collect.Item{
+		TargetNamespace: "apps",
+		TargetName:      "web",
+		Namespace:       "apps",
+		Name:            "extra",
+		Version:         "v1",
+		Kind:            "Deployment",
+		UID:             "uid-stale",
+	}
+	extraPayload, err := json.Marshal(append(items, extra))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := backend.Export(ctx, extraPayload, "inventory/apps/demo.json"); err != nil {
+		t.Fatalf("Export with extra row: %v", err)
+	}
+
+	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM public.inventory_items`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Fatalf("row count after extra export = %d, want 2", count)
+	}
+
+	reducedPayload, err := json.Marshal(reduced)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := backend.Export(ctx, reducedPayload, "inventory/apps/demo.json"); err != nil {
+		t.Fatalf("Export delete recon: %v", err)
+	}
+
+	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM public.inventory_items`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("row count after delete recon = %d, want 1", count)
+	}
+
+	// Empty snapshot deletes all rows for this inventory + cluster.
+	if err := backend.Export(ctx, []byte("[]"), "inventory/apps/demo.json"); err != nil {
+		t.Fatalf("Export empty snapshot: %v", err)
+	}
+
+	if err := pool.QueryRow(ctx, `SELECT COUNT(*) FROM public.inventory_items`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 0 {
+		t.Fatalf("row count after empty export = %d, want 0", count)
+	}
 }
 
 func waitForPostgres(ctx context.Context, connStr string) error {
