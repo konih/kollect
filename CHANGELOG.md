@@ -27,11 +27,28 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **sink:** Isolate circuit breaker test from parallel pollution [ff1159a](https://github.com/konih/kollect/commit/ff1159a72fac7d8162b084d3e9211ca94b13c54b)
+
+- **e2e:** Revert multitenant namespaceSelector [926daf0](https://github.com/konih/kollect/commit/926daf0e977e7d491aa060cd5f2e3e3b69c69a7f)
+
+- **controller:** Continue multi-sink export on partial failure [e07add5](https://github.com/konih/kollect/commit/e07add5973538de59b0ec1166ce84cb17057e10a)
+
+- **e2e:** Apply tenant-scope after multitenant asserts [003fe99](https://github.com/konih/kollect/commit/003fe992a2b13ff7078b348351e1e65d3607e826)
+
+- **e2e:** Stabilize multitenant matrix job waits [81df96c](https://github.com/konih/kollect/commit/81df96c354b05868ef1db0ef0f88c454a63bacb6)
+
 - **sink:** Validate git export paths for CodeQL [b67ee61](https://github.com/konih/kollect/commit/b67ee6107897fe04dcdb6f6c3fea8e1108aa9270)
 
 - **ci:** Sync CHANGELOG and UI Docker npm ci [e004476](https://github.com/konih/kollect/commit/e0044763813189d308d68f2a08388dd61e458e0f)
 
 - **e2e:** Bootstrap samples for matrix git-export [084c702](https://github.com/konih/kollect/commit/084c702c6d83d063c40dc111a4f3531f2bdd852f)
+
+
+### Features
+
+- **controller:** Add inventory deletion finalizer [4c70371](https://github.com/konih/kollect/commit/4c70371aba2e50d50314342eebcdfd4a5c9431ea)
+
+- **sink:** Add per-sink gobreaker circuit breaker [cae4170](https://github.com/konih/kollect/commit/cae4170780fc6a90cec306188da84affcd36383c)
 
 ## [0.1.0-rc.2](https://github.com/konih/kollect/compare/v0.1.0-rc.1..v0.1.0-rc.2) - 2026-06-05
 
