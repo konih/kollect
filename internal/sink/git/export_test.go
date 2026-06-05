@@ -77,3 +77,61 @@ func TestParseRemoteBranchFragment(t *testing.T) {
 		t.Fatalf("url = %q", url)
 	}
 }
+
+func TestResolveBranches(t *testing.T) {
+	t.Parallel()
+
+	clone, push := resolveBranches("main", nil)
+	if clone != "main" || push != "main" {
+		t.Fatalf("default = %q/%q", clone, push)
+	}
+
+	clone, push = resolveBranches("main", &BranchSpec{
+		PushBranch:  "kollect/ns/inv",
+		CloneBranch: "develop",
+	})
+	if clone != "develop" || push != "kollect/ns/inv" {
+		t.Fatalf("feature branch = %q/%q", clone, push)
+	}
+}
+
+func TestExportFileRemoteFeatureBranch(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not in PATH")
+	}
+
+	dir := t.TempDir()
+	bare := filepath.Join(dir, "repo.git")
+	cmd := exec.Command("git", "init", "--bare", bare) //nolint:gosec // G204: test fixture
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git init --bare: %s: %v", out, err)
+	}
+
+	endpoint := "file://" + bare
+	cfg := Config{Endpoint: endpoint + "#branch=main"}
+	payload := []byte(`{"hello":"feature"}`)
+
+	if err := ExportWithBranch(t.Context(), cfg, Auth{}, payload, "inventory/feature.json", &BranchSpec{
+		PushBranch:  "kollect/team-a/inventory",
+		CloneBranch: "main",
+	}); err != nil {
+		t.Fatalf("ExportWithBranch() error = %v", err)
+	}
+
+	cloneDir := filepath.Join(dir, "clone")
+	cloneCmd := exec.Command( //nolint:gosec // G204: test fixture
+		"git", "clone", "--branch", "kollect/team-a/inventory", "--single-branch", endpoint, cloneDir,
+	)
+	if out, err := cloneCmd.CombinedOutput(); err != nil {
+		t.Fatalf("git clone feature branch: %s: %v", out, err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(cloneDir, "inventory", "feature.json")) //nolint:gosec // G304: test clone dir
+	if err != nil {
+		t.Fatalf("read exported file: %v", err)
+	}
+
+	if string(data) != string(payload) {
+		t.Fatalf("payload = %q, want %q", data, payload)
+	}
+}

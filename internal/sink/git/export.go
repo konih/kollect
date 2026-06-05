@@ -37,8 +37,28 @@ type Auth struct {
 	Token    string
 }
 
+// BranchSpec optionally overrides clone and push branches for git export.
+type BranchSpec struct {
+	// PushBranch is the branch pushed to the remote. Empty uses the endpoint default branch.
+	PushBranch string
+	// CloneBranch is the branch cloned as the export base. Empty uses PushBranch or endpoint default.
+	CloneBranch string
+}
+
 // Export clones (or initializes), writes payload at objectPath, commits, and pushes to the remote.
 func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPath string) error {
+	return ExportWithBranch(ctx, cfg, auth, payload, objectPath, nil)
+}
+
+// ExportWithBranch is like Export but can push to a feature branch cloned from another ref.
+func ExportWithBranch(
+	ctx context.Context,
+	cfg Config,
+	auth Auth,
+	payload []byte,
+	objectPath string,
+	branch *BranchSpec,
+) error {
 	if len(payload) == 0 {
 		return fmt.Errorf("git export: empty payload")
 	}
@@ -48,16 +68,18 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 		objectPath = defaultObjectKey
 	}
 
-	cloneURL, branch, err := parseRemote(cfg.Endpoint)
+	cloneURL, defaultBranch, err := parseRemote(cfg.Endpoint)
 	if err != nil {
 		return err
 	}
+
+	cloneBranch, pushBranch := resolveBranches(defaultBranch, branch)
 
 	ctx, cancel := context.WithTimeout(ctx, exportTimeout)
 	defer cancel()
 
 	if isFileRemote(cloneURL) {
-		return exportFileRemote(ctx, cloneURL, branch, payload, objectPath)
+		return exportFileRemote(ctx, cloneURL, cloneBranch, pushBranch, payload, objectPath)
 	}
 
 	authMethod, err := basicAuth(cloneURL, auth)
@@ -71,7 +93,7 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 	}
 	defer func() { _ = os.RemoveAll(tmp) }()
 
-	repo, emptyRemote, err := cloneOrInit(ctx, tmp, cloneURL, branch, authMethod, cfg)
+	repo, emptyRemote, err := cloneOrInit(ctx, tmp, cloneURL, cloneBranch, authMethod, cfg)
 	if err != nil {
 		return err
 	}
@@ -79,6 +101,15 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 	wt, err := repo.Worktree()
 	if err != nil {
 		return fmt.Errorf("worktree: %w", err)
+	}
+
+	if pushBranch != cloneBranch {
+		if checkoutErr := wt.Checkout(&git.CheckoutOptions{
+			Branch: plumbing.NewBranchReferenceName(pushBranch),
+			Create: true,
+		}); checkoutErr != nil {
+			return fmt.Errorf("checkout feature branch: %w", checkoutErr)
+		}
 	}
 
 	if mkdirErr := wt.Filesystem.MkdirAll(filepath.Dir(objectPath), 0o750); mkdirErr != nil {
@@ -113,7 +144,27 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 		return fmt.Errorf("git commit: %w", err)
 	}
 
-	return pushCommitted(ctx, repo, cfg, authMethod, cloneURL, branch, emptyRemote, commit)
+	return pushCommitted(ctx, repo, cfg, authMethod, cloneURL, pushBranch, emptyRemote, commit)
+}
+
+func resolveBranches(defaultBranch string, spec *BranchSpec) (cloneBranch, pushBranch string) {
+	cloneBranch = defaultBranch
+	pushBranch = defaultBranch
+	if spec == nil {
+		return cloneBranch, pushBranch
+	}
+
+	if spec.PushBranch != "" {
+		pushBranch = spec.PushBranch
+	}
+
+	if spec.CloneBranch != "" {
+		cloneBranch = spec.CloneBranch
+	} else if spec.PushBranch != "" {
+		cloneBranch = spec.PushBranch
+	}
+
+	return cloneBranch, pushBranch
 }
 
 func pushCommitted(
