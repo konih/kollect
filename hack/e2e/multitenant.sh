@@ -73,10 +73,17 @@ wait_inventory_reconciled() {
 
 assert_inventory_isolated() {
   local count_a count_b
-  count_a=$(kubectl get kollectinventory tenant-inventory -n "${TENANT_A}" -o jsonpath='{.status.itemCount}')
-  count_b=$(kubectl get kollectinventory tenant-inventory -n "${TENANT_B}" -o jsonpath='{.status.itemCount}')
+  log "waiting for per-tenant inventory itemCount..."
+  for _ in $(seq 1 24); do
+    count_a=$(kubectl get kollectinventory tenant-inventory -n "${TENANT_A}" -o jsonpath='{.status.itemCount}')
+    count_b=$(kubectl get kollectinventory tenant-inventory -n "${TENANT_B}" -o jsonpath='{.status.itemCount}')
+    if [[ -n "${count_a}" && "${count_a}" -ge 1 && -n "${count_b}" && "${count_b}" -ge 1 ]]; then
+      break
+    fi
+    sleep 5
+  done
 
-  log "tenant-a itemCount=${count_a} tenant-b itemCount=${count_b}"
+  log "tenant-a itemCount=${count_a:-0} tenant-b itemCount=${count_b:-0}"
   if [[ -z "${count_a}" || "${count_a}" -lt 1 ]]; then
     echo "expected tenant-a inventory to collect at least one item" >&2
     return 1
