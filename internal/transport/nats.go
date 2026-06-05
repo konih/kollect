@@ -56,7 +56,7 @@ func newNATSTransport(cfg Config) (Publisher, Subscriber, error) {
 
 	group := cfg.Group
 	if group == "" {
-		group = "kollect-hub"
+		group = defaultHubGroup
 	}
 
 	t := &NATSTransport{
@@ -119,7 +119,7 @@ func (n *NATSTransport) Subscribe(ctx context.Context, subject string, handler H
 	}
 
 	cc, err := cons.Consume(func(msg jetstream.Msg) {
-		if err := handler(ctx, msg.Data()); err != nil {
+		if handlerErr := handler(ctx, msg.Data()); handlerErr != nil {
 			return
 		}
 

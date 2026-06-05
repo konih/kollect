@@ -12,7 +12,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const defaultStream = "kollect.hub"
+const (
+	defaultStream   = "kollect.hub"
+	defaultHubGroup = "kollect-hub"
+)
 
 // RedisTransport publishes and consumes inventory reports via Redis Streams.
 type RedisTransport struct {
@@ -43,7 +46,7 @@ func newRedisTransport(cfg Config) (Publisher, Subscriber, error) {
 
 	group := cfg.Group
 	if group == "" {
-		group = "kollect-hub"
+		group = defaultHubGroup
 	}
 
 	rt := &RedisTransport{

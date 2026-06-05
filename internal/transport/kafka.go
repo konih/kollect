@@ -44,7 +44,7 @@ func newKafkaTransport(cfg Config) (Publisher, Subscriber, error) {
 
 	group := kcfg.Group
 	if group == "" {
-		group = "kollect-hub"
+		group = defaultHubGroup
 	}
 
 	writer := &kafka.Writer{

@@ -15,6 +15,7 @@ import (
 
 const (
 	// AllowSecretExtractionAnnotation opts a Profile into Secret.data extraction paths.
+	//nolint:gosec // G101: annotation key name, not a credential
 	AllowSecretExtractionAnnotation = "kollect.dev/allow-secret-extraction"
 )
 

@@ -124,9 +124,9 @@ func TestMergerApplyRemovedUIDs(t *testing.T) {
 	}
 
 	removed := SpokeReport{
-		Cluster:     "spoke-a",
+		Cluster:      "spoke-a",
 		InventoryRef: InventoryRef{Name: "inv"},
-		RemovedUIDs: []string{"u1"},
+		RemovedUIDs:  []string{"u1"},
 	}
 
 	if _, err := merger.Apply(removed); err != nil {

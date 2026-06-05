@@ -18,7 +18,7 @@ func ConfigFromEnv() Config {
 	cfg := Config{
 		Type:   Type(transportType),
 		Stream: envOr("KOLLECT_HUB_STREAM", defaultStream),
-		Group:  envOr("KOLLECT_HUB_GROUP", "kollect-hub"),
+		Group:  envOr("KOLLECT_HUB_GROUP", defaultHubGroup),
 	}
 
 	switch cfg.Type {
