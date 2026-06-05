@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -135,6 +136,32 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 		CABundle:        cfg.CABundle,
 	}); err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return fmt.Errorf("git push: %w", err)
+	}
+
+	if isFileRemote(cloneURL) {
+		if err := pushFileRemoteCLI(ctx, tmp, branch); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isFileRemote(cloneURL string) bool {
+	u, err := url.Parse(cloneURL)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme == "file"
+}
+
+func pushFileRemoteCLI(ctx context.Context, workDir, branch string) error {
+	ref := fmt.Sprintf("refs/heads/%s:refs/heads/%s", branch, branch)
+	//nolint:gosec // G204: workDir from MkdirTemp
+	cmd := exec.CommandContext(ctx, "git", "-C", workDir, "push", "--force", "origin", ref)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git push file remote: %s: %w", strings.TrimSpace(string(out)), err)
 	}
 
 	return nil

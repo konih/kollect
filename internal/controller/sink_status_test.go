@@ -79,7 +79,7 @@ func TestSetSinkReachableFromExport(t *testing.T) {
 
 	setSinkReachableFromExport(&conds, 3, kollecterrors.Terminal(context.DeadlineExceeded))
 	c = apimeta.FindStatusCondition(conds, kollectdevv1alpha1.ConditionSinkReachable)
-	if c == nil || c.Status != metav1.ConditionFalse || c.Reason != "ExportTerminal" {
+	if c == nil || c.Status != metav1.ConditionFalse || c.Reason != kollectdevv1alpha1.ReasonExportTerminal {
 		t.Fatalf("terminal export condition: %+v", c)
 	}
 }

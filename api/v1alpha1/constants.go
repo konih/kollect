@@ -15,6 +15,8 @@ const (
 	ConditionReady               = "Ready"
 	ConditionDegraded            = "Degraded"
 
+	ReasonExportTerminal = "ExportTerminal"
+
 	AnnotationTestConnection = "kollect.dev/test-connection"
 
 	// Multi-cluster registration (Istio remote-secret parallel — ADR-0028).
