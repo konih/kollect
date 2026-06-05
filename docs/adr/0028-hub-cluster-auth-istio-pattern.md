@@ -7,7 +7,7 @@ Accepted (2026-06-05)
 ## Context
 
 Multi-cluster inventory fan-in ([ADR-0022](0022-multi-cluster-sync-rfc.md)) requires **authenticated
-spoke → hub** channels at 100+ cluster scale. Inventory HTTP read auth is already settled
+spoke → hub** channels at hub scale. Inventory HTTP read auth is already settled
 ([ADR-0024](0024-inventory-api-auth.md)); hub/spoke transport auth is a **separate concern** —
 spokes push summarized deltas, hubs validate identity before merge.
 
@@ -33,8 +33,8 @@ Options considered:
 | Approach | Pros | Cons |
 | --- | --- | --- |
 | **Istio-style remote credential `Secret` + `KollectRemoteCluster` CR** | GitOps-friendly; optional hub pull; familiar to platform teams | Secret lifecycle; hub must list/watch secrets |
-| **Push-only Bearer SA token + TokenReview** | Scales to 100+ spokes; no hub API reach into spokes; reuses [ADR-0024](0024-inventory-api-auth.md) | Spokes need routable hub ingress; token rotation |
-| **mTLS client certs per spoke** | Strong transport identity | Cert ops at 100+ scale; CSR/bootstrap complexity |
+| **Push-only Bearer SA token + TokenReview** | Scales to many spokes; no hub API reach into spokes; reuses [ADR-0024](0024-inventory-api-auth.md) | Spokes need routable hub ingress; token rotation |
+| **mTLS client certs per spoke** | Strong transport identity | Cert ops at hub scale; CSR/bootstrap complexity |
 | **OIDC / static API keys** | Simple for non-K8s spokes | Parallel identity stack; rotation burden |
 
 ## Decision
@@ -77,7 +77,7 @@ data:
 `KollectRemoteCluster.spec.credentialsSecretRef` points at this secret — same ergonomics as
 `istioctl create-remote-secret | kubectl apply` ([Istio primary-remote install](https://istio.io/latest/docs/setup/install/multicluster/primary-remote/)).
 
-### 3. Push path (default at 100+ clusters)
+### 3. Push path (default at hub scale)
 
 Spokes POST summarized `SpokeReport` JSON to hub ingress:
 
@@ -160,7 +160,7 @@ sequenceDiagram
 | **Identity** | SA token in kubeconfig + mesh CA | SA bearer token + `X-Kollect-Cluster-Id` |
 | **Trust** | Shared/federated mesh CA | Hub apiserver TokenReview; optional `trustBundle` for pull/mTLS later |
 | **Topology** | Primary-remote / multi-primary | Hub-and-spoke only ([ADR-0022](0022-multi-cluster-sync-rfc.md)) |
-| **Scale bias** | Tens of clusters per mesh | **100+** spokes, push-first |
+| **Scale bias** | Tens of clusters per mesh | many spokes, push-first |
 
 ## Consequences
 

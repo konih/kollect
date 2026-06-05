@@ -86,8 +86,8 @@ Lean on OSS patterns rather than reinvent:
 8. **Add Postgres + Kafka sinks** as first-class export targets ([ADR-0025](0025-sink-backends-database-kafka.md)).
 
 kollect's unique value is the **combination** plus **stakeholder-facing export** (Git, HTTP, Postgres,
-Kafka) with **multi-cluster aggregation** ([ADR-0022](0022-multi-cluster-sync-rfc.md)) without 60×
-export noise.
+Kafka) with **multi-cluster aggregation** ([ADR-0022](0022-multi-cluster-sync-rfc.md)) without
+per-cluster export noise.
 
 ## Consequences
 

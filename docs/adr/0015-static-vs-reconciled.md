@@ -16,7 +16,7 @@ Operators differ on whether configuration CRDs get their own reconciler:
 kollect has configuration objects (`KollectProfile`, `KollectSink`) that change infrequently and
 work objects (`KollectTarget`, `KollectInventory`) that drive continuous collection and export.
 
-At **~60 clusters**, shared GVK definitions may be duplicated per namespace or published via future
+At **large fleet scale**, shared GVK definitions may be duplicated per namespace or published via future
 `KollectClusterProfile`; per-target overrides may be needed later without forking profiles.
 
 ## Decision

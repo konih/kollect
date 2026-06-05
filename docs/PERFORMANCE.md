@@ -14,7 +14,8 @@ baseline**) and **100+ cluster** hub deployments. This guide summarizes tuning k
 | Hub platform | 10k × N (summarized) | **100+** | Hub merge benchmarks; sharded queue |
 | Stretch spoke | 50,000+ | 1 | Scoped informers; object-store spillover |
 
-**60 clusters is not the limit** — hub merge must stay **O(total rows)**, never O(spokes²).
+Hub scale targets are defined in [ADR-0026](adr/0026-performance-scalability.md) — hub merge must
+stay **O(total rows)**, never O(spokes²).
 
 ## Controller parallelism
 

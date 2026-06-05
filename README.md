@@ -15,8 +15,9 @@ the fields you care about with CEL or JSONPath, and export live cluster state to
 Stakeholders who never touch `kubectl` still get auditable, versioned snapshots they can diff,
 query, or feed into developer portals and compliance workflows.
 
-**Read the docs:** **[konih.github.io/kollect](https://konih.github.io/kollect/)** — install guides,
-CR references, architecture, and examples. This README is the front door; the site is the map.
+**Read the docs:** **[konih.github.io/kollect](https://konih.github.io/kollect/)** — overview,
+getting started, core concepts, CR reference, ADRs, and examples. This README is the front door; the
+site is the map.
 
 ## Quick start
 
@@ -44,10 +45,11 @@ kollect is early and moving fast — issues, ideas, and PRs are welcome. See whe
 
 ## Learn more
 
-| Topic | Link |
+| Section | Link |
 | --- | --- |
+| Architecture and platform decisions | [Understand the basics](https://konih.github.io/kollect/ARCHITECTURE/) |
 | CR fields, RBAC, failure modes | [CR reference](https://konih.github.io/kollect/CR-REFERENCE/) |
-| Debouncing, collection, scope gates | [Data flows](https://konih.github.io/kollect/DATA-FLOWS/) |
+| Hub/spoke and sink concepts | [Core concepts](https://konih.github.io/kollect/adr/0022-multi-cluster-sync-rfc/) |
 | Build-order phases and status | [Roadmap](https://konih.github.io/kollect/ROADMAP/) |
 | Example: Deployment → Git export | [Walkthrough](https://konih.github.io/kollect/examples/deployment-inventory/) |
 | Live demo inventory (Git sink) | [kollect-inventory-demo](https://github.com/konih/kollect-inventory-demo) |
