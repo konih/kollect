@@ -1,0 +1,9 @@
+apiVersion: kollect.dev/v1alpha1
+kind: KollectClusterTarget
+metadata:
+  name: platform-argo-applications
+spec:
+  profileRef: argo-application-summary
+  namespaceSelector:
+    matchLabels:
+      kollect.dev/tenant: platform
