@@ -120,12 +120,12 @@ paths return a **JSON array** in the export row.
 ```mermaid
 flowchart TD
   Obj[Unstructured object] --> Path{Path type?}
-  Path -->|cel:…| CEL[CEL evaluator]
-  Path -->|$.… or {.…}| JP[kubectl JSONPath]
+  Path -->|CEL expression| CEL[CEL evaluator]
+  Path -->|JSONPath wildcard| JP[kubectl JSONPath]
   CEL --> Val[Go value]
   JP --> Matches{match count}
   Matches -->|1| Scalar[scalar in row]
-  Matches -->|>1| List[array in row]
+  Matches -->|many matches| List[array in row]
   Matches -->|0| Opt{optional?}
   Opt -->|yes| Skip[omit attribute]
   Opt -->|no| Null[null in row]
