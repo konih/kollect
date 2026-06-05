@@ -26,6 +26,11 @@
   content: url("../assets/branding/kollect-symbol-light.svg");
 }
 
+/* Stacked hero logo includes wordmark — hide Material's auto-injected page title */
+.md-content__inner > h1:has(+ .kollect-hero) {
+  display: none;
+}
+
 .kollect-hero {
   text-align: center;
   padding: 2.5rem 1rem 2rem;
@@ -41,20 +46,11 @@
 
 .kollect-hero-logo {
   display: block;
-  width: min(7rem, 22vw);
+  width: min(14rem, 55vw);
   height: auto;
-  margin: 0 auto 1rem;
-}
-
-[data-md-color-scheme="slate"] .kollect-hero-logo {
-  content: url("../assets/branding/kollect-symbol-light.svg");
-}
-
-.kollect-hero h1 {
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 0.45rem;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
 }
 
 .kollect-hero p {
