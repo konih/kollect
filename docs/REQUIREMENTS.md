@@ -1,10 +1,13 @@
-# Kollect — requirements (first principles)
+# Requirements & assumptions
 
-> Shared assumptions for architecture reasoning. This document states **what Kollect must do and how
-> well**, independent of any specific design. ADRs decide *how*; this decides *what* and *why*. When an
-> ADR and this document disagree, that is a signal to reconcile — flag it.
+> First-principles requirements for Kollect — **what** the operator must do and **how well**, independent
+> of any specific design. ADRs record *how*; this document records *what* and *why*. When an ADR and
+> this document disagree, reconcile or flag the drift.
 
-**Status:** living · **Audience:** maintainers, reviewers, architecture discussions ·
+**Status:** living · **Audience:** architects, contributors, and reviewers evaluating or extending Kollect ·
+**Not a tutorial** — start with [Understand the basics](UNDERSTAND-THE-BASICS.md) and
+[Architecture](ARCHITECTURE.md); locked design choices live in [Platform decisions](PLATFORM-DECISIONS.md).
+
 **Build order, not a release train** — see [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md).
 
 ---

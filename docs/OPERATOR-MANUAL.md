@@ -5,7 +5,7 @@ workloads. If you are evaluating locally, start with [Quick start](QUICKSTART.md
 [Kind local lab](examples/kind-local-lab.md) first.
 
 !!! tip "Assumptions"
-    This guide assumes Helm 3, kubectl, and a working Kubernetes cluster. New to Kollect CRDs,
+    This guide assumes Helm 3, kubectl, and a working Kubernetes cluster. New to **Kollect** CRDs,
     sink roles, or watch scope? Read [Understand the basics](UNDERSTAND-THE-BASICS.md) and
     [Platform decisions](PLATFORM-DECISIONS.md) before changing production values.
 
@@ -13,9 +13,20 @@ workloads. If you are evaluating locally, start with [Quick start](QUICKSTART.md
     `v1alpha1` fields and defaults may change until the first release candidate. Check
     [ROADMAP](ROADMAP.md) before production rollout.
 
+## In this manual
+
+| Topic | Page |
+| --- | --- |
+| Install (Helm, OCI, CRDs, tenant mode) | [Install](#install) (below) |
+| Version upgrades (CRD + operator two-step) | [Upgrading Kollect](operator-manual/upgrading.md) |
+| Helm values (production knobs) | [Helm values reference](operator-manual/helm-values.md) |
+| Sink and webhook secrets | [Secrets](#secrets) (below) |
+| Informer scope and tenancy | [Watch scope](#watch-scope) (below) |
+| Replicas and leader election | [High availability](#high-availability) (below) |
+
 ## Install
 
-Kollect ships as a **Helm chart** (`charts/kollect`) with CRDs in `crds/` and the controller
+**Kollect** ships as a **Helm chart** (`charts/kollect`) with CRDs in `crds/` and the controller
 Deployment in `templates/`. Chart structure and install modes are documented in
 [ADR-0704: Helm chart and CRD lifecycle](adr/0704-helm-chart-crd-lifecycle.md).
 
@@ -33,7 +44,8 @@ Published releases push the chart to GHCR ([ADR-0705](adr/0705-release-supply-ch
 helm install kollect oci://ghcr.io/konih/kollect --version 0.1.0 -n kollect-system --create-namespace
 ```
 
-Pin `image.tag` to the release image when not using the chart default.
+Pin `image.tag` to the release image when not using the chart default — see
+[Helm values reference](operator-manual/helm-values.md).
 
 ### CRDs (first install)
 
@@ -46,7 +58,7 @@ kubectl apply -f dist/install-crds.yaml
 
 !!! note "Two install artifacts"
     Day-2 upgrades treat **CRD schema** and **operator Deployment** as separate steps — see
-    [Upgrade](#upgrade) below. Full operator manifest: `dist/install.yaml`.
+    [Upgrading Kollect](operator-manual/upgrading.md). Full operator manifest: `dist/install.yaml`.
 
 ### Per-team install (recommended default)
 
@@ -70,80 +82,7 @@ helm install kollect ./charts/kollect -n kollect-system --create-namespace -f va
 Namespaced `KollectProfile`, `KollectSink`, `KollectTarget`, and `KollectInventory` live in the team
 namespace. Portal read path uses **Postgres or Kafka sink export** — not spoke HTTP.
 
-## Upgrade
-
-Helm **does not upgrade or delete CRDs** on `helm upgrade`. Kollect accepts this deliberately and
-documents a **two-step upgrade** ([ADR-0704](adr/0704-helm-chart-crd-lifecycle.md)):
-
-1. **Apply CRD schema** out of band:
-
-   ```sh
-   kubectl apply -f dist/install-crds.yaml
-   ```
-
-2. **Upgrade the operator** (image, RBAC, webhooks):
-
-   ```sh
-   helm upgrade kollect ./charts/kollect -n kollect-system -f values.yaml
-   ```
-
-!!! warning "Never delete CRDs"
-    Deleting a CRD garbage-collects all custom resources. CRD upgrades are **apply-only**;
-    tooling must never remove them.
-
-!!! note "Webhook certificates"
-    Default webhook serving uses **cert-manager** (`webhooks.certManager.create: true`). Clusters
-    without cert-manager can use the self-signed bootstrap path — see
-    [ADR-0105](adr/0105-webhook-serving-cert-management.md).
-
-Release artifacts (`install-crds.yaml`, OCI chart, pinned image) publish on each GitHub Release —
-see [RELEASE](RELEASE.md).
-
-## Helm values
-
-Key values are validated by [`values.schema.json`](../charts/kollect/values.schema.json); CI runs
-`task helm-test`. See [`charts/kollect/values.yaml`](../charts/kollect/values.yaml) for the full list.
-
-| Key | Description | Default |
-| --- | --- | --- |
-| `image.repository` | Controller image | `ghcr.io/konih/kollect` |
-| `image.tag` | Image tag | `latest` (pin in production) |
-| `replicaCount` | Manager pod replicas | `1` |
-| `leaderElection.enabled` | Controller-runtime leader election | `true` |
-| `mode` | Operator mode: `single`, `hub`, or `spoke` | `single` |
-| `tenantMode` | Namespaced Role RBAC for per-team installs | `false` |
-| `watchNamespaces` | Restrict informer cache to these namespaces | `[]` (all) |
-| `featureGates.inventoryHttp.enabled` | Expose `GET /inventory` (debug/small install only) | `false` |
-| `webhooks.enabled` | Validating webhook for profiles | `true` |
-| `sinkDefaults.connectionTest` | Default for sample `KollectSink` probes | `false` |
-| `transport.type` | Hub/spoke transport backend | `inprocess` |
-
-Export debouncing is configured per **`KollectInventory.spec.exportMinInterval`** (CRD default
-**30s**). The chart does not pass the deprecated manager `--export-debounce` flag.
-
-### Hub and spoke values
-
-Multi-cluster hub/spoke uses **Helm `mode`** on the same image — there is **no `KollectHub` CRD**
-([ADR-0703](adr/0703-platform-architecture-pivot.md)). Spoke: `mode: spoke`. Hub: `hub.sinkRefs`,
-`hub.remoteClusters`, `hub.exportNamespace`. Walkthrough: [Hub mode example](examples/hub-mode.md).
-
-!!! warning "Pre-beta hub transport"
-    Hub ingest and spoke push paths are still maturing. Default transport is `inprocess` until an
-    external backend passes integration proof ([ADR-0502](adr/0502-lean-queue-transport.md)).
-
-### Feature gates
-
-Optional HTTP and debug surfaces are **off by default** and map from Helm `featureGates.*` to manager
-flags ([ADR-0704](adr/0704-helm-chart-crd-lifecycle.md)):
-
-| Gate | Helm values | Default |
-| --- | --- | --- |
-| Inventory HTTP API | `featureGates.inventoryHttp.enabled` | **false** |
-| pprof | `pprof.enabled` | **false** |
-| Validating webhooks | `webhooks.enabled` | **true** |
-
-Inventory HTTP auth uses Kubernetes bearer tokens by default
-([ADR-0404](adr/0404-inventory-api-auth.md)). Optional `oauth2Proxy` sidecar is for browser/OIDC only.
+Full value reference: [Helm values](operator-manual/helm-values.md).
 
 ## Secrets
 
@@ -185,7 +124,7 @@ set `connectionTest: true` ([ADR-0403](adr/0403-connection-test.md)).
 
 ## Watch scope
 
-Kollect collection scope is controlled at three layers:
+**Kollect** collection scope is controlled at three layers:
 
 ### Helm: `watchNamespaces` and `tenantMode`
 
@@ -198,6 +137,8 @@ Kollect collection scope is controlled at three layers:
 Use **`tenantMode: true` + `watchNamespaces`** for per-team operator installs
 ([ADR-0203](adr/0203-namespaced-multi-tenancy.md)). Example:
 [Multi-tenant watch scope](examples/multi-tenant-watch-namespaces.md).
+
+Helm keys: [Helm values reference](operator-manual/helm-values.md).
 
 ### `KollectScope` allow-lists
 
@@ -237,9 +178,10 @@ Summary for operators:
 
 ## See also
 
+- [Upgrading Kollect](operator-manual/upgrading.md) · [Helm values](operator-manual/helm-values.md)
 - [FAQ](FAQ.md) — symptom-oriented troubleshooting
 - [Quick start](QUICKSTART.md) · [Development setup](DEVELOPMENT.md)
-- [Chart README](../charts/kollect/README.md) — values reference at source
+- [Chart README](../charts/kollect/README.md) — hub YAML and inventory HTTP auth at source
 - [RELEASE](RELEASE.md) — version bumps and release artifacts
 - [ADR-0704: Helm chart and CRD lifecycle](adr/0704-helm-chart-crd-lifecycle.md)
 - [ADR-0504: Runtime modes and HA](adr/0504-operator-runtime-modes-ha-leader-election.md)
