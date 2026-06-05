@@ -2,13 +2,12 @@
 hide:
   - navigation
   - toc
+  - title
 ---
 
 <div class="kollect-hero" markdown="1">
 
-![Kollect](assets/branding/kollect-symbol-dark.svg){ .kollect-hero-logo }
-
-# Kollect
+![Kollect — durable Kubernetes inventory](assets/branding/kollect-logo-stacked-dark.png){ .kollect-hero-logo }
 
 **Kollect** turns selected, live cluster state into a **durable, queryable, diffable inventory** —
 decoupled from the apiserver's availability, RBAC, and scale limits. Portals, automation, and
