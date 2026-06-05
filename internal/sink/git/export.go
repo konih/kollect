@@ -111,6 +111,18 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 		return fmt.Errorf("git commit: %w", err)
 	}
 
+	return pushCommitted(ctx, repo, cfg, authMethod, tmp, cloneURL, branch, emptyRemote, commit)
+}
+
+func pushCommitted(
+	ctx context.Context,
+	repo *git.Repository,
+	cfg Config,
+	authMethod transport.AuthMethod,
+	workDir, cloneURL, branch string,
+	emptyRemote bool,
+	commit plumbing.Hash,
+) error {
 	if refErr := repo.Storer.SetReference(plumbing.NewHashReference(
 		plumbing.NewBranchReferenceName(branch), commit,
 	)); refErr != nil {
@@ -139,9 +151,7 @@ func Export(ctx context.Context, cfg Config, auth Auth, payload []byte, objectPa
 	}
 
 	if isFileRemote(cloneURL) {
-		if err := pushFileRemoteCLI(ctx, tmp, branch); err != nil {
-			return err
-		}
+		return pushFileRemoteCLI(ctx, workDir, branch)
 	}
 
 	return nil

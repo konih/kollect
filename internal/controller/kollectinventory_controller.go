@@ -368,7 +368,8 @@ func (r *KollectInventoryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if r.Recorder == nil {
-		r.Recorder = mgr.GetEventRecorderFor("kollectinventory-controller") //nolint:staticcheck // SA1019: record API until events migration
+		//nolint:staticcheck // SA1019: record API until events migration
+		r.Recorder = mgr.GetEventRecorderFor("kollectinventory-controller")
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).

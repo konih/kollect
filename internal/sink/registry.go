@@ -11,6 +11,7 @@ import (
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/sink/gcs"
 	"github.com/konih/kollect/internal/sink/git"
+	"github.com/konih/kollect/internal/sink/gitlab"
 	kafkasink "github.com/konih/kollect/internal/sink/kafka"
 	"github.com/konih/kollect/internal/sink/postgres"
 	"github.com/konih/kollect/internal/sink/s3"
@@ -35,6 +36,7 @@ type Registry struct {
 func NewRegistry() *Registry {
 	r := &Registry{factories: make(map[string]Factory)}
 	r.Register("git", newGitBackend)
+	r.Register("gitlab", newGitLabBackend)
 	r.Register("s3", newS3Backend)
 	r.Register("gcs", newGCSBackend)
 	r.Register("postgres", newPostgresBackend)
@@ -68,24 +70,16 @@ func (r *Registry) NewBackend(
 }
 
 func newGitBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {
-	auth := git.Auth{}
-	if ctx.SecretData != nil {
-		if v, ok := ctx.SecretData["username"]; ok {
-			auth.Username = string(v)
-		}
-
-		for _, key := range []string{"password", "token"} {
-			if v, ok := ctx.SecretData[key]; ok {
-				if key == "token" {
-					auth.Token = string(v)
-				} else {
-					auth.Password = string(v)
-				}
-			}
-		}
+	b, err := git.NewBackend(spec, ctx.CAPEM, GitAuthFromSecretData(ctx.SecretData))
+	if err != nil {
+		return nil, err
 	}
 
-	b, err := git.NewBackend(spec, ctx.CAPEM, auth)
+	return b, nil
+}
+
+func newGitLabBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {
+	b, err := gitlab.NewBackend(spec, ctx.CAPEM, GitAuthFromSecretData(ctx.SecretData))
 	if err != nil {
 		return nil, err
 	}

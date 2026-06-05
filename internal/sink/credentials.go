@@ -53,14 +53,12 @@ func ResolveSecret(
 		creds.Username = string(v)
 	}
 
-	for _, key := range []string{"password", "token"} {
-		if v, ok := secret.Data[key]; ok {
-			if key == "token" {
-				creds.Token = string(v)
-			} else {
-				creds.Password = string(v)
-			}
-		}
+	if v, ok := secret.Data[secretKeyPassword]; ok {
+		creds.Password = string(v)
+	}
+
+	if v, ok := secret.Data[secretKeyToken]; ok {
+		creds.Token = string(v)
 	}
 
 	if creds.Token == "" && creds.Password != "" {
