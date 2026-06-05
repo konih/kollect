@@ -5,7 +5,10 @@ package collect
 
 import (
 	"encoding/json"
+	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/konih/kollect/internal/metrics"
 )
@@ -15,6 +18,7 @@ import (
 // When KollectProfile.spec.metrics is set (ADR-0033), only configured series are emitted.
 func recordTargetSnapshotMetrics(profile, gvk string, items []Item, metricPaths []metrics.MetricPathSpec) {
 	metrics.RecordCustomResourceSeries(profile, gvk, "object_count", float64(len(items)))
+	metrics.ResetCustomResourceLabeledSeries(profile, gvk)
 
 	if len(metricPaths) == 0 {
 		recordAutoSummedMetrics(profile, gvk, items)
@@ -23,8 +27,83 @@ func recordTargetSnapshotMetrics(profile, gvk string, items []Item, metricPaths 
 	}
 
 	for _, spec := range metricPaths {
-		metrics.RecordCustomResourceSeries(profile, gvk, spec.Name, sumAttribute(items, spec.Path))
+		if len(spec.Labels) == 0 {
+			metrics.RecordCustomResourceSeries(profile, gvk, spec.Name, sumAttribute(items, spec.Path))
+
+			continue
+		}
+
+		recordLabeledMetricSeries(profile, gvk, spec, items)
 	}
+}
+
+func recordLabeledMetricSeries(profile, gvk string, spec metrics.MetricPathSpec, items []Item) {
+	grouped := make(map[string]struct {
+		labels map[string]string
+		sum    float64
+	})
+
+	for _, item := range items {
+		val, ok := numericAttribute(item.Attributes[spec.Path])
+		if !ok {
+			continue
+		}
+
+		labels := metricLabelValues(item, spec.Labels)
+		key := metricLabelTupleKey(labels)
+		entry := grouped[key]
+		if entry.labels == nil {
+			entry.labels = labels
+		}
+
+		entry.sum += val
+		grouped[key] = entry
+	}
+
+	for _, entry := range grouped {
+		metrics.RecordCustomResourceLabeledSeries(profile, gvk, spec.Name, entry.labels, entry.sum)
+	}
+}
+
+func metricLabelValues(item Item, keys []string) map[string]string {
+	out := make(map[string]string, len(keys))
+	for _, key := range keys {
+		out[key] = attributeLabelValue(item.Attributes[key])
+	}
+
+	return out
+}
+
+func attributeLabelValue(v any) string {
+	if v == nil {
+		return ""
+	}
+
+	switch x := v.(type) {
+	case string:
+		return x
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func metricLabelTupleKey(labels map[string]string) string {
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	var b strings.Builder
+	for _, k := range keys {
+		b.WriteString(k)
+		b.WriteByte('=')
+		b.WriteString(labels[k])
+		b.WriteByte('\x00')
+	}
+
+	return b.String()
 }
 
 func recordAutoSummedMetrics(profile, gvk string, items []Item) {
