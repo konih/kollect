@@ -21,6 +21,7 @@ const (
 
 	reasonSinkNotFound    = "SinkNotFound"
 	reasonSinkUnreachable = "SinkUnreachable"
+	reasonSinksReachable  = "SinksReachable"
 )
 
 func setTargetCondition(

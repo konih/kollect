@@ -44,3 +44,29 @@ func TestKollectProfileValidator_ValidateCreate(t *testing.T) {
 		t.Fatalf("expected valid profile: %v", err)
 	}
 }
+
+func TestKollectProfileValidator_ValidateUpdateDelete(t *testing.T) {
+	t.Parallel()
+
+	v := &kollectProfileValidator{}
+	profile := &kollectdevv1alpha1.KollectProfile{
+		ObjectMeta: metav1.ObjectMeta{Name: "ok"},
+		Spec: kollectdevv1alpha1.KollectProfileSpec{
+			TargetGVK: kollectdevv1alpha1.GroupVersionKind{Version: "v1", Kind: "Deployment"},
+			Attributes: []kollectdevv1alpha1.AttributeSpec{
+				{Name: "name", Path: "$.metadata.name"},
+			},
+		},
+	}
+
+	now := metav1.Now()
+	deleting := profile.DeepCopy()
+	deleting.DeletionTimestamp = &now
+	if _, err := v.ValidateUpdate(context.Background(), profile, deleting); err != nil {
+		t.Fatalf("deletion update: %v", err)
+	}
+
+	if _, err := v.ValidateDelete(context.Background(), profile); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+}

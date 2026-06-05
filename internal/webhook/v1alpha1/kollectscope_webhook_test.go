@@ -53,3 +53,41 @@ func TestKollectScopeValidator_ValidateCreate(t *testing.T) {
 		t.Fatalf("expected valid scope: %v", err)
 	}
 }
+
+func TestKollectScopeValidator_ValidateUpdateDelete(t *testing.T) {
+	t.Parallel()
+
+	v := &kollectScopeValidator{}
+	scope := &kollectdevv1alpha1.KollectScope{
+		ObjectMeta: metav1.ObjectMeta{Name: "ok", Namespace: "team-a"},
+		Spec: kollectdevv1alpha1.KollectScopeSpec{
+			AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+				{Group: "apps", Version: "v1", Kind: "Deployment"},
+			},
+		},
+	}
+
+	if _, err := v.ValidateUpdate(context.Background(), scope, scope); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	if _, err := v.ValidateDelete(context.Background(), scope); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+}
+
+func TestValidateUniqueNonEmptyStrings(t *testing.T) {
+	t.Parallel()
+
+	if err := validateUniqueNonEmptyStrings([]string{"a", "b"}, "spec.sinkRefs"); err != nil {
+		t.Fatalf("unique values: %v", err)
+	}
+
+	if err := validateUniqueNonEmptyStrings([]string{""}, "spec.sinkRefs"); err == nil {
+		t.Fatal("expected empty string error")
+	}
+
+	if err := validateUniqueNonEmptyStrings([]string{"dup", "dup"}, "spec.sinkRefs"); err == nil {
+		t.Fatal("expected duplicate error")
+	}
+}

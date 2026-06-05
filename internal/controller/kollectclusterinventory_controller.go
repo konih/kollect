@@ -451,7 +451,7 @@ func checkClusterInventorySinksReachable(
 		}
 	}
 
-	return true, "SinksReachable", fmt.Sprintf("%d sink(s) reachable in %q", len(sinkRefs), sinkNamespace)
+	return true, reasonSinksReachable, fmt.Sprintf("%d sink(s) reachable in %q", len(sinkRefs), sinkNamespace)
 }
 
 func (r *KollectClusterInventoryReconciler) setDegraded(
