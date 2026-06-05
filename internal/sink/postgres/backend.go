@@ -10,10 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/sink/cap"
 )
 
 // TypeName is the KollectSink.spec.type value for Postgres sinks.
@@ -57,6 +59,11 @@ func (b *Backend) Type() string {
 	return typeName
 }
 
+// Capabilities reports relational upsert with delete reconciliation (ADR-0401).
+func (b *Backend) Capabilities() cap.Capabilities {
+	return cap.RelationalStore()
+}
+
 // Close releases the connection pool.
 func (b *Backend) Close() {
 	if b.pool != nil {
@@ -64,20 +71,25 @@ func (b *Backend) Close() {
 	}
 }
 
-// Export upserts each inventory item keyed by inventory, target, and source UID (ADR COORDINATION).
+// Export upserts each inventory item keyed by inventory, target, and source UID,
+// then deletes rows absent from the current snapshot (ADR-0401 delete reconciliation).
 func (b *Backend) Export(ctx context.Context, payload []byte, objectPath string) error {
-	if len(payload) == 0 {
-		return fmt.Errorf("postgres export: empty payload")
-	}
-
 	var items []collect.Item
-	if err := json.Unmarshal(payload, &items); err != nil {
-		return fmt.Errorf("postgres export: decode payload: %w", err)
+	if len(payload) > 0 {
+		if err := json.Unmarshal(payload, &items); err != nil {
+			return fmt.Errorf("postgres export: decode payload: %w", err)
+		}
 	}
 
 	invNS, invName := inventoryFromObjectPath(objectPath)
 	exportedAt := time.Now().UTC()
 	qualifiedTable := pgxQuoteIdent(b.cfg.Schema) + "." + pgxQuoteIdent(b.cfg.Table)
+
+	tx, err := b.pool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres export: begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	for _, item := range items {
 		itemJSON, err := json.Marshal(item)
@@ -90,7 +102,7 @@ func (b *Backend) Export(ctx context.Context, payload []byte, objectPath string)
 			resourceNS = invNS
 		}
 
-		_, err = b.pool.Exec(ctx, fmt.Sprintf(`
+		_, err = tx.Exec(ctx, fmt.Sprintf(`
 INSERT INTO %s (
   inventory_namespace, inventory_name, target_name, source_uid,
   cluster, resource_namespace, payload, exported_at
@@ -111,6 +123,58 @@ DO UPDATE SET payload = EXCLUDED.payload, exported_at = EXCLUDED.exported_at,
 		if err != nil {
 			return fmt.Errorf("postgres upsert: %w", err)
 		}
+	}
+
+	if err := deleteStaleRows(ctx, tx, qualifiedTable, invNS, invName, b.cfg.Cluster, items); err != nil {
+		return err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("postgres export: commit tx: %w", err)
+	}
+
+	return nil
+}
+
+func deleteStaleRows(
+	ctx context.Context,
+	tx pgx.Tx,
+	qualifiedTable string,
+	invNS, invName, cluster string,
+	items []collect.Item,
+) error {
+	if len(items) == 0 {
+		_, err := tx.Exec(ctx, fmt.Sprintf(`
+DELETE FROM %s
+WHERE inventory_namespace = $1 AND inventory_name = $2 AND cluster = $3
+`, qualifiedTable), invNS, invName, cluster)
+		if err != nil {
+			return fmt.Errorf("postgres delete all: %w", err)
+		}
+
+		return nil
+	}
+
+	targetNames := make([]string, len(items))
+	sourceUIDs := make([]string, len(items))
+	for i, item := range items {
+		targetNames[i] = item.TargetName
+		sourceUIDs[i] = item.UID
+	}
+
+	_, err := tx.Exec(ctx, fmt.Sprintf(`
+DELETE FROM %s AS t
+WHERE t.inventory_namespace = $1
+  AND t.inventory_name = $2
+  AND t.cluster = $3
+  AND NOT EXISTS (
+    SELECT 1
+    FROM unnest($4::text[], $5::text[]) AS s(target_name, source_uid)
+    WHERE s.target_name = t.target_name AND s.source_uid = t.source_uid
+  )
+`, qualifiedTable), invNS, invName, cluster, targetNames, sourceUIDs)
+	if err != nil {
+		return fmt.Errorf("postgres delete stale: %w", err)
 	}
 
 	return nil

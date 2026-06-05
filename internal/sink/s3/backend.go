@@ -16,6 +16,7 @@ import (
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/sink/cap"
 )
 
 // Backend uploads inventory payloads via S3 PutObject.
@@ -42,6 +43,11 @@ func NewBackend(spec kollectdevv1alpha1.KollectSinkSpec, creds map[string][]byte
 // Type returns the sink type identifier.
 func (b *Backend) Type() string {
 	return "s3"
+}
+
+// Capabilities reports whole-snapshot export (ADR-0401).
+func (b *Backend) Capabilities() cap.Capabilities {
+	return cap.SnapshotStore()
 }
 
 // Export uploads payload at objectPath under the configured bucket prefix.

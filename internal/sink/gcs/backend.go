@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/sink/cap"
 	"github.com/konih/kollect/internal/sink/s3"
 )
 
@@ -38,6 +39,11 @@ func NewBackend(spec kollectdevv1alpha1.KollectSinkSpec, creds map[string][]byte
 // Type returns the sink type identifier.
 func (b *Backend) Type() string {
 	return typeName
+}
+
+// Capabilities reports whole-snapshot export (ADR-0401).
+func (b *Backend) Capabilities() cap.Capabilities {
+	return cap.SnapshotStore()
 }
 
 // Export uploads payload at objectPath.

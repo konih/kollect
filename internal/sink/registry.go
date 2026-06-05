@@ -20,6 +20,7 @@ import (
 // Backend exports inventory payloads to an external destination.
 type Backend interface {
 	Type() string
+	Capabilities() Capabilities
 	Export(ctx context.Context, payload []byte, path string) error
 }
 
