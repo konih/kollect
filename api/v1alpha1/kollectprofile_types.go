@@ -21,6 +21,13 @@ type KollectProfileSpec struct {
 	// +listMapKey=name
 	// +optional
 	Attributes []AttributeSpec `json:"attributes,omitempty"`
+
+	// metrics lists kube-state-metrics-style Prometheus series emitted on operator /metrics.
+	// Each path must reference an attribute name from spec.attributes (ADR-0033).
+	// +listType=map
+	// +listMapKey=name
+	// +optional
+	Metrics []MetricSpec `json:"metrics,omitempty"`
 }
 
 // GroupVersionKind identifies the API group, version, and kind of a target resource.

@@ -19,6 +19,12 @@ type KollectClusterProfileSpec struct {
 	// +listMapKey=name
 	// +optional
 	Attributes []AttributeSpec `json:"attributes,omitempty"`
+
+	// metrics lists kube-state-metrics-style Prometheus series emitted on operator /metrics.
+	// +listType=map
+	// +listMapKey=name
+	// +optional
+	Metrics []MetricSpec `json:"metrics,omitempty"`
 }
 
 // KollectClusterProfileStatus defines the observed state of KollectClusterProfile.
