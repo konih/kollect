@@ -52,9 +52,7 @@ func exportFileRemote(
 		return err
 	}
 
-	ref := fmt.Sprintf("refs/heads/%s:refs/heads/%s", branch, branch)
-
-	return runGit(ctx, tmp, "push", "--force", "origin", ref)
+	return runGit(ctx, tmp, "push", "--force", "-u", "origin", branch)
 }
 
 func cloneOrInitCLI(ctx context.Context, dir, cloneURL, branch string) error {
