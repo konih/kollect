@@ -6,13 +6,14 @@ Accepted (2026-06-05)
 
 ## Context
 
-Many installations need inventory from **100+ Kubernetes clusters** (and growing) without:
+Many installations need inventory from **many Kubernetes clusters** (and growing) without:
 
 - N separate Git commits or export events per logical change (must not scale O(n²) with cluster count)
 - Blocking the **single-cluster** path while multi-cluster is designed
 - Premature commitment to **Git-only** fan-in (agent mesh or object storage may fit better)
 
-**60 clusters is not the ceiling** — design for **hundreds of spokes** and **giant single clusters**
+Design for **hundreds of spokes** (hub scale targets in [ADR-0026](0026-performance-scalability.md))
+and **giant single clusters**
 (1000s of nodes, 10k+ watched resources per spoke). The hub must **shard and aggregate**, not
 maintain pairwise or full-mesh relationships between spokes.
 
@@ -26,7 +27,7 @@ views use reserved **`KollectClusterInventory`** (cluster-scoped, not implemente
 
 | Dimension | Target | Design implication |
 | --- | --- | --- |
-| **Spoke count** | 100–500+ clusters | Hub merge is **O(spokes)** ingest + **O(rows)** dedupe, never O(spokes²) cross-talk |
+| **Spoke count** | many clusters (see [ADR-0026](0026-performance-scalability.md)) | Hub merge is **O(spokes)** ingest + **O(rows)** dedupe, never O(spokes²) cross-talk |
 | **Spoke size** | 10k+ watched resources, 1000+ nodes | Spoke stays **lightweight** — summarize before push; no full payload fan-in to hub RAM |
 | **Hub throughput** | 1 logical export per tenant change | Queue consumers shard by `(tenant, shard)`; horizontal hub replicas |
 | **Spoke memory** | Bounded per [ADR-0026](0026-performance-scalability.md) | Scoped informers, paginated list, delta snapshots only |
@@ -36,7 +37,7 @@ views use reserved **`KollectClusterInventory`** (cluster-scoped, not implemente
 - Hub holding full inventory of all clusters in one process without sharding
 - Spoke pushing on every object change without coalescing (export debounce + snapshot windows)
 - Git commit per spoke per reconcile cycle
-- Pairwise agent mesh at 100+ nodes
+- Pairwise agent mesh at large fleet scale
 
 ## Topology options
 
@@ -116,7 +117,7 @@ control plane. **Not recommended beyond ~20 peers** without a hub tier — docum
 | **Kafka topic** | Durable log, enterprise standard; natural partitioning | Heavier ops; topic design lock-in — **optional backend only** |
 | **Git as transport** | Audit trail, familiar PR flow | N repos or branches = noise without aggregation |
 | **Object storage (S3/GCS)** | Large payloads, cheap; spoke spillover for giant clusters | Eventing needs companion (SQS, notification) |
-| **Agent HTTPS API** | Direct, testable ([REQUIREMENTS](../REQUIREMENTS.md)) | mTLS, CA bundles, auth at 100+ scale |
+| **Agent HTTPS API** | Direct, testable ([REQUIREMENTS](../REQUIREMENTS.md)) | mTLS, CA bundles, auth at hub scale |
 
 **Decision:** investigate **lean queue first** ([ADR-0023](0023-lean-queue-transport.md)); Kafka is an
 optional enterprise plug-in — never a hard dependency. Partition count must scale with spoke count.
@@ -157,14 +158,14 @@ Hub is **Helm configuration**, not a CRD lifecycle.
 | **1** | Namespaced `KollectInventory` aggregation, HTTP `/inventory`, Git/GitLab sink + **custom CA** | Export contract stable for hub to consume; operator metrics + bounded benchmarks ([ADR-0026](0026-performance-scalability.md)) |
 | **2** | **`mode: hub\|spoke`** + spoke push to hub ingest / queue | Helm hub Deployment + merge lib + shard routing |
 | **3** | Queue-backed async (pluggable per [ADR-0023](0023-lean-queue-transport.md)) | Spokes decoupled from hub uptime; optional Kafka partitions |
-| **Later** | `KollectClusterInventory` | After aggregation proven at 100+ spoke scale; doc-sync rejected ([ADR-0011](0011-doc-sync-templating.md)) |
+| **Later** | `KollectClusterInventory` | After aggregation proven at hub scale; doc-sync rejected ([ADR-0011](0011-doc-sync-templating.md)) |
 
 Single-cluster users never enable hub/spoke CRs or flags.
 
 ## Decision
 
 1. **Do not block MVP** on multi-cluster — hub is Helm `mode` + library, not a hub CRD ([ADR-0032](0032-platform-architecture-pivot.md)).
-2. **Design namespaced `KollectInventory` aggregation** as if 100+ clusters feed a sharded hub export.
+2. **Design namespaced `KollectInventory` aggregation** as if many clusters feed a sharded hub export.
 3. **Hub-and-spoke** via same image `mode: hub|spoke`; portal reads **hub Postgres/Kafka**, not Git per spoke.
 4. **Lean queue pluggable**, **`inprocess` default only** ([ADR-0023](0023-lean-queue-transport.md)).
 5. **Spokes must stay lightweight** — delta snapshots, bounded RAM, debounced export.
@@ -174,7 +175,7 @@ Single-cluster users never enable hub/spoke CRs or flags.
 
 ### Positive
 
-- Clear narrative for platform teams at **100+ cluster** scale and giant single clusters.
+- Clear narrative for platform teams at **hub scale** and giant single clusters.
 - Single-cluster MVP remains the default install story.
 - Hub lifecycle is Helm-native (`mode`, transport, shard flags).
 - Early perf visibility via operator metrics and bounded benchmarks ([ADR-0026](0026-performance-scalability.md)) reduces architectural lock-in risk.
@@ -193,4 +194,4 @@ Single-cluster users never enable hub/spoke CRs or flags.
 - **OPEN (ADR-0028):** Spoke cross-cluster identity details (mTLS, OIDC, bootstrap tokens) — see [PLATFORM-DECISIONS.md](../PLATFORM-DECISIONS.md).
 - **OPEN:** Maximum spoke payload size before hub spills to object store ([ADR-0006](0006-etcd-limit.md))?
 - **OPEN:** Hub shard count formula — fixed partitions vs dynamic by spoke registration?
-- **OPEN:** Is Git monorepo with `clusters/*` paths sufficient for Phase 2, or object store required at 100+ spokes?
+- **OPEN:** Is Git monorepo with `clusters/*` paths sufficient for Phase 2, or object store required at hub scale?

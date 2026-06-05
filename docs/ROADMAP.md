@@ -131,8 +131,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 
 ## Phase 2 — Hub / multi-cluster
 
-Multi-cluster support must **not** block single-cluster installs. Design for **100+ clusters**
-(60 is not the ceiling) and **giant spokes** (10k+ resources). Hub **shards and aggregates** —
+Multi-cluster support must **not** block single-cluster installs. Design for **many clusters**
+(hub scale targets in [ADR-0026](adr/0026-performance-scalability.md)) and **giant spokes**
+(10k+ resources). Hub **shards and aggregates** —
 never O(spokes²). See [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) and
 [ADR-0023](adr/0023-lean-queue-transport.md).
 
@@ -226,7 +227,7 @@ Cross-cutting NFRs accepted in [ADR-0026](adr/0026-performance-scalability.md). 
 | --- | --- | --- |
 | Watched objects per spoke (baseline) | **10,000+** | [ADR-0026](adr/0026-performance-scalability.md) |
 | Giant single cluster | 1000+ nodes, 10k+ resources | [ADR-0026](adr/0026-performance-scalability.md) |
-| Hub spoke count | **100+** (not capped at 60) | [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) |
+| Hub spoke count | many spokes (see [ADR-0026](adr/0026-performance-scalability.md)) | [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) |
 | Spoke working set (typical profiles) | ≤512 MiB at 10k rows | [ADR-0026](adr/0026-performance-scalability.md) |
 | Hub merge complexity | O(total rows), sharded | [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) |
 
@@ -247,7 +248,7 @@ Cross-cutting NFRs accepted in [ADR-0026](adr/0026-performance-scalability.md). 
 | Item | Status |
 | --- | --- |
 | Scale target documented (10k+ objects per spoke) | ✅ |
-| 100+ cluster hub path documented | ✅ |
+| Hub-scale path documented | ✅ |
 | Bounded test tiers (500 default / 2000 opt-in load) | ✅ |
 | `task bench` (Go benchmarks, `-short`) | ✅ |
 | `task load-test` (`KOLECT_LOAD_TEST=1`, `-tags=load`) | ✅ |
@@ -392,7 +393,7 @@ Full locked table: **[PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md)**.
 | Inventory HTTP auth: **K8s TokenReview + SAR**; `--inventory-auth-mode=kubernetes` default | Accepted |
 | oauth2-proxy: **optional** Helm sidecar for OIDC browsers; not primary auth | Accepted |
 | Git, object storage, and agent mesh documented as alternatives | Accepted |
-| Extreme scale: 100+ clusters, 10k+ objects/spoke, hub shard not O(n²) | Accepted ([ADR-0022](adr/0022-multi-cluster-sync-rfc.md), [ADR-0026](adr/0026-performance-scalability.md)) |
+| Extreme scale: many clusters, 10k+ objects/spoke, hub shard not O(n²) | Accepted ([ADR-0022](adr/0022-multi-cluster-sync-rfc.md), [ADR-0026](adr/0026-performance-scalability.md)) |
 | Hub cluster auth: **Istio remote-secret registration + push TokenReview** | Accepted ([ADR-0028](adr/0028-hub-cluster-auth-istio-pattern.md)) |
 | Namespaced `KollectProfile`; `profileRef` same namespace | Accepted ([ADR-0031](adr/0031-namespaced-profiles.md)) |
 | **`KollectClusterSink` deferred Phase 3** | Deferred |

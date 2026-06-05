@@ -58,7 +58,7 @@ Cluster operator + **`KollectClusterTarget`** supported for platform-wide collec
 
 - **Primary integration** for portals and automation: **Postgres** and/or **Kafka** export.
 - **Git** is an **audit/diff** sink and CI fixture — not the documented happy path for live query
-  at 60+ clusters.
+  at hub scale across many clusters.
 - Hub-scale read path: **merged store in Postgres/Kafka at hub**, not Git clones per spoke.
 
 ### 4. HTTP inventory — optional debug / small install

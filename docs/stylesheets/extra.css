@@ -1,0 +1,59 @@
+/* kollect docs — Material theme polish */
+
+.kollect-hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  margin: -0.5rem -0.8rem 2rem;
+  border-radius: 0.4rem;
+  background: linear-gradient(
+    145deg,
+    rgba(63, 81, 181, 0.18) 0%,
+    rgba(0, 188, 212, 0.08) 55%,
+    transparent 100%
+  );
+}
+
+.kollect-hero h1 {
+  font-size: 2.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.kollect-hero p {
+  font-size: 1.05rem;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  opacity: 0.92;
+}
+
+.kollect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.kollect-card {
+  padding: 1.1rem 1.25rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-code-bg-color);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.kollect-card:hover {
+  border-color: var(--md-accent-fg-color);
+  transform: translateY(-2px);
+}
+
+.kollect-card h3 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+/* Slightly stronger tab underline on dark palette */
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  opacity: 1;
+}
