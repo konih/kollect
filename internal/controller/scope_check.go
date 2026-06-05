@@ -44,22 +44,31 @@ func (s scopeCheck) enforceTarget(
 		return true, "", ""
 	}
 
-	if err := scope.ValidateTargetGVK(binding.Scope, profile.Spec.TargetGVK); err != nil {
+	gvks := scope.CollectRuleGVKs(target.Spec.CollectionFilterSpec, profile.Spec.TargetGVK)
+	if err := scope.ValidateResourceRuleGVKs(binding.Scope, gvks); err != nil {
 		recordWarning(s.recorder, target, scopeReasonGVKDenied, err.Error())
 		return false, scopeReasonGVKDenied, err.Error()
 	}
 
-	var workloadNS []string
-	if s.engine != nil {
-		workloadNS = s.engine.MatchedNamespacesForTarget(target.Namespace, target.Name)
+	matched, effective, _, _ := resolveTargetFilterStatus(ctx, s.client, s.engine, target)
+	intentNS := matched
+	if len(intentNS) == 0 {
+		intentNS = effective
 	}
-	if len(workloadNS) == 0 {
-		workloadNS = []string{target.Namespace}
+	if len(intentNS) == 0 {
+		intentNS = []string{target.Namespace}
 	}
 
-	if err := scope.ValidateWorkloadNamespaces(binding.Scope, workloadNS); err != nil {
+	if err := scope.ValidateTargetIncludedNamespaces(binding.Scope, intentNS); err != nil {
 		recordWarning(s.recorder, target, scopeReasonNSDenied, err.Error())
 		return false, scopeReasonNSDenied, err.Error()
+	}
+
+	if len(effective) > 0 {
+		if err := scope.ValidateWorkloadNamespaces(binding.Scope, effective); err != nil {
+			recordWarning(s.recorder, target, scopeReasonNSDenied, err.Error())
+			return false, scopeReasonNSDenied, err.Error()
+		}
 	}
 
 	return true, "", ""

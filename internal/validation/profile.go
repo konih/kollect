@@ -291,6 +291,16 @@ func ProfileInvalid(name string, errs field.ErrorList) error {
 	return fmt.Errorf("KollectProfile %q is invalid: %s", name, formatErrors(errs))
 }
 
+// ScopeInvalid formats a validation failure for admission.
+func ScopeInvalid(name string, errs field.ErrorList) error {
+	return fmt.Errorf("KollectScope %q is invalid: %s", name, formatErrors(errs))
+}
+
+// ClusterScopeInvalid formats a validation failure for admission.
+func ClusterScopeInvalid(name string, errs field.ErrorList) error {
+	return fmt.Errorf("KollectClusterScope %q is invalid: %s", name, formatErrors(errs))
+}
+
 func formatErrors(errs field.ErrorList) string {
 	msgs := make([]string, len(errs))
 	for i, e := range errs {

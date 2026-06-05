@@ -40,13 +40,28 @@ func (e *Engine) MatchedNamespacesForTarget(targetNamespace, targetName string) 
 
 func (e *Engine) matchedNamespacesForTarget(target *kollectdevv1alpha1.KollectTarget) []string {
 	e.nsMu.RLock()
-	defer e.nsMu.RUnlock()
+	nsMeta := e.nsMeta
+	defaults := e.defaults
+	e.nsMu.RUnlock()
 
-	var matched []string
-	for nsName, meta := range e.nsMeta {
-		if namespaceMatchesSelector(target.Spec.NamespaceSelector, meta.Labels) {
-			matched = append(matched, nsName)
+	matched := MatchIntentNamespaces(
+		target.Spec.CollectionFilterSpec,
+		target.Spec.NamespaceSelector,
+		namespaceMetaMapToFilter(nsMeta),
+		defaults,
+	)
+
+	key := targetKey(target.Namespace, target.Name)
+	e.mu.RLock()
+	st, ok := e.targets[key]
+	e.mu.RUnlock()
+	if ok && len(st.effectiveNamespaces) > 0 {
+		out := make([]string, 0, len(st.effectiveNamespaces))
+		for ns := range st.effectiveNamespaces {
+			out = append(out, ns)
 		}
+
+		return sortedUniqueStrings(out)
 	}
 
 	return matched

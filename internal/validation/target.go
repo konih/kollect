@@ -17,7 +17,11 @@ func ValidateTargetSpec(spec *kollectdevv1alpha1.KollectTargetSpec) field.ErrorL
 		return nil
 	}
 
-	return validateSameNamespaceRef(spec.ProfileRef, field.NewPath("spec").Child("profileRef"), "profileRef")
+	base := field.NewPath("spec")
+	allErrs := validateSameNamespaceRef(spec.ProfileRef, base.Child("profileRef"), "profileRef")
+	allErrs = append(allErrs, ValidateCollectionFilterSpec(&spec.CollectionFilterSpec, base)...)
+
+	return allErrs
 }
 
 // TargetInvalid formats a validation failure for admission.

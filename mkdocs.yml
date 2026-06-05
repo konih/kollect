@@ -90,6 +90,7 @@ nav:
           - KollectTarget: crds/kollecttarget.md
           - KollectInventory: crds/kollectinventory.md
           - KollectScope: crds/kollectscope.md
+          - KollectClusterScope: crds/kollectclusterscope.md
           - KollectConnectionTest: crds/kollectconnectiontest.md
           - KollectClusterProfile: crds/kollectclusterprofile.md
           - KollectClusterTarget: crds/kollectclustertarget.md
@@ -112,6 +113,7 @@ nav:
               - "0204 — Namespaced KollectProfile": adr/0204-namespaced-profiles.md
               - "0205 — Watch opt-in / opt-out labels": adr/0205-watch-labels.md
               - "0206 — API versioning and conversion strategy": adr/0206-api-versioning-conversion.md
+              - "0207 — Target collection filtering": adr/0207-target-collection-filtering.md
           - 03 Collection & extraction:
               - "0301 — Event-driven dynamic informers (one per GVK)": adr/0301-event-driven-informers.md
               - "0302 — CEL and JSONPath attribute extraction": adr/0302-cel-jsonpath-extraction.md

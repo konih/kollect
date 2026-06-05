@@ -20,8 +20,10 @@ func TestKollectScopeValidator_ValidateCreate(t *testing.T) {
 	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectScope{
 		ObjectMeta: metav1.ObjectMeta{Name: "bad", Namespace: "team-a"},
 		Spec: kollectdevv1alpha1.KollectScopeSpec{
-			AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
-				{Version: "v1", Kind: ""},
+			ScopeCeilingSpec: kollectdevv1alpha1.ScopeCeilingSpec{
+				AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+					{Version: "v1", Kind: ""},
+				},
 			},
 		},
 	})
@@ -42,11 +44,13 @@ func TestKollectScopeValidator_ValidateCreate(t *testing.T) {
 	_, err = v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectScope{
 		ObjectMeta: metav1.ObjectMeta{Name: "ok", Namespace: "team-a"},
 		Spec: kollectdevv1alpha1.KollectScopeSpec{
-			AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
-				{Group: "apps", Version: "v1", Kind: "Deployment"},
+			ScopeCeilingSpec: kollectdevv1alpha1.ScopeCeilingSpec{
+				AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+					{Group: "apps", Version: "v1", Kind: "Deployment"},
+				},
+				AllowedNamespaces: []string{"team-a"},
 			},
-			AllowedNamespaces: []string{"team-a"},
-			SinkRefs:          []string{"git-inventory-demo"},
+			SinkRefs: []string{"git-inventory-demo"},
 		},
 	})
 	if err != nil {
@@ -61,8 +65,10 @@ func TestKollectScopeValidator_ValidateUpdateDelete(t *testing.T) {
 	scope := &kollectdevv1alpha1.KollectScope{
 		ObjectMeta: metav1.ObjectMeta{Name: "ok", Namespace: "team-a"},
 		Spec: kollectdevv1alpha1.KollectScopeSpec{
-			AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
-				{Group: "apps", Version: "v1", Kind: "Deployment"},
+			ScopeCeilingSpec: kollectdevv1alpha1.ScopeCeilingSpec{
+				AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+					{Group: "apps", Version: "v1", Kind: "Deployment"},
+				},
 			},
 		},
 	}
@@ -79,15 +85,15 @@ func TestKollectScopeValidator_ValidateUpdateDelete(t *testing.T) {
 func TestValidateUniqueNonEmptyStrings(t *testing.T) {
 	t.Parallel()
 
-	if err := validateUniqueNonEmptyStrings([]string{"a", "b"}, "spec.sinkRefs"); err != nil {
+	if err := validateUniqueNonEmptyStrings([]string{"a", "b"}); err != nil {
 		t.Fatalf("unique values: %v", err)
 	}
 
-	if err := validateUniqueNonEmptyStrings([]string{""}, "spec.sinkRefs"); err == nil {
+	if err := validateUniqueNonEmptyStrings([]string{""}); err == nil {
 		t.Fatal("expected empty string error")
 	}
 
-	if err := validateUniqueNonEmptyStrings([]string{"dup", "dup"}, "spec.sinkRefs"); err == nil {
+	if err := validateUniqueNonEmptyStrings([]string{"dup", "dup"}); err == nil {
 		t.Fatal("expected duplicate error")
 	}
 }

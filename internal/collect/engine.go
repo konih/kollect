@@ -31,8 +31,10 @@ import (
 const informerResync = 12 * time.Hour
 
 type targetState struct {
-	target  kollectdevv1alpha1.KollectTarget
-	profile kollectdevv1alpha1.KollectProfile
+	target              kollectdevv1alpha1.KollectTarget
+	profile             kollectdevv1alpha1.KollectProfile
+	effectiveNamespaces map[string]struct{}
+	compiledRules       []CompiledResourceRule
 }
 
 // Engine registers dynamic informers per profile GVK and writes extracted attributes to Store.
@@ -58,6 +60,7 @@ type Engine struct {
 	nsMeta    map[string]namespaceMeta
 	nsMu      sync.RWMutex
 	forbidden map[string]struct{}
+	defaults  NamespaceDefaults
 }
 
 // NewEngine constructs a collection engine.
@@ -81,11 +84,25 @@ func NewEngine(dynamicClient dynamic.Interface, kubeClient kubernetes.Interface,
 	}, nil
 }
 
+// RegisterTargetOptions carries resolved namespace and rule state for collection filtering.
+type RegisterTargetOptions struct {
+	ScopeCeiling        ScopeCeiling
+	EffectiveNamespaces []string
+}
+
+// SetNamespaceDefaults configures Helm-provided default include/exclude namespace lists.
+func (e *Engine) SetNamespaceDefaults(defaults NamespaceDefaults) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.defaults = defaults
+}
+
 // RegisterTarget records the target and ensures a dynamic informer exists for its profile GVK.
 func (e *Engine) RegisterTarget(
 	ctx context.Context,
 	target *kollectdevv1alpha1.KollectTarget,
 	profile *kollectdevv1alpha1.KollectProfile,
+	opts RegisterTargetOptions,
 ) error {
 	key := targetKey(target.Namespace, target.Name)
 
@@ -101,8 +118,31 @@ func (e *Engine) RegisterTarget(
 
 	gvr := gvrFromProfile(profile.Spec.TargetGVK)
 
+	compiled, err := CompileResourceRules(target.Spec.ResourceRules, e.extractor.celEnv)
+	if err != nil {
+		return fmt.Errorf("compile resourceRules: %w", err)
+	}
+
+	effective := opts.EffectiveNamespaces
+	if len(effective) == 0 {
+		e.nsMu.RLock()
+		matched := MatchIntentNamespaces(
+			target.Spec.CollectionFilterSpec,
+			target.Spec.NamespaceSelector,
+			namespaceMetaMapToFilter(e.nsMeta),
+			e.defaults,
+		)
+		e.nsMu.RUnlock()
+		effective = EffectiveNamespaces(matched, opts.ScopeCeiling, target.Spec.CollectionFilterSpec, e.defaults)
+	}
+
 	e.mu.Lock()
-	e.targets[key] = targetState{target: *target.DeepCopy(), profile: *profile.DeepCopy()}
+	e.targets[key] = targetState{
+		target:              *target.DeepCopy(),
+		profile:             *profile.DeepCopy(),
+		effectiveNamespaces: EffectiveNamespaceSet(effective),
+		compiledRules:       compiled,
+	}
 	needStart := !e.started[gvr]
 	e.mu.Unlock()
 
@@ -317,7 +357,7 @@ func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, 
 			continue
 		}
 
-		if !e.matchesTarget(ctx, &target, gvr, u) {
+		if !e.matchesTarget(ctx, st, gvr, u) {
 			e.store.Remove(target.Namespace, target.Name, string(u.GetUID()))
 			continue
 		}
@@ -384,50 +424,33 @@ func (e *Engine) refreshTargetSnapshotMetrics(st targetState, target kollectdevv
 
 func (e *Engine) matchesTarget(
 	ctx context.Context,
-	target *kollectdevv1alpha1.KollectTarget,
+	st targetState,
 	gvr schema.GroupVersionResource,
 	u *unstructured.Unstructured,
 ) bool {
+	target := st.target
 	resourceNS := u.GetNamespace()
 	if resourceNS == "" {
 		resourceNS = corev1.NamespaceDefault
 	}
 
-	if !e.namespaceMatches(target, resourceNS) {
+	if !e.namespaceMatches(&target, st.effectiveNamespaces, resourceNS) {
 		return false
 	}
 
-	if len(target.Spec.Names) > 0 {
-		found := false
-		for _, n := range target.Spec.Names {
-			if n == u.GetName() {
-				found = true
-				break
-			}
-		}
+	e.nsMu.RLock()
+	nsMetaCopy := e.nsMeta
+	e.nsMu.RUnlock()
 
-		if !found {
-			return false
-		}
+	if !ResourceMatchesRules(u, gvr, &target, &st.profile, st.compiledRules, namespaceMetaMapToFilter(nsMetaCopy)) {
+		return false
 	}
 
-	if target.Spec.LabelSelector != nil {
-		selector, err := metav1.LabelSelectorAsSelector(target.Spec.LabelSelector)
-		if err != nil {
-			return false
-		}
-
-		if !selector.Matches(labels.Set(u.GetLabels())) {
-			return false
-		}
-	}
-
-	if !ShouldCollect(labels.Set(u.GetLabels()), e.namespaceMetaFor(resourceNS), target) {
+	if !ShouldCollect(labels.Set(u.GetLabels()), e.namespaceMetaFor(resourceNS), &target) {
 		return false
 	}
 
 	_ = ctx
-	_ = gvr
 
 	return true
 }
@@ -444,7 +467,16 @@ func (e *Engine) namespaceMetaFor(name string) namespaceMeta {
 	return meta
 }
 
-func (e *Engine) namespaceMatches(target *kollectdevv1alpha1.KollectTarget, resourceNamespace string) bool {
+func (e *Engine) namespaceMatches(
+	target *kollectdevv1alpha1.KollectTarget,
+	effective map[string]struct{},
+	resourceNamespace string,
+) bool {
+	if len(effective) > 0 {
+		_, ok := effective[resourceNamespace]
+		return ok
+	}
+
 	// Cluster-scoped targets register one synthetic KollectTarget per workload namespace
 	// using a metadata.name pin; skip tenant/label selectors for that path.
 	if target.Spec.NamespaceSelector != nil {
@@ -491,4 +523,25 @@ func gvrFromProfile(gvk kollectdevv1alpha1.GroupVersionKind) schema.GroupVersion
 	})
 
 	return plural
+}
+
+// NamespaceMetaSnapshot returns a copy of cached namespace metadata for filter resolution.
+func (e *Engine) NamespaceMetaSnapshot() map[string]NamespaceMeta {
+	e.nsMu.RLock()
+	defer e.nsMu.RUnlock()
+
+	out := make(map[string]NamespaceMeta, len(e.nsMeta))
+	for k, v := range e.nsMeta {
+		out[k] = NamespaceMeta(v)
+	}
+
+	return out
+}
+
+// NamespaceDefaultsSnapshot returns configured Helm namespace defaults.
+func (e *Engine) NamespaceDefaultsSnapshot() NamespaceDefaults {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.defaults
 }

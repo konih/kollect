@@ -127,7 +127,7 @@ func TestEngine_ScaleEnvtest500(t *testing.T) {
 		},
 	}
 
-	if err := engine.RegisterTarget(ctx, target, profile); err != nil {
+	if err := engine.RegisterTarget(ctx, target, profile, RegisterTargetOptions{}); err != nil {
 		t.Fatalf("RegisterTarget: %v", err)
 	}
 

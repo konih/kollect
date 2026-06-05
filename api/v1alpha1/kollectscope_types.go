@@ -9,16 +9,7 @@ import (
 
 // KollectScopeSpec defines a namespaced tenancy boundary for collection and sinks.
 type KollectScopeSpec struct {
-	// allowedGVKs restricts which target resource kinds may be collected in this scope.
-	// +listType=atomic
-	// +optional
-	AllowedGVKs []GroupVersionKind `json:"allowedGVKs,omitempty"`
-
-	// allowedNamespaces restricts which workload namespaces may be collected.
-	// Empty means any namespace allowed by targets in the scope namespace.
-	// +listType=set
-	// +optional
-	AllowedNamespaces []string `json:"allowedNamespaces,omitempty"`
+	ScopeCeilingSpec `json:",inline"`
 
 	// sinkRefs lists namespaced KollectSink names permitted for export from this scope.
 	// +listType=set
