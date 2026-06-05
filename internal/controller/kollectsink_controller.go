@@ -35,6 +35,10 @@ type KollectSinkReconciler struct {
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 func (r *KollectSinkReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	finish := trackReconcile("kollectsink")
+	var retErr error
+	defer func() { finish(retErr) }()
+
 	log := logf.FromContext(ctx)
 
 	var sinkObj kollectdevv1alpha1.KollectSink
@@ -48,15 +52,21 @@ func (r *KollectSinkReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	buildCtx, err := sink.BuildContextFromSpec(ctx, r.Client, sinkObj.Spec, sink.DefaultSecretNamespace)
 	if err != nil {
-		return r.setConnectionFailed(ctx, &sinkObj, "SecretResolveFailed", err.Error())
+		retErr = err
+		res, setErr := r.setConnectionFailed(ctx, &sinkObj, "SecretResolveFailed", err.Error())
+
+		return res, setErr
 	}
 
 	okMessage, testErr := r.runConnectionTest(ctx, sinkObj.Spec, buildCtx)
 	if testErr != nil {
 		log.Error(testErr, "connection test failed", "type", sinkObj.Spec.Type)
 		metrics.SinkConnectionTestTotal.WithLabelValues(sinkObj.Spec.Type, metrics.ResultFailure).Inc()
+		retErr = testErr
 
-		return r.setConnectionFailed(ctx, &sinkObj, "ConnectionTestFailed", testErr.Error())
+		res, setErr := r.setConnectionFailed(ctx, &sinkObj, "ConnectionTestFailed", testErr.Error())
+
+		return res, setErr
 	}
 
 	metrics.SinkConnectionTestTotal.WithLabelValues(sinkObj.Spec.Type, metrics.ResultSuccess).Inc()
@@ -111,7 +121,7 @@ func (r *KollectSinkReconciler) setConnectionVerified(
 	ctx context.Context,
 	sinkObj *kollectdevv1alpha1.KollectSink,
 	message string,
-) (ctrl.Result, error) {
+) (ctrl.Result, error) { //nolint:unparam // controller-runtime reconciler signature
 	apimeta.RemoveStatusCondition(&sinkObj.Status.Conditions, conditionDegraded)
 	r.setTLSInsecureCondition(sinkObj)
 	apimeta.SetStatusCondition(&sinkObj.Status.Conditions, metav1.Condition{
