@@ -19,6 +19,8 @@ require (
 	github.com/prometheus/client_golang v1.23.2
 	github.com/redis/go-redis/v9 v9.20.0
 	github.com/segmentio/kafka-go v0.4.51
+	github.com/sony/gobreaker/v2 v2.0.0
+	github.com/testcontainers/testcontainers-go/modules/forgejo v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/minio v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/nats v0.42.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
@@ -140,7 +142,6 @@ require (
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/testcontainers/testcontainers-go v0.42.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/forgejo v0.42.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/twpayne/go-geom v1.6.1 // indirect
