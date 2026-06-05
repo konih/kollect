@@ -21,6 +21,8 @@ import (
 
 const statusUnknown = "unknown"
 
+const statusDegraded = "degraded"
+
 // StatusReader lists CRD status for optional Read API proxy endpoints (B3).
 type StatusReader interface {
 	ListInventoryStatus(ctx context.Context, namespace string) ([]ResourceStatus, error)
@@ -132,7 +134,7 @@ func exportStatusFromInventory(inv *kollectdevv1alpha1.KollectInventory) []Expor
 		case metav1.ConditionTrue:
 			status = "ok"
 		case metav1.ConditionFalse:
-			status = "degraded"
+			status = statusDegraded
 		default:
 			status = statusUnknown
 		}
@@ -167,7 +169,7 @@ func exportStatusFromInventory(inv *kollectdevv1alpha1.KollectInventory) []Expor
 					if syncedCond.Reason == kollectdevv1alpha1.ReasonDebounced {
 						sinkStatus = "debounced"
 					} else {
-						sinkStatus = "degraded"
+						sinkStatus = statusDegraded
 					}
 				default:
 					sinkStatus = statusUnknown
