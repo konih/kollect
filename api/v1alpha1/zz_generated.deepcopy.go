@@ -1237,6 +1237,11 @@ func (in *KollectSinkSpec) DeepCopyInto(out *KollectSinkSpec) {
 		*out = new(TLSSpec)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.ConnectionTest != nil {
+		in, out := &in.ConnectionTest, &out.ConnectionTest
+		*out = new(bool)
+		**out = **in
+	}
 	if in.Postgres != nil {
 		in, out := &in.Postgres, &out.Postgres
 		*out = new(PostgresSpec)

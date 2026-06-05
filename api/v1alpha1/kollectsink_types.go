@@ -37,10 +37,12 @@ type KollectSinkSpec struct {
 	// +optional
 	TLS *TLSSpec `json:"tls,omitempty"`
 
-	// connectionTest requests a connectivity check on create/update when true.
-	// The annotation kollect.dev/test-connection=true has the same effect.
+	// connectionTest enables connectivity checks on create/update (default true).
+	// Set to false to skip automatic probes; the annotation kollect.dev/test-connection=true
+	// triggers a one-shot re-test without editing spec.
+	// +kubebuilder:default=true
 	// +optional
-	ConnectionTest bool `json:"connectionTest,omitempty"`
+	ConnectionTest *bool `json:"connectionTest,omitempty"`
 
 	// cluster labels exported inventory in multi-cluster installs.
 	// +optional
@@ -305,6 +307,15 @@ type KollectSinkList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitzero"`
 	Items           []KollectSink `json:"items"`
+}
+
+// ConnectionTestEnabled reports whether automatic sink connectivity probes should run.
+// Unset spec.connectionTest defaults to enabled; set false to opt out.
+func ConnectionTestEnabled(spec *KollectSinkSpec) bool {
+	if spec == nil || spec.ConnectionTest == nil {
+		return true
+	}
+	return *spec.ConnectionTest
 }
 
 func init() {

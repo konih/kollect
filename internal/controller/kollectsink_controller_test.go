@@ -21,6 +21,9 @@ import (
 func TestShouldTestConnection(t *testing.T) {
 	t.Parallel()
 
+	trueVal := true
+	falseVal := false
+
 	tests := []struct {
 		name string
 		sink kollectdevv1alpha1.KollectSink
@@ -29,9 +32,16 @@ func TestShouldTestConnection(t *testing.T) {
 		{
 			name: "spec connectionTest true",
 			sink: kollectdevv1alpha1.KollectSink{
-				Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: true},
+				Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: &trueVal},
 			},
 			want: true,
+		},
+		{
+			name: "spec connectionTest false",
+			sink: kollectdevv1alpha1.KollectSink{
+				Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: &falseVal},
+			},
+			want: false,
 		},
 		{
 			name: "annotation true",
@@ -41,6 +51,7 @@ func TestShouldTestConnection(t *testing.T) {
 						kollectdevv1alpha1.AnnotationTestConnection: "true",
 					},
 				},
+				Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: &falseVal},
 			},
 			want: true,
 		},
@@ -52,13 +63,14 @@ func TestShouldTestConnection(t *testing.T) {
 						kollectdevv1alpha1.AnnotationTestConnection: "TRUE",
 					},
 				},
+				Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: &falseVal},
 			},
 			want: true,
 		},
 		{
-			name: "default no probe",
+			name: "default probe enabled",
 			sink: kollectdevv1alpha1.KollectSink{},
-			want: false,
+			want: true,
 		},
 	}
 
@@ -85,6 +97,7 @@ func TestRunConnectionTest_unsupportedType(t *testing.T) {
 func TestKollectSinkReconciler_skipsWithoutProbe(t *testing.T) {
 	t.Parallel()
 
+	falseVal := false
 	scheme := runtime.NewScheme()
 	if err := kollectdevv1alpha1.AddToScheme(scheme); err != nil {
 		t.Fatal(err)
@@ -92,7 +105,7 @@ func TestKollectSinkReconciler_skipsWithoutProbe(t *testing.T) {
 
 	sinkObj := &kollectdevv1alpha1.KollectSink{
 		ObjectMeta: metav1.ObjectMeta{Name: "quiet", Namespace: "team-a"},
-		Spec:       kollectdevv1alpha1.KollectSinkSpec{Type: "git", Endpoint: "https://example.com/repo.git"},
+		Spec:       kollectdevv1alpha1.KollectSinkSpec{Type: "git", Endpoint: "https://example.com/repo.git", ConnectionTest: &falseVal},
 	}
 
 	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(sinkObj).Build()
@@ -156,6 +169,7 @@ func TestKollectSinkReconciler_connectionFailed(t *testing.T) {
 func TestKollectSinkReconciler_clearTestConnectionAnnotation(t *testing.T) {
 	t.Parallel()
 
+	falseVal := false
 	scheme := runtime.NewScheme()
 	if err := kollectdevv1alpha1.AddToScheme(scheme); err != nil {
 		t.Fatal(err)
@@ -169,7 +183,11 @@ func TestKollectSinkReconciler_clearTestConnectionAnnotation(t *testing.T) {
 				kollectdevv1alpha1.AnnotationTestConnection: "true",
 			},
 		},
-		Spec: kollectdevv1alpha1.KollectSinkSpec{Type: "git", Endpoint: "https://example.com/x.git"},
+		Spec: kollectdevv1alpha1.KollectSinkSpec{
+			Type:           "git",
+			Endpoint:       "https://example.com/x.git",
+			ConnectionTest: &falseVal,
+		},
 	}
 
 	c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(sinkObj).Build()
