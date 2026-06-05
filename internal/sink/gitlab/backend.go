@@ -45,22 +45,30 @@ func (b *Backend) Config() Config {
 
 // Export writes payload at objectPath and pushes to the configured GitLab remote.
 func (b *Backend) Export(ctx context.Context, payload []byte, objectPath string) error {
-	if err := git.Export(ctx, b.cfg.GitConfig(), b.auth, payload, objectPath); err != nil {
-		return err
-	}
-
 	invNS, invName, err := inventoryFromObjectPath(objectPath)
 	if err != nil {
 		return err
 	}
 
-	branch := BranchNameForExport(b.cfg.MergeRequest.BranchPrefix, invNS, invName)
+	var branchSpec *git.BranchSpec
+	featureBranch := BranchNameForExport(b.cfg.MergeRequest.BranchPrefix, invNS, invName)
+	if b.cfg.MergeRequest.Mode == MergeRequestModeBranchMR {
+		branchSpec = &git.BranchSpec{
+			PushBranch:  featureBranch,
+			CloneBranch: b.cfg.MergeRequest.TargetBranch,
+		}
+	}
+
+	if err := git.ExportWithBranch(ctx, b.cfg.GitConfig(), b.auth, payload, objectPath, branchSpec); err != nil {
+		return err
+	}
+
 	token := strings.TrimSpace(b.auth.Token)
 	if token == "" {
 		token = strings.TrimSpace(b.auth.Password)
 	}
 
-	return EnsureMergeRequest(ctx, b.cfg, b.cfg.MergeRequest, branch, invNS, invName, token)
+	return EnsureMergeRequest(ctx, b.cfg, b.cfg.MergeRequest, featureBranch, invNS, invName, token)
 }
 
 func inventoryFromObjectPath(objectPath string) (namespace, name string, err error) {

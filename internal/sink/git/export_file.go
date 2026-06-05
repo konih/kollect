@@ -14,7 +14,7 @@ import (
 
 func exportFileRemote(
 	ctx context.Context,
-	cloneURL, branch string,
+	cloneURL, cloneBranch, pushBranch string,
 	payload []byte,
 	objectPath string,
 ) error {
@@ -24,8 +24,14 @@ func exportFileRemote(
 	}
 	defer func() { _ = os.RemoveAll(tmp) }()
 
-	if err := cloneOrInitCLI(ctx, tmp, cloneURL, branch); err != nil {
+	if err := cloneOrInitCLI(ctx, tmp, cloneURL, cloneBranch); err != nil {
 		return err
+	}
+
+	if pushBranch != cloneBranch {
+		if err := runGit(ctx, tmp, "checkout", "-B", pushBranch); err != nil {
+			return err
+		}
 	}
 
 	target := filepath.Join(tmp, filepath.FromSlash(objectPath))
@@ -52,7 +58,7 @@ func exportFileRemote(
 		return err
 	}
 
-	return runGit(ctx, tmp, "push", "--force", "-u", "origin", branch)
+	return runGit(ctx, tmp, "push", "--force", "-u", "origin", pushBranch)
 }
 
 func cloneOrInitCLI(ctx context.Context, dir, cloneURL, branch string) error {
