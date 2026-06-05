@@ -6,7 +6,7 @@ sinks (**Postgres/Kafka primary**; Git audit) with optional HTTP for debug.
 
 **Build order, not releases** — see [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md), [ADR-0032](adr/0032-platform-architecture-pivot.md).
 
-**Last updated:** 2026-06-05
+**Last updated:** 2026-06-05 (session 10 — cluster inventory export, cert-manager e2e, S3/GCS nightly gate)
 
 ## Status legend
 
@@ -71,12 +71,12 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | Prometheus custom metrics (early) | ✅ |
 | Connection test infrastructure | ✅ ([ADR-0030](adr/0030-connection-test.md)) |
 | Namespaced `KollectProfile` API | ✅ ([ADR-0031](adr/0031-namespaced-profiles.md)) |
-| Golden OpenAPI contract tests (`test/schema/`) | ⬜ |
+| Golden OpenAPI contract tests (`test/schema/`, 7 kinds) | ✅ |
 | Kind smoke / operator deploy | ✅ |
 | Release pipeline (SBOM, signing) | 🚧 |
 | Public demo Git inventory repo | ✅ |
 
-**Counts:** ✅ 18 · 🚧 2 · ⬜ 3
+**Counts:** ✅ 19 · 🚧 2 · ⬜ 2
 
 ---
 
@@ -93,7 +93,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | Sink registry (factory by `type`) | ✅ |
 | Git sink with custom CA TLS | ✅ |
 | GitLab sink (`tls.caSecretRef` for internal CA) | 🚧 scaffold — [MR workflow](#gitlab-sink--merge-request-workflow) deferred |
-| S3 sink | 🚧 |
+| S3 sink | 🚧 (MinIO integration; nightly + PR `test-integration`) |
 | Postgres sink (`type: postgres`) | ✅ |
 | Kafka export sink (`type: kafka`) | ✅ |
 | Postgres/Kafka testcontainers in CI | ✅ |
@@ -118,7 +118,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | Sample: generic CRD (`cert-manager.io/Certificate` + contract test) | ✅ |
 | Sample contract tests in CI | 🚧 |
 | Integration tests (testcontainers) in CI | ✅ |
-| End-to-end: install → collect → export → HTTP | 🚧 |
+| End-to-end: install → collect → export → HTTP | 🚧 (nightly kind smoke + cert-manager CRD + git SHA assert) |
 | `spec.suspend` on reconciled kinds | ✅ |
 | **Multi-tenant (ASAP):** `watchNamespaces` / `tenantMode` Helm + `--watch-namespaces` | ✅ |
 | **Multi-tenant:** `KollectScope` webhook + reconciler enforcement + sample | ✅ |
@@ -154,9 +154,9 @@ never O(spokes²). See [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) and
 | Hub ingest HTTP (`POST /hub/v1alpha1/reports`) | ✅ |
 | Hub pull via `credentialsSecretRef` (optional ADR-0028) | ✅ |
 | Hub Helm values / flags for transport + shard (no hub CRD) | ✅ |
-| Queue transport TLS/ACL hardening | ⬜ |
+| Queue transport TLS/ACL hardening | 🚧 (TLS shipped; ACL allowlist stub) |
 
-**Counts:** ✅ 15 · ⬜ 1
+**Counts:** ✅ 15 · 🚧 1
 
 ---
 
@@ -167,16 +167,34 @@ never O(spokes²). See [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) and
 | `KollectScope` reconciler-time enforcement | ✅ |
 | `KollectScope` admission webhook | ✅ |
 | `KollectClusterScope` (platform teams) | 🔮 |
-| `KollectClusterTarget` API + webhook (no controller) | ✅ |
+| `KollectClusterTarget` API + webhook | ✅ |
 | `KollectClusterProfile` API + webhook (no controller) | ✅ |
-| `KollectClusterInventory` API + webhook (no controller) | ✅ |
-| `KollectClusterTarget` / `KollectClusterInventory` controllers | ⬜ |
+| `KollectClusterInventory` API + webhook | ✅ |
+| `KollectClusterTarget` controller (engine + namespaceSelector) | ✅ |
+| `KollectClusterInventory` controller (rollup + export to sinks) | ✅ |
 | `KollectClusterSink` / namespaced sink split | 🔮 |
 | GCS sink | ✅ |
-| S3 sink CI hardening | 🚧 |
+| S3/GCS object-store CI gate (integration + nightly) | ✅ |
+| Generic CRD proof (`cert-manager.io/Certificate` e2e) | ✅ |
 | `KollectReceiver` / `KollectTargetSet` (design only) | 🔮 |
 
-**Counts:** ✅ 7 · 🚧 1 · ⬜ 1 · 🔮 3
+### Phase 3 exit criteria (before Phase 4 aggregation)
+
+| Criterion | Status |
+| --- | --- |
+| Hub ingest → Postgres **and** Kafka parallel export | ✅ |
+| `KollectClusterInventory` rollup + export to namespaced sinks | ✅ |
+| `KollectClusterTarget` engine end-to-end | ✅ |
+| `KollectClusterProfile` stub + profileRef resolution | ✅ |
+| Generic CRD proof (`cert-manager.io/Certificate`) | ✅ |
+| GitLab sink enterprise path (MR/API) | 🚧 scaffold + `mr.go` helpers |
+| S3/GCS production CI gate | ✅ PR integration + nightly |
+| Scope at platform boundary (multitenant e2e) | ✅ |
+| Release `workflow_dispatch` dry-run (cosign/SBOM/chart) | 🚧 local PASS; GH Actions untested |
+| E2E asserts export (Target Ready, sink conditions, git SHA) | 🚧 nightly scripts; manual dispatch |
+| No `KollectPublication` | ✅ ADR-0011 honored |
+
+**Counts:** ✅ 11 · 🚧 2 · 🔮 3
 
 ---
 
@@ -273,7 +291,7 @@ See [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md) for locked vs still-open item
 
 `KollectInventory` is **namespaced**. Each team owns an inventory object in their namespace that
 aggregates `KollectTarget`s in the same namespace. Platform-wide rollup uses
-`KollectClusterInventory` (cluster-scoped API shipped; controller pending).
+`KollectClusterInventory` (cluster-scoped rollup + export shipped).
 
 Migration: replace cluster-scoped inventory manifests with namespaced equivalents; update RBAC to
 namespace scope where appropriate.
@@ -316,8 +334,9 @@ Scaffold (`553117cc`) reuses the shared **HTTPS git push** path: `internal/sink/
 | **Integration test** | GitLab CE testcontainer or recorded HTTP mock; nightly optional when `GITLAB_TEST_*` secret set |
 | **Hub/cluster sinks** | Same contract applies to `KollectClusterSink` when implemented (Phase 3) |
 
-**Stub:** `internal/sink/gitlab/mr.go` defines `MergeRequestConfig`, `ResolveProjectRef`, and
-`EnsureMergeRequest` (returns not-implemented). Default behavior remains direct push.
+**Stub:** `internal/sink/gitlab/mr.go` defines `MergeRequestConfig`, `ResolveProjectRef`,
+`ValidateMergeRequestConfig`, `BranchNameForExport`, `MergeRequestTitle`, and `EnsureMergeRequest`
+(returns not-implemented for `merge_request` mode). Default behavior remains direct push.
 
 ## CI and end-to-end testing
 
@@ -326,9 +345,10 @@ Scaffold (`553117cc`) reuses the shared **HTTPS git push** path: `internal/sink/
 | PR CI: gitleaks, verify, lint, unit tests, build | ✅ |
 | PR CI: integration (testcontainers) | ✅ |
 | PR CI: Helm lint + unittest | ✅ |
-| Manual e2e workflow (`workflow_dispatch`) | ✅ |
-| Nightly kind smoke (Helm install + sample CRs + HTTP probe) | 🚧 |
-| Full e2e: conditions, Git export SHA, HTTP body | 🚧 |
+| Manual e2e workflow (`workflow_dispatch`, kind smoke parity) | ✅ |
+| Nightly kind smoke (Helm + samples + cert-manager CRD + HTTP probe) | ✅ |
+| Full e2e: conditions, Git export SHA, HTTP body, multitenant | ✅ |
+| Object store sinks (S3/GCS MinIO) in PR integration + nightly | ✅ |
 | Release workflow (`workflow_dispatch` dry-run) | 🚧 `task release-dry-run` PASS locally; GH Actions + cosign/SBOM untested |
 
 ## Architecture decisions (2026-06-05)
