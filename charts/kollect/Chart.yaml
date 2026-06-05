@@ -21,3 +21,5 @@ keywords:
   - gitops
 maintainers:
   - name: kollect contributors
+annotations:
+  artifacthub.io/license: MIT

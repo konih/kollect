@@ -9,3 +9,5 @@ home: https://github.com/konih/kollect
 icon: https://raw.githubusercontent.com/konih/kollect/main/docs/assets/logo.svg
 sources:
   - https://github.com/konih/kollect
+annotations:
+  artifacthub.io/license: MIT
