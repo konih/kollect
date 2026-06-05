@@ -17,7 +17,8 @@ silently swallow transient ones. OSS precedents:
 - **Argo CD** Application conditions distinguish `ComparisonError`, `SyncError`, and permission issues.
 
 kollect touches the API server, arbitrary GVKs, SAR boundaries, and external sinks/doc backends —
-each failure mode needs predictable behavior.
+each failure mode needs predictable behavior. Observability must be **testable from day one**, not
+bolted on after Phase 4.
 
 ## Decision
 
@@ -26,7 +27,7 @@ Typed error taxonomy (see `GUIDELINES.md`):
 | Class | Examples | Reconcile behavior | Status |
 | --- | --- | --- | --- |
 | `ErrTransient` | Network blip, 429, conflict, sink timeout | Requeue with exponential backoff + jitter | `Synced=False`, `Reason=Progressing` |
-| `ErrTerminal` | Invalid CEL/JSONPath, unknown GVK, bad sink type | **No requeue** | `Degraded=True` + Warning Event |
+| `ErrTerminal` | Invalid CEL/JSONPath (if not caught by webhook), unknown GVK, bad sink type | **No requeue** | `Degraded=True` + Warning Event |
 | `ErrForbidden` | SAR denied for namespace/cluster list | Degrade scope, continue partial collection | Per-target `skipped:forbidden` |
 
 Additional rules:
@@ -38,21 +39,49 @@ Additional rules:
 
 Conditions follow Kubernetes conventions: `Ready`, `Synced`, `Degraded` with `observedGeneration`.
 
+### CRD enums (sink type and condition reasons)
+
+Use **OpenAPI enums** (and Go constants) for:
+
+- `KollectSink.spec.type` — `git`, `gitlab`, `s3`, `gcs`, `prometheus`, … (extensible via webhook
+  allow-list when adding backends)
+- Condition **`reason`** fields on reconciled kinds — e.g. `Progressing`, `InvalidProfile`,
+  `SinkUnreachable`, `Forbidden`, `ConnectionTestSucceeded`, `ConnectionTestFailed`
+
+Free-form operator strings are allowed only in **message** fields, not in `reason` or `type`.
+
+### Prometheus metrics (Phase 0/1)
+
+Export and **test** counters/histograms including at minimum:
+
+| Metric | Labels |
+| --- | --- |
+| `kollect_reconcile_total` | `controller`, `result` |
+| `kollect_reconcile_errors_total` | `kind`, `error_class` (`transient`, `terminal`, `forbidden`) |
+| `kollect_export_duration_seconds` | `sink_type` |
+| `kollect_collected_objects` | `profile`, `gvk` |
+| `kollect_connection_test_total` | `sink_type`, `result` |
+
+Metrics register on the controller-runtime metrics registry; unit tests assert label cardinality
+and increment on table-driven reconcile cases.
+
 ## Consequences
 
 ### Positive
 
 - Predictable operator behavior under RBAC degradation and sink outages.
-- Testable: table-driven tests per error class.
+- Testable: table-driven tests per error class + metrics assertions.
 - Aligns with Argo/Flux condition semantics familiar to platform engineers.
+- Enum reasons improve `kubectl` UX and portal filtering.
 
 ### Negative
 
 - Requires discipline in backend implementations to return typed errors, not raw HTTP strings.
 - `ErrForbidden` partial success complicates "single Ready condition" — may need per-target sub-conditions
   in status summaries.
+- Enum evolution needs CRD versioning when adding reasons.
 
 ## Open questions
 
-- **OPEN:** Standardize condition **Reason** enum in CRD validation or keep free-form strings?
-- **OPEN:** Export Prometheus counter `kollect_reconcile_errors_total{kind,class}` in Phase 0 or Phase 1?
+- **OPEN:** Separate `kollect_sink_errors_total{reason}` or fold into reconcile errors?
+- **OPEN:** Histogram buckets for export duration — cluster-size dependent defaults?

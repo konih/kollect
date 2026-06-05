@@ -10,6 +10,7 @@ fit together.
 - **[Quick start](QUICKSTART.md)** — kind cluster, operator install, sample CRs
 - **[Development guide](DEVELOPMENT.md)** — build, test, codegen, lint
 - **[Architecture](ARCHITECTURE.md)** — CRD model, reconciliation, phasing
+- **[Requirements](REQUIREMENTS.md)** — product priorities (TLS, aggregation, HTTP API, Helm)
 
 ## Examples
 
