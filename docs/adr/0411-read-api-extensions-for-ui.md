@@ -181,7 +181,7 @@ Sink write path unchanged; reader adapters registered separately at operator sta
 
 ### Positive
 
-- One OpenAPI contract drives backend, UI codegen, and MSW mocks.
+- One OpenAPI contract drives backend, UI codegen, and MSW mocks.[^mock-layer]
 - Hybrid CRD status avoids duplicating condition logic in Read API for MVP.
 - `exportStatus` in Read API powers export health UI without N+1 CRD fetches per row.
 
@@ -199,4 +199,7 @@ Sink write path unchanged; reader adapters registered separately at operator sta
 - [ADR-0406: Sink registry and Backend interface](0406-sink-registry.md)
 - [ADR-0408: Read API and UI architecture](0408-read-api-ui-architecture.md)
 - [ADR-0410: UI engineering and quality gates](0410-ui-engineering-and-quality-gates.md)
+- [ADR-0412: Mock Read API for UI development](0412-mock-read-api-for-ui-development.md)
 - `openapi/v1alpha1/inventory.yaml` · `internal/inventory/server.go`
+
+[^mock-layer]: MSW + optional Prism mock stack for local dev and e2e — see [ADR-0412](0412-mock-read-api-for-ui-development.md).

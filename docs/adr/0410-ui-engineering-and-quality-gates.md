@@ -35,7 +35,11 @@ hack/ci/ui-verify.sh     # contract drift + bundle budget
 .github/workflows/ui-ci.yaml
 ```
 
-**Taskfile targets (planned):** `task ui-dev`, `task build-ui`, `task ui-ci`, `task ui-visual`.
+**Taskfile targets:** `task ui-dev`, `task build-ui`, `task ui-ci`, `task ui-mock-prism`, `task ui-visual`.
+
+**Mock stack (Phase 1):** MSW intercepts `/v1alpha1/*` in dev and Vitest by default
+(`VITE_MOCK_API=true`); optional Prism on port 4010 for real HTTP e2e — see
+[ADR-0412](0412-mock-read-api-for-ui-development.md).
 
 OpenAPI changes require regenerated TS types — `task verify` (or `hack/verify-ui-contract.sh`) fails
 on drift, matching backend codegen discipline.
@@ -185,5 +189,6 @@ from `docs/assets/branding/` at build time.
 - [ADR-0408: Read API and UI architecture](0408-read-api-ui-architecture.md)
 - [ADR-0409: Kollect UI deployment](0409-kollect-ui-deployment.md)
 - [ADR-0411: Read API extensions for UI](0411-read-api-extensions-for-ui.md)
+- [ADR-0412: Mock Read API for UI development](0412-mock-read-api-for-ui-development.md)
 - [ADR-0706: Testing and merge-gate architecture](0706-testing-merge-gate-architecture.md)
 - [ROADMAP.md](../ROADMAP.md)
