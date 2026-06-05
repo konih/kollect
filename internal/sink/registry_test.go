@@ -27,6 +27,18 @@ func TestRegistry_NewBackend(t *testing.T) {
 		t.Fatalf("Type() = %q, want git", gitBackend.Type())
 	}
 
+	gitlabBackend, err := reg.NewBackend(kollectdevv1alpha1.KollectSinkSpec{
+		Type:     "gitlab",
+		Endpoint: "https://gitlab.example.com/platform/inventory.git",
+	}, BuildContext{})
+	if err != nil {
+		t.Fatalf("NewBackend(gitlab) error = %v", err)
+	}
+
+	if gitlabBackend.Type() != "gitlab" {
+		t.Fatalf("Type() = %q, want gitlab", gitlabBackend.Type())
+	}
+
 	s3Backend, err := reg.NewBackend(kollectdevv1alpha1.KollectSinkSpec{
 		Type:     "s3",
 		Endpoint: "s3://inventory-bucket/prefix",
@@ -79,5 +91,6 @@ func TestRegistry_NewBackend(t *testing.T) {
 
 	_ = context.Background()
 	_ = gitBackend
+	_ = gitlabBackend
 	_ = s3Backend
 }

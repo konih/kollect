@@ -9,6 +9,7 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/sink/git"
+	"github.com/konih/kollect/internal/sink/gitlab"
 	kafkasink "github.com/konih/kollect/internal/sink/kafka"
 	"github.com/konih/kollect/internal/sink/postgres"
 	s3sink "github.com/konih/kollect/internal/sink/s3"
@@ -32,6 +33,17 @@ func RunConnectionTest(
 		}
 
 		return "TLS and git remote reachability verified", nil
+	case "gitlab":
+		cfg, err := gitlab.ConfigFromSpec(spec, buildCtx.CAPEM)
+		if err != nil {
+			return "", err
+		}
+
+		if err := gitlab.TestConnection(ctx, cfg); err != nil {
+			return "", err
+		}
+
+		return "TLS and GitLab remote reachability verified", nil
 	case "postgres":
 		if err := postgres.TestConnection(ctx, spec, buildCtx.DatabaseSecretData); err != nil {
 			return "", err
