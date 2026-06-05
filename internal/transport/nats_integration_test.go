@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/testcontainers/testcontainers-go/modules/nats"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestNATSTransportRoundTrip(t *testing.T) {
@@ -23,7 +25,7 @@ func TestNATSTransportRoundTrip(t *testing.T) {
 
 	container, err := nats.Run(ctx, "nats:2.11")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 

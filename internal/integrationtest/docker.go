@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Konrad Heimel
 
-package transport
+// Package integrationtest holds shared helpers for Docker-gated integration tests.
+package integrationtest
 
 import "strings"
 
-func isDockerUnavailable(err error) bool {
+// IsDockerUnavailable reports whether err indicates the Docker daemon is missing or unreachable.
+func IsDockerUnavailable(err error) bool {
 	if err == nil {
 		return false
 	}

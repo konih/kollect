@@ -8,7 +8,6 @@ package gcs
 import (
 	"context"
 	"io"
-	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -18,6 +17,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/minio"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestExportS3Compatible(t *testing.T) {
@@ -28,7 +29,7 @@ func TestExportS3Compatible(t *testing.T) {
 	ctx := context.Background()
 	container, err := minio.Run(ctx, "minio/minio:latest")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -102,15 +103,3 @@ func TestExportS3Compatible(t *testing.T) {
 	}
 }
 
-func isDockerUnavailable(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "cannot connect to the docker daemon") ||
-		strings.Contains(msg, "docker.sock") ||
-		strings.Contains(msg, "executable file not found") ||
-		strings.Contains(msg, "permission denied")
-}
