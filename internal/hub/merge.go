@@ -25,6 +25,7 @@ type SpokeReport struct {
 	InventoryRef InventoryRef   `json:"inventoryRef"`
 	Generation   int64          `json:"generation,omitempty"`
 	Items        []collect.Item `json:"items,omitempty"`
+	RemovedUIDs  []string       `json:"removedUIDs,omitempty"`
 }
 
 // Merger applies spoke reports into a hub-side collection store.
@@ -53,6 +54,11 @@ func (m *Merger) Apply(report SpokeReport) (int, error) {
 	}
 
 	applied := 0
+	for _, uid := range report.RemovedUIDs {
+		m.Store.Remove(report.Cluster, targetName, uid)
+		applied++
+	}
+
 	for _, item := range report.Items {
 		item.TargetNamespace = report.Cluster
 		item.TargetName = targetName

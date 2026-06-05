@@ -97,3 +97,43 @@ func TestMergerApplyRequiresCluster(t *testing.T) {
 		t.Fatal("expected error for empty cluster")
 	}
 }
+
+func TestMergerApplyRemovedUIDs(t *testing.T) {
+	t.Parallel()
+
+	store := collect.NewStore()
+	merger := NewMerger(store)
+
+	report := SpokeReport{
+		Cluster: "spoke-a",
+		InventoryRef: InventoryRef{
+			Name: "inv",
+		},
+		Items: []collect.Item{
+			{Namespace: "ns", Name: "a", UID: "u1", Version: "v1", Kind: "Pod"},
+			{Namespace: "ns", Name: "b", UID: "u2", Version: "v1", Kind: "Pod"},
+		},
+	}
+
+	if _, err := merger.Apply(report); err != nil {
+		t.Fatal(err)
+	}
+
+	if store.TotalCount() != 2 {
+		t.Fatalf("count = %d, want 2", store.TotalCount())
+	}
+
+	removed := SpokeReport{
+		Cluster:     "spoke-a",
+		InventoryRef: InventoryRef{Name: "inv"},
+		RemovedUIDs: []string{"u1"},
+	}
+
+	if _, err := merger.Apply(removed); err != nil {
+		t.Fatal(err)
+	}
+
+	if store.TotalCount() != 1 {
+		t.Fatalf("after remove count = %d, want 1", store.TotalCount())
+	}
+}

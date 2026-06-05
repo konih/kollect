@@ -26,18 +26,7 @@ func ConfigFromEnv() (RunnerConfig, error) {
 		return RunnerConfig{}, fmt.Errorf("KOLLECT_HUB_NAME is required in hub consumer mode")
 	}
 
-	transportType := os.Getenv("KOLLECT_TRANSPORT_TYPE")
-	if transportType == "" {
-		transportType = string(transport.TypeInProcess)
-	}
-
-	cfg := transport.Config{
-		Type:   transport.Type(transportType),
-		Stream: defaultSubject,
-	}
-	if cfg.Type == transport.TypeRedis {
-		cfg.Redis.URL = os.Getenv("KOLLECT_REDIS_URL")
-	}
+	cfg := transport.ConfigFromEnv()
 
 	subject := os.Getenv("KOLLECT_HUB_SUBJECT")
 	if subject == "" {
