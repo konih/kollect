@@ -34,7 +34,8 @@ conditions on reconciled objects.
 
 | Trigger | When probe runs |
 | --- | --- |
-| **`spec.connectionTest: true`** | On create/update while true (**samples and CI only**) |
+| **`spec.connectionTest: true`** (default) | On create/update while enabled |
+| **`spec.connectionTest: false`** | Opt out of automatic probes |
 | **Annotation `kollect.dev/test-connection: "true"`** | One-shot re-test without editing spec |
 
 Probe uses the same TLS trust and secret resolution as export (`caBundle` / `caSecretRef`,
@@ -115,10 +116,9 @@ sink checks.
 
 ### Production default
 
-- **`spec.connectionTest` defaults to `false`** in production sink manifests and Helm-documented
-  examples. Use **`kollect.dev/test-connection: "true"`** annotation for on-demand probes to avoid
-  status/etcd churn on unrelated spec edits.
-- **Samples and CI** may keep `connectionTest: true` for regression coverage.
+- **`spec.connectionTest` defaults to `true`** (CRD OpenAPI default). Set **`connectionTest: false`**
+  to opt out of automatic probes on every spec change.
+- **`kollect.dev/test-connection: "true"`** remains for one-shot re-tests when probes are disabled.
 
 ## Resolved (2026-06-05)
 

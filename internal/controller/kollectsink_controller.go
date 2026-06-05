@@ -71,7 +71,7 @@ func (r *KollectSinkReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 func shouldTestConnection(sink *kollectdevv1alpha1.KollectSink) bool {
-	if sink.Spec.ConnectionTest {
+	if kollectdevv1alpha1.ConnectionTestEnabled(&sink.Spec) {
 		return true
 	}
 
@@ -107,7 +107,7 @@ func (r *KollectSinkReconciler) setConnectionVerified(
 }
 
 func shouldClearTestConnectionAnnotation(sink *kollectdevv1alpha1.KollectSink) bool {
-	if sink.Spec.ConnectionTest {
+	if kollectdevv1alpha1.ConnectionTestEnabled(&sink.Spec) {
 		return false
 	}
 

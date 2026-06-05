@@ -87,18 +87,22 @@ func TestSetSinkReachableFromExport(t *testing.T) {
 func TestShouldClearTestConnectionAnnotation(t *testing.T) {
 	t.Parallel()
 
+	falseVal := false
+	trueVal := true
+
 	sink := &kollectdevv1alpha1.KollectSink{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				kollectdevv1alpha1.AnnotationTestConnection: "true",
 			},
 		},
+		Spec: kollectdevv1alpha1.KollectSinkSpec{ConnectionTest: &falseVal},
 	}
 	if !shouldClearTestConnectionAnnotation(sink) {
 		t.Fatal("expected clear when annotation set and spec.connectionTest false")
 	}
 
-	sink.Spec.ConnectionTest = true
+	sink.Spec.ConnectionTest = &trueVal
 	if shouldClearTestConnectionAnnotation(sink) {
 		t.Fatal("expected no clear when spec.connectionTest true")
 	}

@@ -45,9 +45,11 @@ spec:
                 description: cluster labels exported inventory in multi-cluster installs.
                 type: string
               connectionTest:
+                default: true
                 description: |-
-                  connectionTest requests a connectivity check on create/update when true.
-                  The annotation kollect.dev/test-connection=true has the same effect.
+                  connectionTest enables connectivity checks on create/update (default true).
+                  Set to false to skip automatic probes; the annotation kollect.dev/test-connection=true
+                  triggers a one-shot re-test without editing spec.
                 type: boolean
               endpoint:
                 description: endpoint is the backend-specific destination (URL, bucket,

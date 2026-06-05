@@ -59,7 +59,7 @@ Export debouncing and payload flow: [DATA-FLOWS.md](../DATA-FLOWS.md#1-export-de
 | `spec.endpoint` | string | No | Backend-specific destination URL or bucket |
 | `spec.secretRef` | object | No | Secret with credentials (`name`, optional `namespace`) |
 | `spec.tls` | object | No | `insecureSkipVerify`, `caSecretRef`, `caBundle` (max 64 KiB) |
-| `spec.connectionTest` | bool | No | Probe on create/update when true |
+| `spec.connectionTest` | bool | No | Probe on create/update (default **true**; set `false` to opt out) |
 | `spec.cluster` | string | No | Cluster label for multi-cluster exports |
 | `spec.pathTemplate` | string | No | Git/object-store object path layout ([ADR-0407](../adr/0407-git-object-store-layout.md)); default `inventory/{namespace}/{name}.json` |
 | `spec.objectStore` | object | No | S3/GCS snapshot format (`json` or `parquet`) and Parquet hot columns |
