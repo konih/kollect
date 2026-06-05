@@ -57,6 +57,11 @@ jobs:
           chmod +x hack/e2e/git-export-assert.sh
           REPO_ROOT="${GITHUB_WORKSPACE}" hack/e2e/git-export-assert.sh
 
+      - name: Export integration asserts (git bare repo + postgres)
+        run: |
+          chmod +x hack/e2e/export-integration-assert.sh
+          bash hack/e2e/export-integration-assert.sh
+
       - name: tenantMode Helm RBAC smoke
         run: |
           chmod +x hack/e2e/tenant-mode.sh
