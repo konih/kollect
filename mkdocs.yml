@@ -42,16 +42,14 @@ nav:
   - Overview:
       - Home: index.md
       - FAQ: FAQ.md
-  - Operator Manual:
-      - Operator manual: OPERATOR-MANUAL.md
   - Understand the Basics:
       - Understand the basics: UNDERSTAND-THE-BASICS.md
       - Architecture: ARCHITECTURE.md
       - Data flows: DATA-FLOWS.md
       - Platform decisions: PLATFORM-DECISIONS.md
+      - Requirements & assumptions: REQUIREMENTS.md
   - Core Concepts:
       - CRD model: adr/0201-crd-model.md
-      - CR reference: CR-REFERENCE.md
       - CEL and JSONPath extraction: adr/0302-cel-jsonpath-extraction.md
       - Sink backends: adr/0402-sink-backends-database-kafka.md
       - Hub and spoke: adr/0501-multi-cluster-sync-rfc.md
@@ -61,7 +59,10 @@ nav:
   - Getting Started:
       - Quick start: QUICKSTART.md
       - Development setup: DEVELOPMENT.md
-      - Requirements: REQUIREMENTS.md
+  - Operator Manual:
+      - Operator manual: OPERATOR-MANUAL.md
+      - Upgrading: operator-manual/upgrading.md
+      - Helm values: operator-manual/helm-values.md
   - User Guide:
       - Examples:
           - Overview: examples/README.md
@@ -91,7 +92,6 @@ nav:
           - KollectClusterTarget: crds/kollectclustertarget.md
           - KollectClusterInventory: crds/kollectclusterinventory.md
       - Inventory HTTP API: adr/0404-inventory-api-auth.md
-      - etcd limits and OpenAPI: adr/0103-etcd-limit.md
       - Architecture decision records:
           - Overview: adr/README.md
           - 01 Foundations:
