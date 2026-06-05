@@ -9,7 +9,9 @@ import (
 	"sync"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/sink/gcs"
 	"github.com/konih/kollect/internal/sink/git"
+	"github.com/konih/kollect/internal/sink/prometheus"
 	"github.com/konih/kollect/internal/sink/s3"
 )
 
@@ -39,6 +41,8 @@ func NewRegistry() *Registry {
 	r := &Registry{factories: make(map[string]Factory)}
 	r.Register("git", newGitBackend)
 	r.Register("s3", newS3Backend)
+	r.Register("gcs", newGCSBackend)
+	r.Register("prometheus", newPrometheusBackend)
 
 	return r
 }
@@ -95,4 +99,12 @@ func newGitBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (B
 
 func newS3Backend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {
 	return s3.NewBackend(spec, ctx.SecretData)
+}
+
+func newGCSBackend(spec kollectdevv1alpha1.KollectSinkSpec, ctx BuildContext) (Backend, error) {
+	return gcs.NewBackend(spec, ctx.SecretData)
+}
+
+func newPrometheusBackend(spec kollectdevv1alpha1.KollectSinkSpec, _ BuildContext) (Backend, error) {
+	return prometheus.NewBackend(spec)
 }
