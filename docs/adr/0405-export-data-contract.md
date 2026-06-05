@@ -3,7 +3,7 @@
 > The serialized inventory shape every sink and consumer depends on: the `Item` row, its ordering,
 > and how the contract is versioned.
 
-**Theme:** 04 · Export & sinks · **Status:** Current (schema versioning: Exploring)
+**Theme:** 04 · Export & sinks · **Status:** Current
 
 ## Context
 
@@ -71,13 +71,19 @@ source `generation`, `itemCount`, `exportedAt`, and `cluster`. These drive debou
 
 - Consumers have one documented schema across all sinks.
 - Golden/contract tests can assert the shape; breaking it fails CI.
-- A missing explicit `schemaVersion` is a real gap (see open questions).
+- Consumers can branch on `schemaVersion` without coupling to CRD API versions.
+
+## Implementation
+
+- **`schemaVersion`** is set on the spoke→hub `SpokeReport` envelope and Kafka `EventEnvelope`
+  (`internal/export/contract.go`). Current value: `kollect.dev/v1alpha1`, aligned with `apiVersion`.
+- Hub ingest defaults a missing `schemaVersion` to the current contract and rejects unsupported values.
+- Golden fixture: `test/schema/golden/spoke-report.json`.
 
 ## Open questions
 
-- **DECIDED (2026-06-05):** Add an explicit **`schemaVersion`** to the export envelope (not per-row),
-  aligned with the spoke→hub report `apiVersion` ([ADR-0502](0502-lean-queue-transport.md)). Consumers
-  branch on it; bumped only on a breaking contract change.
+- **IMPLEMENTED (2026-06-05):** Explicit **`schemaVersion`** on export envelopes (not per-row),
+  aligned with the spoke→hub report `apiVersion` ([ADR-0502](0502-lean-queue-transport.md)).
 - **DECIDED (2026-06-05):** Attributes stay **`map[string]any`** in the contract; stronger typing is a
   **sink-side** concern — the Parquet sink promotes a hot-attribute allowlist to typed columns while
   keeping a JSON `attributes` column ([ADR-0401](0401-sink-taxonomy-state-vs-stream.md)).

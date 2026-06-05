@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 )
 
 // TestMergerApply100Spokes simulates hub shard fan-in from 100 clusters with summarized
@@ -34,8 +35,9 @@ func TestMergerApply100Spokes(t *testing.T) {
 	for s := range spokeCount {
 		cluster := fmt.Sprintf("spoke-%03d", s)
 		report := SpokeReport{
-			APIVersion: reportAPIVersion,
-			Cluster:    cluster,
+			APIVersion:    export.WireAPIVersion,
+			SchemaVersion: export.SchemaVersion,
+			Cluster:       cluster,
 			InventoryRef: InventoryRef{
 				Namespace: "platform",
 				Name:      "rollup",
@@ -66,8 +68,9 @@ func BenchmarkMerger100Spokes(b *testing.B) {
 	for i := range reports {
 		cluster := fmt.Sprintf("spoke-%03d", i)
 		reports[i] = SpokeReport{
-			APIVersion: reportAPIVersion,
-			Cluster:    cluster,
+			APIVersion:    export.WireAPIVersion,
+			SchemaVersion: export.SchemaVersion,
+			Cluster:       cluster,
 			InventoryRef: InventoryRef{
 				Namespace: "platform",
 				Name:      "rollup",

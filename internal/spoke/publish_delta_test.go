@@ -12,6 +12,7 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 	"github.com/konih/kollect/internal/hub"
 	"github.com/konih/kollect/internal/transport"
 )
@@ -146,6 +147,10 @@ func TestTryPublishReportRemovedUIDsDelta(t *testing.T) {
 	var report hub.SpokeReport
 	if err := json.Unmarshal(lastPayload, &report); err != nil {
 		t.Fatal(err)
+	}
+
+	if report.SchemaVersion != export.SchemaVersion {
+		t.Fatalf("schemaVersion = %q, want %q", report.SchemaVersion, export.SchemaVersion)
 	}
 
 	if len(report.Items) != 0 {

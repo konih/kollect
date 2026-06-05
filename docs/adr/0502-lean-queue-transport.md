@@ -88,6 +88,7 @@ Requirements:
 ```json
 {
   "apiVersion": "kollect.dev/v1alpha1",
+  "schemaVersion": "kollect.dev/v1alpha1",
   "cluster": "prod-eu-1",
   "inventoryRef": { "namespace": "team-a", "name": "team-inventory" },
   "generation": 42,

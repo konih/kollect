@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/export"
 )
 
 func TestMergerApply(t *testing.T) {
@@ -16,8 +17,9 @@ func TestMergerApply(t *testing.T) {
 	merger := NewMerger(store)
 
 	report := SpokeReport{
-		APIVersion: reportAPIVersion,
-		Cluster:    "prod-eu-1",
+		APIVersion:    export.WireAPIVersion,
+		SchemaVersion: export.SchemaVersion,
+		Cluster:       "prod-eu-1",
 		InventoryRef: InventoryRef{
 			Namespace: "team-a",
 			Name:      "team-inventory",

@@ -55,8 +55,8 @@ most "shape" changes are validation tightening, not version bumps.
 ## Open questions
 
 - **DECIDED (2026-06-05):** Cut `v1beta1` at the **`v0.1.0` feature-freeze** milestone.
-- **DECIDED (2026-06-05):** The export payload gains an explicit **`schemaVersion`** so consumers
-  decouple from CRD versions entirely ([ADR-0405](0405-export-data-contract.md)).
+- **IMPLEMENTED (2026-06-05):** Export envelopes carry explicit **`schemaVersion`** so consumers
+  decouple from CRD versions ([ADR-0405](0405-export-data-contract.md)).
 - **OPEN:** Conversion approach: controller-runtime hub-spoke conversion vs none-with-storage-migration?
 - **OPEN:** Do `status` subresource fields carry their own compatibility guarantees, or follow spec
   versioning? (Leaning: follow spec versioning.)

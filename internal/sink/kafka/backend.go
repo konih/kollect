@@ -14,15 +14,17 @@ import (
 	"github.com/segmentio/kafka-go/sasl/scram"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/export"
 	"github.com/konih/kollect/internal/sink/cap"
 )
 
 // EventEnvelope is the JSON message published to Kafka topics.
 type EventEnvelope struct {
-	Timestamp string          `json:"timestamp"`
-	Cluster   string          `json:"cluster"`
-	Namespace string          `json:"namespace"`
-	Payload   json.RawMessage `json:"payload"`
+	SchemaVersion string          `json:"schemaVersion"`
+	Timestamp     string          `json:"timestamp"`
+	Cluster       string          `json:"cluster"`
+	Namespace     string          `json:"namespace"`
+	Payload       json.RawMessage `json:"payload"`
 }
 
 // Backend publishes inventory change events to Kafka.
@@ -83,10 +85,11 @@ func (b *Backend) Export(ctx context.Context, payload []byte, objectPath string)
 
 	namespace := namespaceFromObjectPath(objectPath)
 	envelope := EventEnvelope{
-		Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
-		Cluster:   b.cfg.Cluster,
-		Namespace: namespace,
-		Payload:   json.RawMessage(payload),
+		SchemaVersion: export.SchemaVersion,
+		Timestamp:     time.Now().UTC().Format(time.RFC3339Nano),
+		Cluster:       b.cfg.Cluster,
+		Namespace:     namespace,
+		Payload:       json.RawMessage(payload),
 	}
 
 	body, err := json.Marshal(envelope)
