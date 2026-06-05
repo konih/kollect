@@ -16,6 +16,7 @@ const DefaultSecretNamespace = "kollect-system" //nolint:gosec // namespace name
 
 // BuildContext carries resolved material for backend construction.
 type BuildContext struct {
+	Ctx                context.Context
 	CAPEM              []byte
 	SecretData         map[string][]byte
 	DatabaseSecretData map[string][]byte
@@ -37,7 +38,7 @@ func BuildContextFromSpec(
 		return BuildContext{}, err
 	}
 
-	out := BuildContext{CAPEM: caPEM}
+	out := BuildContext{Ctx: ctx, CAPEM: caPEM}
 
 	creds, err := ResolveSecret(ctx, c, spec.SecretRef, defaultNamespace)
 	if err != nil {
