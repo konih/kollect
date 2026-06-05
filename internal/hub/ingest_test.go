@@ -136,3 +136,54 @@ func TestIngestServerStartDisabled(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestIngestHandleReportsMissingClusterHeader(t *testing.T) {
+	t.Parallel()
+
+	srv := &IngestServer{
+		Enabled: true,
+		Auth:    IngestAuthConfig{Mode: IngestAuthModeDisabled},
+		Merger:  NewMerger(collect.NewStore()),
+	}
+
+	req := httptest.NewRequest(http.MethodPost, ingestReportsPath, bytes.NewReader([]byte(`{}`)))
+	rec := httptest.NewRecorder()
+	srv.handleReports(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestIngestHandleReportsInvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	srv := &IngestServer{
+		Enabled: true,
+		Auth:    IngestAuthConfig{Mode: IngestAuthModeDisabled},
+		Merger:  NewMerger(collect.NewStore()),
+	}
+
+	req := httptest.NewRequest(http.MethodPost, ingestReportsPath, bytes.NewReader([]byte(`not-json`)))
+	req.Header.Set(kollectdevv1alpha1.HeaderClusterID, "spoke-a")
+	rec := httptest.NewRecorder()
+	srv.handleReports(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestIngestHandleReportsNilMerger(t *testing.T) {
+	t.Parallel()
+
+	srv := &IngestServer{Enabled: true}
+	req := httptest.NewRequest(http.MethodPost, ingestReportsPath, nil)
+	req.Header.Set(kollectdevv1alpha1.HeaderClusterID, "spoke-a")
+	rec := httptest.NewRecorder()
+	srv.handleReports(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 503", rec.Code)
+	}
+}

@@ -4,7 +4,10 @@
 package webhookv1alpha1
 
 import (
+	"context"
 	"testing"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 )
@@ -54,5 +57,30 @@ func TestKollectTargetValidator_validateWatchMode(t *testing.T) {
 		Spec: kollectdevv1alpha1.KollectTargetSpec{ProfileRef: "team-a/deployment-images"},
 	}); err == nil {
 		t.Fatal("expected error for cross-namespace profileRef")
+	}
+}
+
+func TestKollectTargetValidator_ValidateLifecycle(t *testing.T) {
+	t.Parallel()
+
+	v := &kollectTargetValidator{}
+	target := &kollectdevv1alpha1.KollectTarget{
+		ObjectMeta: metav1.ObjectMeta{Name: "deployments", Namespace: "team-a"},
+		Spec: kollectdevv1alpha1.KollectTargetSpec{
+			ProfileRef: "deployment-images",
+			WatchMode:  kollectdevv1alpha1.WatchModeAll,
+		},
+	}
+
+	if _, err := v.ValidateCreate(context.Background(), target); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	if _, err := v.ValidateUpdate(context.Background(), target, target); err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	if _, err := v.ValidateDelete(context.Background(), target); err != nil {
+		t.Fatalf("delete: %v", err)
 	}
 }

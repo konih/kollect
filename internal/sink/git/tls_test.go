@@ -46,3 +46,25 @@ func TestConfigFromSpec_requiresEndpoint(t *testing.T) {
 		t.Fatal("expected error for missing endpoint")
 	}
 }
+
+func TestValidateTLSSpec_requiresCASecretName(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateTLSSpec(&kollectdevv1alpha1.TLSSpec{
+		CASecretRef: &kollectdevv1alpha1.SecretReference{},
+	})
+	if err == nil {
+		t.Fatal("expected error when caSecretRef.name is empty")
+	}
+}
+
+func TestTLSConfigFromSpec_rejectsInvalidPEM(t *testing.T) {
+	t.Parallel()
+
+	_, err := TLSConfigFromSpec(&kollectdevv1alpha1.TLSSpec{
+		CABundle: []byte("not-a-cert"),
+	}, nil)
+	if err == nil {
+		t.Fatal("expected error for invalid CA bundle PEM")
+	}
+}

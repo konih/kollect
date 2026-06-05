@@ -33,7 +33,7 @@ func checkInventorySinksReachable(
 		}
 	}
 
-	return true, "SinksReachable", fmt.Sprintf("%d sink(s) resolved", len(sinkRefs))
+	return true, reasonSinksReachable, fmt.Sprintf("%d sink(s) resolved", len(sinkRefs))
 }
 
 func checkTargetNamespaceSinksReachable(ctx context.Context, c client.Client, namespace string) (bool, string, string) {
