@@ -39,7 +39,7 @@ adopter responsibilities documented in [SECURITY.md](../SECURITY.md).
 | SR-03 | Info | Release images signed (cosign) with SBOM and provenance | **Closed** — ADR-0705, release workflow |
 | SR-04 | Low | No automated payload secret-leak scanner beyond profile redaction | **Accepted** — tracked as open question in ADR-0104 |
 | SR-05 | Low | Solo maintainer — no second human reviewer on maintainer PRs | **Accepted** — documented in GOVERNANCE; gold blocker |
-| SR-06 | Info | OpenVEX stub published; no active vulnerability suppressions | **Closed** — `security/vex.json` |
+| SR-06 | Info | OpenVEX stub published; no active vulnerability suppressions | **Closed** — `docs/security/vex.json` |
 
 No critical or high-severity defects were identified in reviewed code paths during this
 self-review. Prior fixes (git ref validation, SAR gating, redaction-at-extraction) were
