@@ -27,6 +27,8 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **release:** Use v0.0.4 MVP anchor, reserve v0.1.0 for publish [47706eb](https://github.com/konih/kollect/commit/47706eb217c1fd4e6002b23d746213a4a52692f5)
+
 - **sink/git:** Native push for file remotes on CI [d25d83a](https://github.com/konih/kollect/commit/d25d83a7c209115edf52590956dc80bc35c6377c)
 
 - **sink/git:** Force-push when bare clone has no HEAD [cc1473b](https://github.com/konih/kollect/commit/cc1473bd4ff428b62762fd56ac7257dbd5f4239b)
