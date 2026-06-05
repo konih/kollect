@@ -16,7 +16,10 @@ import (
 	"github.com/konih/kollect/internal/collect"
 )
 
-const typeName = "postgres"
+// TypeName is the KollectSink.spec.type value for Postgres sinks.
+const TypeName = "postgres"
+
+const typeName = TypeName
 
 // Backend upserts inventory rows into PostgreSQL.
 type Backend struct {
