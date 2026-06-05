@@ -24,6 +24,7 @@ kubectl apply -k config/samples/
 | [Connection test](connection-test.md) | `KollectConnectionTest` workflow |
 | [Cert-manager webhooks](cert-manager-webhook.md) | Webhook TLS install |
 | [Kind local lab](kind-local-lab.md) | kind quickstart |
+| [UI local development](ui-local-development.md) | Mock vs live Read API for kollect-ui |
 
 !!! note "Samples not in default kustomization"
     NATS (`kollectsink_nats.yaml`) and some cluster-scoped samples are documented but not included in

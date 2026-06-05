@@ -56,6 +56,7 @@ New to the project? Read in theme order; for the *why*, start with [REQUIREMENTS
 | [0409](0409-kollect-ui-deployment.md) | Kollect UI deployment — separate static SPA image | Current |
 | [0410](0410-ui-engineering-and-quality-gates.md) | UI engineering and quality gates | Current |
 | [0411](0411-read-api-extensions-for-ui.md) | Read API extensions for UI | Current |
+| [0412](0412-mock-read-api-for-ui-development.md) | Mock Read API for UI development | Current |
 
 ## 05 · Multi-cluster — fan-in, transport, and the optional hub
 
