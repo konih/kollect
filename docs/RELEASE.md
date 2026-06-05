@@ -184,6 +184,8 @@ ls -la dist/
 | `sbom.spdx.json` | SPDX SBOM for operator image (Syft) |
 | `sbom-ui.spdx.json` | SPDX SBOM for kollect-ui image (Syft) |
 | `checksums.txt` | SHA256 of release files |
+| `<asset>.sigstore.json` | Sigstore bundle for each release asset (cosign keyless) |
+| `release-provenance.intoto.jsonl` | Combined SLSA provenance attestation for release assets |
 | Helm chart (OCI) | `oci://ghcr.io/konih/kollect` |
 
 Release notes are assembled by [`hack/assemble-release-notes.sh`](../hack/assemble-release-notes.sh)
@@ -191,17 +193,81 @@ and [`.github/release-notes-install.md`](../.github/release-notes-install.md).
 
 ## Verify after release
 
+### Container images (GHCR)
+
 ```sh
-cosign verify \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
-  ghcr.io/konih/kollect@<digest>
+TAG=v0.1.0   # release tag
+REPO=konih/kollect
+
+# Resolve digests from the release notes or GHCR
+OP_DIGEST="$(crane digest ghcr.io/${REPO}/kollect:${TAG#v})"
+UI_DIGEST="$(crane digest ghcr.io/${REPO}/kollect-ui:${TAG#v})"
 
 cosign verify \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
-  ghcr.io/konih/kollect-ui@<digest>
+  "ghcr.io/${REPO}/kollect@${OP_DIGEST}"
+
+cosign verify \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  "ghcr.io/${REPO}/kollect-ui@${UI_DIGEST}"
 ```
+
+SLSA provenance and SPDX SBOM attestations are published to GHCR (via `actions/attest`) and the
+repository [Attestations](https://github.com/konih/kollect/attestations) page:
+
+```sh
+gh attestation verify "ghcr.io/${REPO}/kollect@${OP_DIGEST}" \
+  --owner konih --repo kollect
+```
+
+### GitHub Release assets (OpenSSF Scorecard Signed-Releases)
+
+Each release asset ships with a Sigstore bundle (`<file>.sigstore.json`) and a combined SLSA
+provenance bundle (`release-provenance.intoto.jsonl`). Verify a downloaded artifact:
+
+```sh
+TAG=v0.1.0
+VERSION="${TAG#v}"
+gh release download "${TAG}" --pattern 'kollect-*.tgz' --dir /tmp/kollect-verify
+cd /tmp/kollect-verify
+
+cosign verify-blob \
+  --bundle "kollect-${VERSION}.tgz.sigstore.json" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  "kollect-${VERSION}.tgz"
+```
+
+Verify SLSA provenance for the same file (download `release-provenance.intoto.jsonl` first):
+
+```sh
+gh release download "${TAG}" --pattern 'release-provenance.intoto.jsonl' --dir /tmp/kollect-verify
+
+cosign verify-blob-attestation \
+  --bundle release-provenance.intoto.jsonl \
+  --new-bundle-format \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  "kollect-${VERSION}.tgz"
+```
+
+Checksums: `sha256sum -c checksums.txt` after downloading all unsigned assets.
+
+### Rebuild an existing tag with signing
+
+If a tag was published before release-asset signing landed, re-run the workflow on that tag:
+
+```sh
+gh workflow run release.yaml \
+  -f tag=v0.1.0-rc.2 \
+  -f draft=false \
+  -f prerelease=true
+```
+
+`workflow_dispatch` checks out the tag, rebuilds images and assets, and updates the GitHub Release
+with signatures and provenance bundles.
 
 Confirm `CHANGELOG.md` on `main` has an empty **Unreleased** section (run `task changelog:write`
 after tagging if needed).
