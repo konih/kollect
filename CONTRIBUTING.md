@@ -103,11 +103,18 @@ CI runs `task coverage`, which writes `coverage.out` for `./internal/...` and en
 **45%** floor on statement coverage (`COVERAGE_MIN`, see `hack/coverage.sh`). Integration-tagged
 tests (`-tags=integration`) and e2e packages are excluded from the default profile.
 
+**Integration CI** (`task test-integration`) runs testcontainers-backed sinks and transports,
+including **S3** (MinIO) and **GCS** (S3-compatible) under `internal/sink/s3/` and
+`internal/sink/gcs/`. The **e2e-nightly** and manual **E2E (optional)** workflows re-run those
+object-store tests after kind smoke.
+
 | Task | Purpose |
 | --- | --- |
 | `task coverage` | Unit/envtest + `coverage.out` + floor check |
 | `task coverage:report` | `go tool cover -func` summary |
 | `task coverage:html` | Write `coverage.html` (open in a browser) |
+| `task test-integration` | Postgres, Kafka, Git, S3, GCS, Redis, NATS (Docker required) |
+| `task test:e2e` | Kind smoke (`hack/kind/e2e/` — matches nightly workflow) |
 
 Coverage is published to [Codecov](https://codecov.io/gh/konih/kollect) from the CI `test` job
 (OIDC upload for public repos; optional `CODECOV_TOKEN` secret). Regressions below the floor fail

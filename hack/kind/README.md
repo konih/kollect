@@ -70,8 +70,11 @@ E2E profile (matches nightly workflow):
 
 ```sh
 task kind-e2e-up
-bash hack/kind/e2e/smoke.sh   # post-install checks
+bash hack/kind/e2e/smoke.sh   # post-install checks (includes cert-manager Certificate CRD smoke)
 task kind-e2e-down
+
+# Or one-shot via Task (setup + smoke + teardown):
+task test:e2e
 ```
 
 ## Prerequisites (dev)
