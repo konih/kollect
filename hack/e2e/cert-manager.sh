@@ -21,14 +21,14 @@ _log "Installing cert-manager CRDs (${CERT_MANAGER_VERSION})..."
 kubectl apply -f \
   "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.crds.yaml"
 
-_log "Applying Certificate profile and target samples..."
-kubectl apply -f "${REPO_ROOT}/config/samples/kollect_v1alpha1_kollectprofile_certificate-summary.yaml"
-kubectl apply -f "${REPO_ROOT}/config/samples/kollect_v1alpha1_kollecttarget_certificates.yaml"
-
 _log "Creating namespace ${CERT_TEST_NS} with collection label..."
 kubectl create namespace "$CERT_TEST_NS" --dry-run=client -o yaml | kubectl apply -f -
 kubectl label namespace "$CERT_TEST_NS" \
   kollect.dev/collect-certificates=enabled --overwrite
+
+_log "Applying Certificate profile and target samples..."
+kubectl apply -f "${REPO_ROOT}/config/samples/kollect_v1alpha1_kollectprofile_certificate-summary.yaml"
+kubectl apply -f "${REPO_ROOT}/config/samples/kollect_v1alpha1_kollecttarget_certificates.yaml"
 
 _log "Seeding Certificate for generic CRD collection..."
 kubectl apply -f - <<EOF
