@@ -253,8 +253,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/go-cache
+        with:
+          cache-suffix: fuzz-${{ matrix.target }}
       - name: Native Go fuzz (30s)
-        run: go test -fuzz=${{ matrix.target }} -fuzztime=30s ${{ matrix.pkg }}
+        run: go test -run=^$ -fuzz=${{ matrix.target }} -fuzztime=30s ${{ matrix.pkg }}
 
   docker-build:
     name: docker-build
