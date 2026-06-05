@@ -32,8 +32,14 @@ func ValidateClusterWire(wireCluster string, report SpokeReport) error {
 	return nil
 }
 
-// ReceiveReport unmarshals payload, validates wire cluster metadata, and merges into the store.
-func ReceiveReport(wireCluster string, payload []byte, merger *Merger) (SpokeReport, int, error) {
+// ReceiveReport unmarshals payload, validates wire cluster metadata and optional ACL,
+// then merges into the store. allowedClusters empty means no registration gate (dev queues).
+func ReceiveReport(
+	wireCluster string,
+	payload []byte,
+	merger *Merger,
+	allowedClusters []string,
+) (SpokeReport, int, error) {
 	if merger == nil {
 		return SpokeReport{}, 0, fmt.Errorf("hub receive: merger is nil")
 	}
@@ -52,6 +58,10 @@ func ReceiveReport(wireCluster string, payload []byte, merger *Merger) (SpokeRep
 	}
 
 	if err := ValidateClusterWire(wireCluster, report); err != nil {
+		return SpokeReport{}, 0, err
+	}
+
+	if err := ValidateClusterACL(report.Cluster, allowedClusters); err != nil {
 		return SpokeReport{}, 0, err
 	}
 

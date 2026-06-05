@@ -21,17 +21,21 @@ func ConfigFromEnv() Config {
 		Group:  envOr("KOLLECT_HUB_GROUP", defaultHubGroup),
 	}
 
+	tls := TLSSettingsFromEnv()
+
 	switch cfg.Type {
 	case TypeHTTP:
 		cfg.HTTP.URL = os.Getenv("KOLLECT_HUB_URL")
 	case TypeRedis:
 		cfg.Redis.URL = os.Getenv("KOLLECT_REDIS_URL")
+		cfg.Redis.TLS = tls
 	case TypeKafka:
 		cfg.Kafka.Brokers = splitCommaEnv("KOLLECT_KAFKA_BROKERS")
 		cfg.Kafka.Topic = envOr("KOLLECT_KAFKA_TOPIC", defaultKafkaTopic)
 		cfg.Kafka.Group = envOr("KOLLECT_KAFKA_GROUP", cfg.Group)
 	case TypeNATS:
 		cfg.NATS.URL = os.Getenv("KOLLECT_NATS_URL")
+		cfg.NATS.TLS = tls
 	}
 
 	return cfg

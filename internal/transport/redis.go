@@ -37,6 +37,12 @@ func newRedisTransport(cfg Config) (Publisher, Subscriber, error) {
 		return nil, nil, fmt.Errorf("parse redis url: %w", err)
 	}
 
+	if tlsCfg, err := cfg.Redis.TLS.ClientConfig(); err != nil {
+		return nil, nil, err
+	} else if tlsCfg != nil {
+		opts.TLSConfig = tlsCfg
+	}
+
 	client := redis.NewClient(opts)
 
 	stream := cfg.Stream

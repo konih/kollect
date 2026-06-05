@@ -38,6 +38,7 @@ type HTTPConfig struct {
 // RedisConfig configures a Redis Streams transport.
 type RedisConfig struct {
 	URL string
+	TLS TLSSettings
 }
 
 // NewTransport returns a Publisher and Subscriber for the configured backend.
