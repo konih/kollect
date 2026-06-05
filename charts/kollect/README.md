@@ -20,8 +20,7 @@ helm install kollect ./charts/kollect -n kollect-system --create-namespace
 | `transport.type` | Hub/spoke transport backend | `inprocess` |
 
 Export debouncing is configured per **`KollectInventory.spec.exportMinInterval`** (CRD default
-**30s**). The chart does not pass the deprecated manager `--export-debounce` flag; use the Inventory
-CR or `extraArgs` only for local debugging.
+**30s**). Set the field on the Inventory CR; the chart does not expose a global manager flag.
 
 See `values.yaml` for the full list. Critical values are validated by
 [`values.schema.json`](values.schema.json); CI runs `task helm-test` (`helm lint` + `helm-unittest`).
@@ -120,6 +119,38 @@ CI/samples may set `connectionTest: true`.
 
 Hub/spoke transport defaults to **`inprocess`** until an external backend passes integration tests.
 Do not enable Redis/NATS/Kafka in chart values without explicit ops choice ([ADR-0502](../../docs/adr/0502-lean-queue-transport.md)).
+
+## Prometheus Operator monitoring
+
+Requires Prometheus Operator CRDs (e.g. **kube-prometheus-stack**). Metrics scrape and alerts are **off by default**
+— enable when your cluster runs the operator.
+
+```yaml
+metrics:
+  enabled: true
+  secure: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      release: kube-prometheus-stack   # must match Prometheus serviceMonitorSelector
+  prometheusRule:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack   # must match Prometheus ruleSelector
+    additionalRules: []                # optional extra rules in kollect.rules group
+```
+
+The `ServiceMonitor` targets Service `<release>-kollect-controller-manager` port **`metrics`**
+(HTTPS with bearer token when `metrics.secure: true`). Bind a **metrics-reader** `ClusterRole`
+to your Prometheus service account so SAR succeeds on `/metrics`.
+
+Starter alerts (group `kollect.rules`): reconcile errors, inventory export errors, sink export
+failures, connection test failures, high export latency, workqueue backlog, hub spoke report failures
+(all expressions use `kollect_*` metrics only). See [operator metrics reference](../../docs/operator-manual/metrics.md).
+
+CI overlay: [`ci/monitoring-values.yaml`](ci/monitoring-values.yaml).
 
 ## Inventory HTTP authentication
 

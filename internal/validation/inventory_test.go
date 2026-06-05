@@ -4,7 +4,6 @@
 package validation
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -49,7 +48,7 @@ func TestValidateInventorySpecSinkRefAndIntervals(t *testing.T) {
 	}
 
 	errs := ValidateInventorySpec(&kollectdevv1alpha1.KollectInventorySpec{
-		SinkRefs: []string{"other/sink"},
+		SinkRefs: kollectdevv1alpha1.NewSinkRefList("other/sink"),
 	})
 	if len(errs) != 1 {
 		t.Fatalf("sink ref errs = %v", errs)
@@ -93,7 +92,5 @@ func TestInventoryInvalid(t *testing.T) {
 	err := InventoryInvalid("demo", field.ErrorList{
 		field.Required(field.NewPath("spec").Child("sinkRefs"), "required"),
 	})
-	if err == nil || !strings.Contains(err.Error(), "demo") {
-		t.Fatalf("err = %v", err)
-	}
+	assertInvalidResourceError(t, err, "KollectInventory", "demo")
 }

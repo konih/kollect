@@ -37,10 +37,12 @@ type KollectSinkSpec struct {
 	// +optional
 	TLS *TLSSpec `json:"tls,omitempty"`
 
-	// connectionTest requests a connectivity check on create/update when true.
-	// The annotation kollect.dev/test-connection=true has the same effect.
+	// connectionTest enables connectivity checks on create/update (default true).
+	// Set to false to skip automatic probes; the annotation kollect.dev/test-connection=true
+	// triggers a one-shot re-test without editing spec.
+	// +kubebuilder:default=true
 	// +optional
-	ConnectionTest bool `json:"connectionTest,omitempty"`
+	ConnectionTest *bool `json:"connectionTest,omitempty"`
 
 	// cluster labels exported inventory in multi-cluster installs.
 	// +optional
@@ -75,6 +77,11 @@ type KollectSinkSpec struct {
 	// gitlab configures GitLab-specific settings when type is gitlab.
 	// +optional
 	GitLab *GitLabSpec `json:"gitlab,omitempty"`
+
+	// exportMinInterval is the default minimum time between identical exports when an inventory
+	// ref omits a per-ref override. Material payload changes bypass the interval.
+	// +optional
+	ExportMinInterval *metav1.Duration `json:"exportMinInterval,omitempty"`
 }
 
 // Git push policy values (ADR-0407).
@@ -305,6 +312,15 @@ type KollectSinkList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitzero"`
 	Items           []KollectSink `json:"items"`
+}
+
+// ConnectionTestEnabled reports whether automatic sink connectivity probes should run.
+// Unset spec.connectionTest defaults to enabled; set false to opt out.
+func ConnectionTestEnabled(spec *KollectSinkSpec) bool {
+	if spec == nil || spec.ConnectionTest == nil {
+		return true
+	}
+	return *spec.ConnectionTest
 }
 
 func init() {

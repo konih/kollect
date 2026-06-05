@@ -38,6 +38,8 @@ stakeholder inventory. Kollect maintains a **read model**:
 
 Inventory is **configuration, not code** — owned per team in its own namespace.
 
+![Vertical K-shaped funnel diagram showing Kubernetes resources filtered by Scope and Target, attributes extracted by Profile, aggregated into Inventory rows, and exported to sinks.](assets/illustrations/k-funnel-crd-pipeline-dark.webp){ .kollect-illus .kollect-illus--portrait width="320" }
+
 !!! warning "Pre-beta"
     APIs and defaults may change until the first release candidate. See the
     [roadmap](ROADMAP.md) for current status.
@@ -48,6 +50,8 @@ Inventory is **configuration, not code** — owned per team in its own namespace
 Kubernetes API  →  shared informer (per GVK)  →  in-memory collect store
        →  KollectInventory debounce  →  sink projection(s)
 ```
+
+![Left-to-right operator pipeline from Kubernetes API through shared per-GVK informers and an in-memory collect store, KollectInventory debounce, to fan-out sink projections for Git, object store, and Postgres.](assets/illustrations/how-it-works-informer-sink-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
 
 The in-memory snapshot per inventory is **canonical**; every sink is a **projection** of it — no
 single backend is privileged. Sink roles (snapshot store, relational store, event emitter) are
@@ -96,11 +100,12 @@ required** ([ADR-0501](adr/0501-multi-cluster-sync-rfc.md)).
 
 | Section | Start here |
 | --- | --- |
-| **Understand the basics** | [Architecture](ARCHITECTURE.md) · [Data flows](DATA-FLOWS.md) · [Platform decisions](PLATFORM-DECISIONS.md) |
+| **Understand the basics** | [Prerequisites](UNDERSTAND-THE-BASICS.md) · [Architecture](ARCHITECTURE.md) · [Data flows](DATA-FLOWS.md) |
 | **Core concepts** | [CRD model](adr/0201-crd-model.md) · [CR reference](CR-REFERENCE.md) · [Hub and spoke](adr/0501-multi-cluster-sync-rfc.md) |
 | **Getting started** | [Quick start](QUICKSTART.md) · [Development setup](DEVELOPMENT.md) |
-| **User guide** | [Deployment inventory example](examples/deployment-inventory.md) · [Performance tuning](PERFORMANCE.md) |
-| **Reference** | [Custom resources](CR-REFERENCE.md) · [ADRs](adr/README.md) |
+| **Operator manual** | [Install & ops](OPERATOR-MANUAL.md) · [Upgrading](operator-manual/upgrading.md) · [Helm values](operator-manual/helm-values.md) |
+| **User guide** | [Examples](examples/README.md) · [Best practices](BEST-PRACTICES.md) · [Troubleshooting](TROUBLESHOOTING.md) |
+| **Reference** | [Custom resources](CR-REFERENCE.md) · [FAQ](FAQ.md) · [ADRs](adr/README.md) |
 | **Contributing** | [Roadmap](ROADMAP.md) · [Release process](RELEASE.md) |
 
 ## Learn more
@@ -113,7 +118,7 @@ required** ([ADR-0501](adr/0501-multi-cluster-sync-rfc.md)).
 | Multi-cluster & hub/spoke | [ADR-0501](adr/0501-multi-cluster-sync-rfc.md) |
 | Sink taxonomy (state vs stream) | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md) |
 | Build-order phases and status | [Roadmap](ROADMAP.md) |
-| Read-only UI console (planned v0.2) | [ADR-0408](adr/0408-read-api-ui-architecture.md) · [ADR-0409](adr/0409-kollect-ui-deployment.md) |
+| Read-only UI console (v0.2 MVP) | [ADR-0408](adr/0408-read-api-ui-architecture.md) · [ADR-0409](adr/0409-kollect-ui-deployment.md) |
 | Examples index | [Examples](examples/README.md) |
 | Example: Deployment → Git export | [Walkthrough](examples/deployment-inventory.md) |
 | Live demo inventory (Git sink) | [kollect-inventory-demo](https://github.com/konih/kollect-inventory-demo) |

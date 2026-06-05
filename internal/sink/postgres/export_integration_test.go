@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,6 +17,8 @@ import (
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestExportPostgres(t *testing.T) {
@@ -33,7 +34,7 @@ func TestExportPostgres(t *testing.T) {
 		postgres.WithPassword("kollect"),
 	)
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -213,17 +214,4 @@ func waitForPostgres(ctx context.Context, connStr string) error {
 	}
 
 	return fmt.Errorf("postgres not ready: %w", lastErr)
-}
-
-func isDockerUnavailable(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "cannot connect to the docker daemon") ||
-		strings.Contains(msg, "docker.sock") ||
-		strings.Contains(msg, "executable file not found") ||
-		strings.Contains(msg, "permission denied")
 }

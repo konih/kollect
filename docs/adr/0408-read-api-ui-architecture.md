@@ -84,8 +84,7 @@ A React single-page app in monorepo **`ui/`** (OQ-5) that:
 - Is **read-only in v0.2** — observability console; no Target create/apply forms; onboarding is
   copy-YAML + docs links.
 - Ships as a **separate static container image** `ghcr.io/konih/kollect-ui` — **not** embedded in the
-  operator binary for MVP ([ADR-0409](0409-kollect-ui-deployment.md)). Operator-embedded UI remains a
-  deferred option if maintainers reopen OQ-1.
+  operator binary ([ADR-0409](0409-kollect-ui-deployment.md)).
 
 Stack, testing pyramid, and bundle budget: [ADR-0410](0410-ui-engineering-and-quality-gates.md).
 
@@ -141,6 +140,13 @@ Aligned with [ROADMAP.md](../ROADMAP.md) and engineering spec §12:
 | OQ-10 | Inventory HTTP on ingress by default? | **Off** — explicit opt-in |
 | OQ-11 | Reader vs sink `Backend`? | **Distinct `InventoryReader`** |
 | OQ-12 | Target create form in MVP? | **Read-only UI** — no create forms |
+
+## Client UI state (v0.2)
+
+Inventory filter prefs, column visibility, and drawer selection use **Zustand** slices in
+`ui/src/store/` with Vitest unit tests — see [ADR-0410 §2](0410-ui-engineering-and-quality-gates.md).
+Server inventory rows and status responses stay in **TanStack Query**; URL search params are the
+source of truth for shareable inventory filters.
 
 ## See also
 

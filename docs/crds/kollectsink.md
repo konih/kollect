@@ -59,7 +59,8 @@ Export debouncing and payload flow: [DATA-FLOWS.md](../DATA-FLOWS.md#1-export-de
 | `spec.endpoint` | string | No | Backend-specific destination URL or bucket |
 | `spec.secretRef` | object | No | Secret with credentials (`name`, optional `namespace`) |
 | `spec.tls` | object | No | `insecureSkipVerify`, `caSecretRef`, `caBundle` (max 64 KiB) |
-| `spec.connectionTest` | bool | No | Probe on create/update when true |
+| `spec.connectionTest` | bool | No | Probe on create/update (default **true**; set `false` to opt out) |
+| `spec.exportMinInterval` | duration | No | Default debounce when inventory ref omits override ([ADR-0413](../adr/0413-export-interval-scheduling.md)) |
 | `spec.cluster` | string | No | Cluster label for multi-cluster exports |
 | `spec.pathTemplate` | string | No | Git/object-store object path layout ([ADR-0407](../adr/0407-git-object-store-layout.md)); default `inventory/{namespace}/{name}.json` |
 | `spec.objectStore` | object | No | S3/GCS snapshot format (`json` or `parquet`) and Parquet hot columns |
@@ -191,7 +192,16 @@ Wire inventory to a sink:
 
 ```sh
 kubectl apply -f config/samples/kollect_v1alpha1_kollectinventory.yaml
-kubectl get kinv -n default team-inventory -o jsonpath='{.status.conditions}'
+kubectl get kinv -n default team-inventory -o jsonpath='{.status.sinkExports}'
+```
+
+Optional sink default when refs omit override:
+
+```yaml
+spec:
+  type: postgres
+  exportMinInterval: 30s
+  # ...
 ```
 
 Re-probe without editing spec:

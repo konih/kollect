@@ -24,6 +24,7 @@ and Kafka sinks ([ADR-0402](0402-sink-backends-database-kafka.md)) — **not** a
 ## Consequences
 
 - Portals scrape **operator** `/metrics` for health and export latency; inventory payloads go to configured sinks.
+- Helm chart optionally ships `ServiceMonitor` + `PrometheusRule` when Prometheus Operator is present (see [operator manual metrics](../operator-manual/metrics.md)).
 - Phase 4 work must extend this ADR rather than invent a parallel metrics model.
 
 ## See also

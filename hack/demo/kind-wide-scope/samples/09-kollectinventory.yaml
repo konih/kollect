@@ -1,0 +1,14 @@
+# Step 9 — Wire inventory to sink; debounce exports for readable Git diffs.
+# Object path (ADR-0407): inventory/default/team-inventory.json
+# Per-sink intervals (ADR-0413): dual-cadence sample in config/samples/kollect_v1alpha1_kollectinventory.yaml
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectInventory
+metadata:
+  name: team-inventory
+  namespace: default
+spec:
+  sinkRefs:
+    - git-inventory-demo
+  exportMinInterval: 15s
+  suspend: false

@@ -38,8 +38,25 @@ knobs; the authoritative full list lives in the chart tree.
 | `webhooks.certManager.create` | cert-manager `Certificate` for webhook TLS | `true` |
 | `sinkDefaults.connectionTest` | Default for sample `KollectSink` probes | `false` |
 
-Export debouncing is configured per **`KollectInventory.spec.exportMinInterval`** (CRD default
-**30s**). The chart does not pass the deprecated manager `--export-debounce` flag.
+Export debouncing is configured per **sink ref** on `KollectInventory` / `KollectClusterInventory`
+([ADR-0413](../adr/0413-export-interval-scheduling.md)): ref override → sink default → inventory
+default **30s** → scope floor.
+
+Enable Prometheus Operator scraping and alerts:
+
+```yaml
+metrics:
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+  prometheusRule:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+```
+
+See [Metrics](metrics.md) for the alert catalog and [chart README — monitoring](../../charts/kollect/README.md#prometheus-operator-monitoring).
 
 ## Per-team install (recommended default)
 
@@ -108,6 +125,7 @@ with the **`kollect.dev/test-connection: "true"`** annotation when needed. CI an
 | `resources` | CPU/memory requests and limits | See `values.yaml` |
 | `metrics.enabled` | Prometheus metrics listener | `true` |
 | `metrics.serviceMonitor.enabled` | Prometheus Operator `ServiceMonitor` | `false` |
+| `metrics.prometheusRule.enabled` | Default `PrometheusRule` alerts | `false` |
 | `controller.maxConcurrentReconciles.*` | Per-controller concurrency | See `values.yaml` |
 | `extraArgs` | Additional manager flags (debug only) | `[]` |
 
@@ -117,6 +135,6 @@ Webhook serving certificates: cert-manager default or self-signed bootstrap —
 
 ## See also
 
-- [Operator manual](../OPERATOR-MANUAL.md) · [Upgrading Kollect](upgrading.md)
+- [Operator manual](../OPERATOR-MANUAL.md) · [Upgrading Kollect](upgrading.md) · [Metrics](metrics.md)
 - [ADR-0704: Helm chart and CRD lifecycle](../adr/0704-helm-chart-crd-lifecycle.md)
 - [High availability](../OPERATOR-MANUAL.md#high-availability) — `replicaCount` and leader election

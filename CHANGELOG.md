@@ -27,13 +27,37 @@ anchor on an older commit.
 
 ### Bug Fixes
 
-- **lint:** Extract goconst strings for CI golangci-lint [c0ba24e](https://github.com/konih/kollect/commit/c0ba24eb2e75f98dacbb05b73d3e8044fb690e57)
+- **demo:** Satisfy OpenSSF Scorecard in kind-wide-scope [75915df](https://github.com/konih/kollect/commit/75915df4c5a1d124aaed114af8aa3787b610066e)
+
+## [0.1.0-rc.1](https://github.com/konih/kollect/compare/v0.0.4..v0.1.0-rc.1) - 2026-06-05
+
+### Bug Fixes
+
+- **git:** Set bare HEAD after file-remote push [3b6bc14](https://github.com/konih/kollect/commit/3b6bc14d9da17a088f6a2fe4d46f1e91f8f90ac2)
+
+- **inventory:** Extract degraded status goconst [521a099](https://github.com/konih/kollect/commit/521a099914341199ced421ba534ff3b358dd0018)
+
+- **sink:** Use git.TypeName for goconst CI lint [0d0fdfe](https://github.com/konih/kollect/commit/0d0fdfe48bac1b61e6c8745b4afb7a95dc656157)
+
+- **demo:** Survive Step 2 bootstrap failures [e729a7b](https://github.com/konih/kollect/commit/e729a7b4ce84c3b40aa2ad08f5cbede18fb60876)
+
+- **demo:** Continue past prerequisite check [84f742e](https://github.com/konih/kollect/commit/84f742e5eebfd7298f21b0b1b06f440e805ff360)
+
+- **chart:** Restrict PrometheusRule alerts to kollect metrics [1c19520](https://github.com/konih/kollect/commit/1c195209c427355ff4409bf50494a1af95bb6093)
+
+- **ui:** Exclude Playwright specs from Vitest runner [9cc1f35](https://github.com/konih/kollect/commit/9cc1f355bb0fe8cb224a4191e570ddd67bcb2167)
+
+- **ui:** Align inventory drawer and badge props with merged API [3580e8a](https://github.com/konih/kollect/commit/3580e8a7d4920e7ed92aa9d1c0d3cecf275bff9d)
+
+- **ui:** Align inventory drawer with merged status APIs [7659378](https://github.com/konih/kollect/commit/76593788b73ef3fde78f52044f22b32e13b0edde)
+
+- **lint:** Extract goconst strings for CI golangci-lint [3ed8703](https://github.com/konih/kollect/commit/3ed87038efb0d509c562d4d02d4309807ee99b48)
+
+- **chart:** Mount writable /tmp for git export [4da294f](https://github.com/konih/kollect/commit/4da294f65f73cfceb9ab3407e5776ef02f5ce612)
 
 - **sink:** Harden git export paths and command args for CodeQL [a336a3b](https://github.com/konih/kollect/commit/a336a3bda77c19ad10b6e96e32f0f96d6fca9d1b)
 
 - **ci:** Add RBAC audit and expand fuzz gates [e6f8b98](https://github.com/konih/kollect/commit/e6f8b983d8b3d05404d1e8151d9510c07cca7d1e)
-
-- **api:** Nolint deprecated scheme.Builder for lint [f5817d0](https://github.com/konih/kollect/commit/f5817d03c828b61965070a19b291fea291559b04)
 
 - **supply-chain:** Address OpenSSF Scorecard findings [2026b16](https://github.com/konih/kollect/commit/2026b165d427cc4b1173b3724660050c17c18f34)
 
@@ -132,6 +156,28 @@ anchor on an older commit.
 
 ### Features
 
+- **api:** Per-sink export interval scheduling [296577b](https://github.com/konih/kollect/commit/296577bc0f2c682ea54d9cd3aea61275f93cf335)
+
+- **demo:** Venue pitch personas, fast churn, UI reveal [29f8046](https://github.com/konih/kollect/commit/29f80464d70a206ebb48baefbd197e464178edf5)
+
+- **chart:** Add Prometheus Operator monitoring [cfbe62f](https://github.com/konih/kollect/commit/cfbe62f6aba27de52ac01b38fcff899dd1ddfa3c)
+
+- **api:** Default KollectSink connectionTest to true [495068e](https://github.com/konih/kollect/commit/495068e7706df3223f3c775809fca21b3dbd997f)
+
+- **ui:** Merge inventory MVP with filters and virtualization [3971d8e](https://github.com/konih/kollect/commit/3971d8e3790f56e8aa868271b75b8c0fdee6a434)
+
+- **demo:** Refactor wide-scope kind showcase [b1b3d91](https://github.com/konih/kollect/commit/b1b3d9177527f593c2abeef7b21ec9f83e31dbcb)
+
+- **ui:** Wire inventory rows to detail drawer [a1d7fd7](https://github.com/konih/kollect/commit/a1d7fd7fbf0bea1f26217edd41be848715c1a8e2)
+
+- **ui:** Add inventory MVP with filters and virtualization [9f5e04b](https://github.com/konih/kollect/commit/9f5e04b731703551d5bd28efcc5c42cd9f095404)
+
+- **ui:** Merge overview degraded strip and export stats [c5ca56e](https://github.com/konih/kollect/commit/c5ca56e59366f9fcbd74d9405f2d9b2b45a89051)
+
+- **ui:** Merge detail drawers for targets and sinks [5690d4d](https://github.com/konih/kollect/commit/5690d4dfecff2da35bfefeecbb415fad1c9a2bc1)
+
+- **ui:** Add detail drawers for targets and sinks [8f3ebe3](https://github.com/konih/kollect/commit/8f3ebe3b47cbcd4e82638cbd4784b0c77aee05e0)
+
 - **sink:** Add git push policy branch and auth options [f175929](https://github.com/konih/kollect/commit/f175929280f18d2e3a2ba0363005e18610b1e25e)
 
 - **ui:** Implement Phase 1 mock Read API (MSW + Prism) [a2d9308](https://github.com/konih/kollect/commit/a2d9308b49a717ee2a2bd19454eaacf54567f693)
@@ -204,6 +250,10 @@ anchor on an older commit.
 
 
 ### Refactoring
+
+- **controller:** Remove --export-debounce flag [d5a01fa](https://github.com/konih/kollect/commit/d5a01fa5cf631431df16536de9bc34b3b563b552)
+
+- Unify bearer auth and brittle error assertions [d382a28](https://github.com/konih/kollect/commit/d382a28ff5e9188e1547f2f176857bb0c8752047)
 
 - **sink:** Extract shared RunExportItems pipeline [d9494ae](https://github.com/konih/kollect/commit/d9494ae79a68065a9122f8cf538a13f877045930)
 

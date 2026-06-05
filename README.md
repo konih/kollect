@@ -39,6 +39,8 @@ Kubernetes API  →  shared informer (per GVK)  →  in-memory collect store
        →  KollectInventory debounce  →  sink projection(s)
 ```
 
+![Kollect operator pipeline from Kubernetes API through shared informers, in-memory collect store, and debounced KollectInventory export to Git, object store, and Postgres sink projections.](docs/assets/illustrations/readme-how-it-works-dark.webp)
+
 The in-memory snapshot per inventory is **canonical**; every sink is a **projection** of it — no
 single backend is privileged ([sink roles](https://konih.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/)).
 

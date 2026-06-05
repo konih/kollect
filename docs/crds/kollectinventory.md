@@ -9,10 +9,10 @@
 ## What it is for
 
 A `KollectInventory` aggregates all collected rows from `KollectTarget` objects in the **same
-namespace** and exports the marshalled JSON payload to one or more `KollectSink` backends. Export is
-**debounced per inventory** — the in-memory store updates immediately on every watch event, but
-sink writes coalesce unless the payload checksum or CR generation changes
-([ADR-0703](../adr/0703-platform-architecture-pivot.md)).
+namespace** and exports the marshalled JSON payload to one or more `KollectSink` backends. The
+in-memory store updates immediately on every watch event; sink writes coalesce **per sink ref** —
+each backend may use a different effective `exportMinInterval`
+([ADR-0413](../adr/0413-export-interval-scheduling.md)).
 
 Postgres and Kafka are the **primary** portal integration path; Git suits small single-cluster
 installs. Full payloads live in sinks; `status` holds counts, conditions, and export metadata only
@@ -42,12 +42,18 @@ flowchart LR
 
 Debouncing state machine: [DATA-FLOWS.md §1](../DATA-FLOWS.md#1-export-debouncing).
 
+!!! info "Effective interval precedence"
+    For each `sinkRefs` entry: **ref override** → **`KollectSink.spec.exportMinInterval`** →
+    **`spec.exportMinInterval`** (default **30s**) → clamped to **`KollectScope.spec.minExportInterval`**
+    floor when scope exists. Material checksum or `metadata.generation` changes bypass debounce **per
+    sink**. See [ADR-0413](../adr/0413-export-interval-scheduling.md).
+
 ## Spec fields
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `spec.sinkRefs[]` | list | No | — | `KollectSink` names in same namespace |
-| `spec.exportMinInterval` | duration | No | **30s** | Min gap between identical exports; bypass on checksum or generation change |
+| `spec.sinkRefs[]` | list | No | — | Sink names (string) or `{ name, exportMinInterval? }` objects — max 20 |
+| `spec.exportMinInterval` | duration | No | **30s** | Default min gap for refs without override; bypass on checksum or generation change |
 | `spec.maxExportBytes` | int64 | No | global cap | Max marshalled payload size |
 | `spec.suspend` | bool | No | false | Pause reconciliation |
 | `spec.httpEndpoint.enabled` | bool | No | false | Per-CR HTTP debug (operator gate also required) |
@@ -85,10 +91,25 @@ kubectl patch kinv team-inventory -n default --type=merge \
 | Type | When set | Meaning | Remediation |
 | --- | --- | --- | --- |
 | `Ready=True` | Healthy | Aggregating and exporting | None |
-| `Synced=True` | Export OK | Last export succeeded | Check `status.lastExportTime` |
+| `Synced=True` | Export OK | All sinks exported on last reconcile (or debounced with no failures) | Check `status.lastExportTime` |
+| `Synced=False` `PartiallySynced` | Mixed cadence | Some sinks exported; others debounced on identical payload | Normal for dual-cadence fan-out — inspect `status.sinkExports[]` |
 | `Synced=False` | Transient export error | `reason`: `Progressing` | Wait for retry/backoff |
 | `Degraded=True` | Hard block | Scope, size, or terminal export | See reasons below |
 | `SinkReachable=True/False` | Pre/post export | Sink probe or last export outcome | Fix [KollectSink](kollectsink.md) |
+
+### Per-sink status (`status.sinkExports[]`)
+
+When `spec.sinkRefs` lists multiple sinks, each entry mirrors export observation:
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Sink ref name (matches `spec.sinkRefs[].name`) |
+| `lastExportTime` | Last successful export to this sink |
+| `lastChecksum` | Payload fingerprint from last export |
+| `conditions[]` | Per-sink `Synced` — `reason=Debounced` when interval not elapsed |
+
+Aggregate `status.lastExportTime` is the **max** of per-sink times (backward compatible). Read API
+`/status` prefers `sinkExports` when present ([ADR-0413](../adr/0413-export-interval-scheduling.md)).
 
 ### Common `Degraded` reasons
 

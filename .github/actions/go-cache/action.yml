@@ -5,6 +5,10 @@ inputs:
     description: Cache kubebuilder-envtest binaries
     required: false
     default: "false"
+  cache-suffix:
+    description: Optional suffix for the Go module/build cache key (isolates parallel matrix jobs)
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -18,8 +22,9 @@ runs:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ inputs.cache-suffix }}
         restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-
           ${{ runner.os }}-go-
     - name: Restore envtest cache
       if: inputs.envtest == 'true'

@@ -19,7 +19,9 @@ Visual walkthroughs of how data moves through the operator. For CRD roles see
 every watch event would trigger a Postgres upsert or Git commit.
 
 **Design:** The in-memory collect store updates **immediately** on every target reconcile. Only the
-**sink export** step is debounced per `KollectInventory`.
+**sink export** step is debounced **per sink ref** on `KollectInventory` ([ADR-0413](adr/0413-export-interval-scheduling.md)).
+One payload is marshalled per reconcile; each ref exports when its effective interval elapses or the
+checksum/generation bypass rules fire for that sink.
 
 ### Per-inventory state machine
 
@@ -72,20 +74,41 @@ sequenceDiagram
 
 ### Configuration
 
+Effective interval per sink ref ([ADR-0413](adr/0413-export-interval-scheduling.md)):
+
+```text
+effectiveInterval(ref) =
+  max(
+    ref.exportMinInterval ?? sink.exportMinInterval ?? inventory.exportMinInterval ?? 30s,
+    scope.minExportInterval ?? 0s
+  )
+```
+
 | Field | Default | Effect |
 | --- | --- | --- |
-| `KollectInventory.spec.exportMinInterval` | **30s** (CRD default) | Min gap between exports of **identical** payload |
-| `metadata.generation` bump | — | Immediate export (spec edit) |
-| Payload checksum change | — | Immediate export (material inventory change) |
+| `spec.sinkRefs[].exportMinInterval` | — | Per-sink override (string refs inherit inventory default) |
+| `KollectSink.spec.exportMinInterval` | — | Sink default when ref and inventory omit override |
+| `KollectInventory.spec.exportMinInterval` | **30s** (CRD default) | Inventory-wide default for plain string refs |
+| `KollectScope.spec.minExportInterval` | — | Tenancy floor — webhook rejects intervals below this |
+| `metadata.generation` bump | — | Immediate export to **all** sinks (spec edit) |
+| Payload checksum change | — | Immediate export to **that** sink (material change) |
+| `exportMinInterval: 0s` | — | Material-change only; controller requeues with 30s watchdog |
 
-Operator `--export-debounce` is a **deprecated fallback** when the spec field is unset on legacy
-manifests.
+!!! tip "Dual-cadence fan-out"
+    Portal Postgres at **30s** plus Git audit at **1h** is the canonical multi-role pattern — see
+    `config/samples/kollect_v1alpha1_kollectinventory.yaml`
+    and [deployment-inventory example](examples/deployment-inventory.md#step-4-kollectinventory).
+
+When some sinks export and others are debounced, aggregate `Synced=False` with reason
+**`PartiallySynced`**; per-sink detail lives in `status.sinkExports[]`.
 
 ---
 
 ## 2. Collection pipeline
 
 How a watched object becomes an inventory row.
+
+![Left-to-right operator pipeline from Kubernetes API through shared per-GVK informers and an in-memory collect store, KollectInventory debounce, to fan-out sink projections for Git, object store, and Postgres.](assets/illustrations/how-it-works-informer-sink-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
 
 ```mermaid
 flowchart LR
@@ -116,6 +139,14 @@ flowchart LR
 - **One informer per GVK** across all targets ([ADR-0301](adr/0301-event-driven-informers.md)).
 - Targets only differ by **namespace/label selectors** and **profileRef**.
 - Extraction runs on the **cached unstructured object** — no per-target API list calls.
+
+### Collection filter layers
+
+Before a watched object reaches the collect store, it passes through stacked policy layers — Helm
+watch boundary, Scope denials, Target include/exclude intent, `resourceRules`, CEL `matchPolicy`, and
+watch labels ([ADR-0207](adr/0207-target-collection-filtering.md)).
+
+![Stacked filter layers showing how Kubernetes resources pass through operator watch scope, Scope denials, Target include and exclude rules, resource rules, CEL match policy, and watch labels before becoming inventory rows.](assets/illustrations/collection-filter-layers-dark.webp){ .kollect-illus .kollect-illus--portrait width="360" }
 
 ---
 
@@ -330,9 +361,10 @@ Queue delivery is **at-least-once**; merge keys `(cluster, namespace, name, uid)
 
 ### Post-merge hub export
 
-After merge, hub `KollectInventory` objects use the **same debounced export path** as single-cluster
-mode ([§1](#1-export-debouncing)): marshal the hub collect store slice, checksum, respect
-`exportMinInterval`, dispatch to configured sinks.
+After merge, hub `KollectInventory` objects use the **same per-sink debounced export path** as
+single-cluster mode ([§1](#1-export-debouncing)): marshal once, then fan out with per-ref intervals.
+Hub env `KOLLECT_HUB_SINK_REFS` remains comma-separated names — structured hub intervals deferred
+([ADR-0413](adr/0413-export-interval-scheduling.md)).
 
 ```mermaid
 flowchart TD

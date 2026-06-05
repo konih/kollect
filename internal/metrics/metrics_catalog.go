@@ -111,6 +111,13 @@ var Catalog = []CatalogEntry{
 		AgentHint:  "Spike → debounce too low or inventory churn.",
 	},
 	{
+		Name:       "kollect_export_spill_warn_total",
+		Type:       "counter",
+		Help:       "Export payloads at or above the 1 MiB object-store spill warn threshold (ADR-0103).",
+		PromQLHint: "increase(kollect_export_spill_warn_total[1h])",
+		AgentHint:  "Approaching spill gate — shrink inventory or raise maxExportBytes/spill config.",
+	},
+	{
 		Name:       "kollect_custom_resource_series",
 		Type:       "gauge",
 		Labels:     []string{"profile", "gvk", "series"},

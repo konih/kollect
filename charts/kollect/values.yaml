@@ -54,9 +54,9 @@ transport:
   type: inprocess
 
 # Default for KollectSink connection probes in bundled samples (ADR-0403).
-# Production manifests should use false; dev/CI overlays set true.
+# CRD default is true; set false to opt out of automatic probes.
 sinkDefaults:
-  connectionTest: false
+  connectionTest: true
 
 leaderElection:
   enabled: true
@@ -81,18 +81,25 @@ controller:
     inventory: 3
     hub: 2
   # Export debounce is per KollectInventory.spec.exportMinInterval (CRD default 30s).
-  # The manager --export-debounce flag remains as a dev-only fallback; not set by this chart.
   reconcileRateLimit: ""
 
 metrics:
   enabled: true
   bindAddress: ":8443"
   secure: true
+  # Prometheus Operator integration (requires monitoring.coreos.com CRDs, e.g. kube-prometheus-stack).
   serviceMonitor:
     enabled: false
     interval: 30s
     scrapeTimeout: 10s
+    # Labels must match your Prometheus serviceMonitorSelector (kube-prometheus-stack default: release: kube-prometheus-stack).
     labels: {}
+  prometheusRule:
+    enabled: false
+    # Labels must match your Prometheus ruleSelector (kube-prometheus-stack default: release: kube-prometheus-stack).
+    labels: {}
+    # Optional extra PrometheusRule entries appended to the kollect.rules group.
+    additionalRules: []
 
 webhooks:
   enabled: true

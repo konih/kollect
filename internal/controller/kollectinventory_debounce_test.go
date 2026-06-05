@@ -12,36 +12,32 @@ import (
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 )
 
-func TestKollectInventoryReconciler_shouldDebounce(t *testing.T) {
+func TestPerSinkCoalesceTracker(t *testing.T) {
 	t.Parallel()
 
-	rec := &KollectInventoryReconciler{
-		Options: RuntimeOptions{ExportDebounce: 30 * time.Second},
-	}
-	inv := &kollectdevv1alpha1.KollectInventory{
-		ObjectMeta: metav1.ObjectMeta{Namespace: "default", Name: "team-inventory", Generation: 1},
-	}
-
+	var tracker perSinkCoalesceTracker
+	invKey := "default/team-inventory"
+	sinkName := "postgres"
+	interval := 30 * time.Second
+	now := time.Now()
+	gen := int64(1)
 	hashA := "fingerprint-a"
 	hashB := "fingerprint-b"
-	key := "default/team-inventory"
 
-	if rec.shouldDebounce(inv, key, hashA) {
+	if tracker.shouldSkip(invKey, sinkName, gen, hashA, interval, now) {
 		t.Fatal("first export must not debounce")
 	}
 
-	rec.recordExport(inv, key, hashA)
-
-	if !rec.shouldDebounce(inv, key, hashA) {
+	tracker.record(invKey, sinkName, gen, hashA, now)
+	if !tracker.shouldSkip(invKey, sinkName, gen, hashA, interval, now) {
 		t.Fatal("identical payload within interval should debounce")
 	}
 
-	if rec.shouldDebounce(inv, key, hashB) {
+	if tracker.shouldSkip(invKey, sinkName, gen, hashB, interval, now) {
 		t.Fatal("payload change must bypass debounce")
 	}
 
-	inv.Generation = 2
-	if rec.shouldDebounce(inv, key, hashA) {
+	if tracker.shouldSkip(invKey, sinkName, gen+1, hashA, interval, now) {
 		t.Fatal("spec generation bump must bypass debounce")
 	}
 }
@@ -50,9 +46,7 @@ func TestKollectInventoryReconciler_exportDebounce_perInventory(t *testing.T) {
 	t.Parallel()
 
 	interval := metav1.Duration{Duration: 5 * time.Second}
-	rec := &KollectInventoryReconciler{
-		Options: RuntimeOptions{ExportDebounce: 30 * time.Second},
-	}
+	rec := &KollectInventoryReconciler{}
 	inv := &kollectdevv1alpha1.KollectInventory{
 		Spec: kollectdevv1alpha1.KollectInventorySpec{
 			ExportMinInterval: &interval,
@@ -64,15 +58,13 @@ func TestKollectInventoryReconciler_exportDebounce_perInventory(t *testing.T) {
 	}
 }
 
-func TestKollectInventoryReconciler_exportDebounce_fallback(t *testing.T) {
+func TestKollectInventoryReconciler_exportDebounce_crdDefault(t *testing.T) {
 	t.Parallel()
 
-	rec := &KollectInventoryReconciler{
-		Options: RuntimeOptions{ExportDebounce: 12 * time.Second},
-	}
+	rec := &KollectInventoryReconciler{}
 	inv := &kollectdevv1alpha1.KollectInventory{}
 
-	if got := rec.exportDebounce(inv); got != 12*time.Second {
-		t.Fatalf("exportDebounce() = %v, want global fallback 12s", got)
+	if got := rec.exportDebounce(inv); got != 30*time.Second {
+		t.Fatalf("exportDebounce() = %v, want CRD default 30s", got)
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -28,6 +27,8 @@ import (
 	"github.com/konih/kollect/internal/hub"
 	"github.com/konih/kollect/internal/sink"
 	kafkasink "github.com/konih/kollect/internal/sink/kafka"
+
+	"github.com/konih/kollect/internal/integrationtest"
 )
 
 func TestHubExportPostgresAndKafkaParallel(t *testing.T) {
@@ -44,7 +45,7 @@ func TestHubExportPostgresAndKafkaParallel(t *testing.T) {
 		postgres.WithPassword("kollect"),
 	)
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -62,7 +63,7 @@ func TestHubExportPostgresAndKafkaParallel(t *testing.T) {
 
 	kafkaContainer, err := redpanda.Run(ctx, "docker.redpanda.com/redpandadata/redpanda:v24.2.4")
 	if err != nil {
-		if isDockerUnavailable(err) {
+		if integrationtest.IsDockerUnavailable(err) {
 			t.Skipf("docker not available: %v", err)
 		}
 
@@ -261,17 +262,4 @@ func createKafkaTopic(ctx context.Context, broker, topic string) error {
 		NumPartitions:     1,
 		ReplicationFactor: 1,
 	})
-}
-
-func isDockerUnavailable(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	msg := strings.ToLower(err.Error())
-
-	return strings.Contains(msg, "cannot connect to the docker daemon") ||
-		strings.Contains(msg, "docker.sock") ||
-		strings.Contains(msg, "executable file not found") ||
-		strings.Contains(msg, "permission denied")
 }
