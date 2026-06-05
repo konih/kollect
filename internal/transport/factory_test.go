@@ -29,11 +29,11 @@ func TestNewTransportNATSStub(t *testing.T) {
 	}
 }
 
-func TestNewTransportKafkaStub(t *testing.T) {
+func TestNewTransportKafkaMissingBrokers(t *testing.T) {
 	t.Parallel()
 
 	_, _, err := NewTransport(Config{Type: TypeKafka})
 	if err == nil {
-		t.Fatal("expected error for Kafka stub")
+		t.Fatal("expected error for kafka without brokers")
 	}
 }

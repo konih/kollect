@@ -22,6 +22,7 @@ const (
 type Config struct {
 	Type   Type
 	Redis  RedisConfig
+	Kafka  KafkaConfig
 	Stream string
 	Group  string
 }
@@ -43,7 +44,7 @@ func NewTransport(cfg Config) (Publisher, Subscriber, error) {
 	case TypeNATS:
 		return nil, nil, fmt.Errorf("transport %q is not implemented yet", cfg.Type)
 	case TypeKafka:
-		return nil, nil, fmt.Errorf("transport %q is not implemented yet", cfg.Type)
+		return newKafkaTransport(cfg)
 	default:
 		return nil, nil, fmt.Errorf("unknown transport type %q", cfg.Type)
 	}
