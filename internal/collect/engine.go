@@ -131,6 +131,21 @@ func (e *Engine) ItemCount(namespace, name string) int {
 	return e.store.CountForTarget(namespace, name)
 }
 
+// BindClusterTargetNamespaces records workload namespaces for a cluster-scoped target name.
+func (e *Engine) BindClusterTargetNamespaces(targetName string, namespaces []string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	for _, ns := range namespaces {
+		key := targetKey(ns, targetName)
+		e.targets[key] = targetState{
+			target: kollectdevv1alpha1.KollectTarget{
+				ObjectMeta: metav1.ObjectMeta{Name: targetName, Namespace: ns},
+			},
+		}
+	}
+}
+
 // NamespacesForClusterTarget returns workload namespaces where a cluster target name is registered.
 func (e *Engine) NamespacesForClusterTarget(targetName string) []string {
 	e.mu.RLock()
