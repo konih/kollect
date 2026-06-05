@@ -94,6 +94,10 @@ anchor on an older commit.
 
 ### Features
 
+- **sink:** Push gitlab exports to feature branch in mr mode [08843d1](https://github.com/konih/kollect/commit/08843d19a74aa129afdd9b75d2994f090e5f05fc)
+
+- **collect:** Emit prometheus label values from profile metrics [a3c72ec](https://github.com/konih/kollect/commit/a3c72ecdcc88fbf9784fe9882b684534152628b9)
+
 - **collect:** Wire profile metrics paths and hub merge metric [4e7d01d](https://github.com/konih/kollect/commit/4e7d01dcd8dc4c7a81fe573c12d748f19a984cbf)
 
 - **api:** Add KollectProfile.spec.metrics spike [9874d02](https://github.com/konih/kollect/commit/9874d025ef139372678dc93b3e3133b31cf2725b)

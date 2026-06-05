@@ -6,7 +6,7 @@ sinks (**Postgres/Kafka primary**; Git audit) with optional HTTP for debug.
 
 **Build order, not releases** — see [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md), [ADR-0032](adr/0032-platform-architecture-pivot.md).
 
-**Last updated:** 2026-06-05 (session 14 — Phase 4 engine wire, release rc prep docs)
+**Last updated:** 2026-06-05 (session 17 — Phase 4 dedupe spike, changelog sync, sessions 14–16 parity)
 
 ## Status legend
 
@@ -207,10 +207,11 @@ never O(spokes²). See [ADR-0022](adr/0022-multi-cluster-sync-rfc.md) and
 | `spec.metrics[].labels` → `kollect_custom_resource_labeled_series` | ✅ per-label-tuple sums on target snapshot |
 | Hub spoke merge metrics (`kollect_hub_spoke_reports_total`, `kollect_hub_merged_items_total`) | ✅ consumer + HTTP ingest |
 | Cardinality-safe operator metrics (counts, export latency) | ✅ ADR-0020 catalog complete |
-| Advanced cross-target / cross-cluster aggregation | ⬜ |
+| Cross-target dedupe spike (`internal/aggregate/`) | ✅ row identity, `DedupeByResourceUID`, `ExportCoalesce` checksum skip |
+| Advanced cross-target / cross-cluster aggregation (controller wire) | ⬜ builds on spike + hub merge |
 | `task perf-report` optional CI gate | ✅ `ci.yaml` job + preflight note |
 
-**Counts:** ✅ 6 · ⬜ 1
+**Counts:** ✅ 7 · ⬜ 1
 
 ---
 
