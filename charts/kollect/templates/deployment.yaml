@@ -62,6 +62,12 @@ spec:
             {{- if .Values.watchNamespaces }}
             - --watch-namespaces={{ join "," .Values.watchNamespaces }}
             {{- end }}
+            {{- if .Values.defaultIncludedNamespaces }}
+            - --default-included-namespaces={{ join "," .Values.defaultIncludedNamespaces }}
+            {{- end }}
+            {{- if .Values.defaultExcludedNamespaces }}
+            - --default-excluded-namespaces={{ join "," .Values.defaultExcludedNamespaces }}
+            {{- end }}
             {{- if and .Values.mode (ne .Values.mode "single") (ne .Values.mode "cluster") }}
             - --mode={{ .Values.mode }}
             {{- end }}

@@ -14,6 +14,42 @@ type namespaceMeta struct {
 	Annotations map[string]string
 }
 
+// NamespaceMeta holds namespace labels and annotations for filter resolution.
+type NamespaceMeta struct {
+	Labels      labels.Set
+	Annotations map[string]string
+}
+
+func namespaceMetaFromFilter(m NamespaceMeta) namespaceMeta {
+	return namespaceMeta(m)
+}
+
+func namespaceMetaMapFromFilter(in map[string]NamespaceMeta) map[string]namespaceMeta {
+	if len(in) == 0 {
+		return nil
+	}
+
+	out := make(map[string]namespaceMeta, len(in))
+	for k, v := range in {
+		out[k] = namespaceMetaFromFilter(v)
+	}
+
+	return out
+}
+
+func namespaceMetaMapToFilter(in map[string]namespaceMeta) map[string]NamespaceMeta {
+	if len(in) == 0 {
+		return nil
+	}
+
+	out := make(map[string]NamespaceMeta, len(in))
+	for k, v := range in {
+		out[k] = NamespaceMeta(v)
+	}
+
+	return out
+}
+
 // ShouldCollect reports whether a resource should be collected for the target after selector
 // matching, based on watch opt-in/opt-out labels and namespace annotations (ADR-0205).
 //

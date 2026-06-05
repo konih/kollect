@@ -118,8 +118,14 @@ func (r *KollectTargetReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, nil
 	}
 
+	matched, effective, activeRules, ceiling := resolveTargetFilterStatus(ctx, r.Client, r.Engine, &target)
+	updateTargetFilterStatus(&target, matched, effective, activeRules)
+
 	if r.Engine != nil {
-		if err := r.Engine.RegisterTarget(ctx, &target, &profile); err != nil {
+		if err := r.Engine.RegisterTarget(ctx, &target, &profile, collect.RegisterTargetOptions{
+			ScopeCeiling:        ceiling,
+			EffectiveNamespaces: effective,
+		}); err != nil {
 			if degErr := r.setDegraded(ctx, &target, "InformerRegistrationFailed", err.Error()); degErr != nil {
 				retErr = degErr
 				return ctrl.Result{}, degErr
@@ -189,6 +195,9 @@ func (r *KollectTargetReconciler) setReady(
 ) (ctrl.Result, error) {
 	apimeta.RemoveStatusCondition(&target.Status.Conditions, conditionDegraded)
 	target.Status.ObservedGeneration = target.Generation
+	updateTargetFilterStatus(
+		target, target.Status.MatchedNamespaces, target.Status.EffectiveNamespaces, target.Status.ActiveResourceRules,
+	)
 
 	msg := fmt.Sprintf("profileRef %q resolved; collecting %d resource(s)",
 		target.Spec.ProfileRef, collected)

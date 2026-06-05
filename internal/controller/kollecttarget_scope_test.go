@@ -21,11 +21,13 @@ var _ = Describe("KollectTarget scope enforcement", func() {
 		teamScope := &kollectdevv1alpha1.KollectScope{
 			ObjectMeta: metav1.ObjectMeta{Name: "team-a-scope", Namespace: testNS},
 			Spec: kollectdevv1alpha1.KollectScopeSpec{
-				AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
-					{Group: "apps", Version: "v1", Kind: "Deployment"},
+				ScopeCeilingSpec: kollectdevv1alpha1.ScopeCeilingSpec{
+					AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+						{Group: "apps", Version: "v1", Kind: "Deployment"},
+					},
+					AllowedNamespaces: []string{testNS},
 				},
-				AllowedNamespaces: []string{testNS},
-				SinkRefs:          []string{"demo-git"},
+				SinkRefs: []string{"demo-git"},
 			},
 		}
 		Expect(k8sClient.Create(ctx, teamScope)).To(Succeed())

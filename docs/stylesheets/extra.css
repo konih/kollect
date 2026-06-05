@@ -1,4 +1,43 @@
-/* kollect docs — Material theme polish */
+/* kollect docs — readable Material theme with light brand accents */
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #326ce5;
+  --md-primary-fg-color--light: #5b8aed;
+  --md-primary-fg-color--dark: #2859c7;
+  --md-accent-fg-color: #18b6a3;
+  --md-accent-fg-color--transparent: rgba(24, 182, 163, 0.1);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #326ce5;
+  --md-primary-fg-color--light: #5b8aed;
+  --md-primary-fg-color--dark: #2859c7;
+  --md-accent-fg-color: #18b6a3;
+  --md-accent-fg-color--transparent: rgba(24, 182, 163, 0.1);
+}
+
+/* Subtle brand border on the light header only */
+[data-md-color-scheme="default"] .md-header {
+  border-bottom: 1px solid rgba(50, 108, 229, 0.18);
+}
+
+/*
+ * Theme-aware logos (Material palette toggle: default ↔ slate)
+ * - Header symbol: dark on light palette, light on slate
+ * - Overview hero stacked lockup: dark on light palette, light on slate
+ */
+[data-md-color-scheme="default"] .md-header__button.md-logo img {
+  content: url("../assets/branding/kollect-symbol-dark.svg");
+}
+
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  content: url("../assets/branding/kollect-symbol-light.svg");
+}
+
+/* Stacked hero logo includes wordmark — hide Material's auto-injected page title */
+.md-content__inner > h1:has(+ .kollect-hero) {
+  display: none;
+}
 
 .kollect-hero {
   text-align: center;
@@ -7,17 +46,28 @@
   border-radius: 0.4rem;
   background: linear-gradient(
     145deg,
-    rgba(63, 81, 181, 0.18) 0%,
-    rgba(0, 188, 212, 0.08) 55%,
+    rgba(50, 108, 229, 0.1) 0%,
+    rgba(24, 182, 163, 0.05) 55%,
     transparent 100%
   );
 }
 
-.kollect-hero h1 {
-  font-size: 2.6rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
+.kollect-hero-logo {
+  display: block;
+  width: min(14rem, 55vw);
+  height: auto;
+  margin: 0 auto 1.25rem;
+  border-radius: 0.45rem;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
+}
+
+[data-md-color-scheme="default"] .kollect-hero-logo {
+  content: url("../assets/branding/kollect-logo-stacked-dark.png");
+}
+
+[data-md-color-scheme="slate"] .kollect-hero-logo {
+  content: url("../assets/branding/kollect-logo-stacked-light.png");
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
 }
 
 .kollect-hero p {

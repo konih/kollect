@@ -77,6 +77,8 @@ func main() {
 	var hubConsumer bool
 	var operatorMode string
 	var watchNamespacesRaw string
+	var defaultIncludedNamespacesRaw string
+	var defaultExcludedNamespacesRaw string
 	var validatingWebhooksEnabled bool
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
@@ -132,6 +134,10 @@ func main() {
 		"Operator mode: cluster (default), hub, or spoke. Overridden by KOLLECT_MODE when flag is empty.")
 	flag.StringVar(&watchNamespacesRaw, "watch-namespaces", "",
 		"Comma-separated namespaces to watch (empty = all namespaces).")
+	flag.StringVar(&defaultIncludedNamespacesRaw, "default-included-namespaces", "",
+		"Comma-separated default Target includedNamespaces when unset on the CRD (Helm defaultIncludedNamespaces).")
+	flag.StringVar(&defaultExcludedNamespacesRaw, "default-excluded-namespaces", "",
+		"Comma-separated default Target excludedNamespaces when unset on the CRD (Helm defaultExcludedNamespaces).")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -273,6 +279,10 @@ func main() {
 		setupLog.Error(err, "Failed to create collection engine")
 		os.Exit(1)
 	}
+	collectEngine.SetNamespaceDefaults(collect.NamespaceDefaults{
+		Included: operator.ParseWatchNamespaces(defaultIncludedNamespacesRaw),
+		Excluded: operator.ParseWatchNamespaces(defaultExcludedNamespacesRaw),
+	})
 
 	if err := mgr.Add(collectEngine); err != nil {
 		setupLog.Error(err, "Failed to add collection engine")
@@ -378,6 +388,7 @@ func main() {
 			Enabled: true,
 			Port:    int32(inventoryHTTPPort),
 			Store:   collectStore,
+			Status:  &inventory.ClientStatusReader{Client: mgr.GetClient()},
 			Auth: &inventory.AuthConfig{
 				Mode:                inventoryAuthMode,
 				Client:              kubeClient,

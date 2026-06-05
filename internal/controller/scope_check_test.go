@@ -26,8 +26,10 @@ func TestScopeCheckEnforceTarget(t *testing.T) {
 	scopeCR := &kollectdevv1alpha1.KollectScope{
 		ObjectMeta: metav1.ObjectMeta{Name: "team-scope", Namespace: "team-a"},
 		Spec: kollectdevv1alpha1.KollectScopeSpec{
-			AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
-				{Group: "apps", Version: "v1", Kind: "Deployment"},
+			ScopeCeilingSpec: kollectdevv1alpha1.ScopeCeilingSpec{
+				AllowedGVKs: []kollectdevv1alpha1.GroupVersionKind{
+					{Group: "apps", Version: "v1", Kind: "Deployment"},
+				},
 			},
 		},
 	}

@@ -16,7 +16,7 @@ This is the **default team-scoped** collection object. Platform cross-namespace 
 `KollectClusterTarget` instead.
 
 See [ADR-0301](../adr/0301-event-driven-informers.md),
-[ADR-0205](../adr/0205-watch-labels.md).
+[ADR-0205](../adr/0205-watch-labels.md), [ADR-0207](../adr/0207-target-collection-filtering.md).
 
 ## How it fits the pipeline
 
@@ -49,7 +49,11 @@ Collection diagram: [DATA-FLOWS.md §2](../DATA-FLOWS.md#2-collection-pipeline).
 | --- | --- | --- | --- |
 | `spec.profileRef` | string | Yes | `KollectProfile` name in same namespace |
 | `spec.namespaceSelector` | labelSelector | No | Restrict collected workload namespaces |
-| `spec.labelSelector` | labelSelector | No | Restrict collected resources |
+| `spec.includedNamespaces[]` | list | No | Static namespace allowlist (AND with selector) |
+| `spec.excludedNamespaces[]` | list | No | Static namespace denylist |
+| `spec.namespaceExcludeSelector` | labelSelector | No | Label-based namespace exclude |
+| `spec.resourceRules[]` | list | No | GVK + label/CEL rules (OR union); empty → legacy selectors |
+| `spec.labelSelector` | labelSelector | No | Legacy resource label filter when `resourceRules` empty |
 | `spec.names[]` | list | No | Explicit resource names |
 | `spec.suspend` | bool | No | Pause reconciliation |
 | `spec.watchMode` | enum | No | `All` (default) or `OptIn` — see watch labels |

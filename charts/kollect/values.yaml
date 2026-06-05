@@ -26,6 +26,11 @@ rbac:
 # Use for per-team operator installs — mirrors external-secrets scoped controller pattern.
 watchNamespaces: []
 
+# Optional default namespace include/exclude lists for Target collection intent (ADR-0207).
+# CRD fields on KollectTarget override these chart defaults.
+defaultIncludedNamespaces: []
+defaultExcludedNamespaces: []
+
 # When true, render a namespaced Role/RoleBinding instead of ClusterRole/ClusterRoleBinding.
 # Namespaced KollectProfile is managed in the release namespace (ADR-0204).
 tenantMode: false
@@ -120,3 +125,13 @@ tolerations: []
 affinity: {}
 
 extraArgs: []
+
+# Optional kollect-ui subchart (static React SPA — default off).
+ui:
+  enabled: false
+  readApiUrl: "http://kollect:8082"
+  ingress:
+    enabled: false
+  image:
+    repository: ghcr.io/konih/kollect-ui
+    tag: latest

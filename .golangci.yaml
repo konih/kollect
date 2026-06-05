@@ -82,12 +82,10 @@ linters:
           - goconst
           - unparam
         path: _test\.go
-      - linters:
-          - gosec
-        path: test/utils/
     paths:
       - third_party$
       - zz_generated\..*\.go$
+      - ui/
 
 formatters:
   enable:
@@ -102,6 +100,7 @@ formatters:
     paths:
       - third_party$
       - zz_generated\..*\.go$
+      - ui/
 
 issues:
   max-issues-per-linter: 0

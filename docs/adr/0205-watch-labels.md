@@ -101,6 +101,9 @@ metadata:
 - Namespace metadata is cached when targets register; label/annotation changes propagate on
   target reconcile and informer resync (12h), not via a dedicated Namespace watch (future
   improvement if needed).
+- **Collection policy** (namespace allow/deny, `resourceRules`, CEL `matchPolicy`) is evaluated
+  **before** watch labels — see [ADR-0207](0207-target-collection-filtering.md). Watch labels remain
+  tenant consent, not platform or attribute filtering.
 
 ## Open questions
 

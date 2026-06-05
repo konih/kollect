@@ -27,6 +27,12 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **sink:** Harden git export paths and command args for CodeQL [a336a3b](https://github.com/konih/kollect/commit/a336a3bda77c19ad10b6e96e32f0f96d6fca9d1b)
+
+- **ci:** Add RBAC audit and expand fuzz gates [e6f8b98](https://github.com/konih/kollect/commit/e6f8b983d8b3d05404d1e8151d9510c07cca7d1e)
+
+- **api:** Nolint deprecated scheme.Builder for lint [f5817d0](https://github.com/konih/kollect/commit/f5817d03c828b61965070a19b291fea291559b04)
+
 - **supply-chain:** Address OpenSSF Scorecard findings [2026b16](https://github.com/konih/kollect/commit/2026b165d427cc4b1173b3724660050c17c18f34)
 
 - **docs:** Restore mkdocs nav for reference hub pages [32d3ba7](https://github.com/konih/kollect/commit/32d3ba70a54e0b7388dbcb58ed7bf9c26c3665e8)
@@ -123,6 +129,14 @@ anchor on an older commit.
 
 
 ### Features
+
+- **sink:** Add git push policy branch and auth options [f175929](https://github.com/konih/kollect/commit/f175929280f18d2e3a2ba0363005e18610b1e25e)
+
+- **ui:** Implement Phase 1 mock Read API (MSW + Prism) [a2d9308](https://github.com/konih/kollect/commit/a2d9308b49a717ee2a2bd19454eaacf54567f693)
+
+- **inventory:** Extend Read API for UI contract [0e56c19](https://github.com/konih/kollect/commit/0e56c196cf90b1cff90d113cca5074b7f3ccc0c6)
+
+- **api:** Add Target collection filtering (ADR-0207) [34b1ebf](https://github.com/konih/kollect/commit/34b1ebf02500491f83a2727d5671a5518e089b02)
 
 - **export:** Enforce object-store spill above 1 MiB [88e9158](https://github.com/konih/kollect/commit/88e91588486e66b0393f60aa070d637371eac743)
 

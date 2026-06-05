@@ -75,6 +75,13 @@ spec:
                   type: string
                 type: array
                 x-kubernetes-list-type: set
+              deniedNamespaces:
+                description: deniedNamespaces is a platform blacklist; Target intent
+                  cannot override (D8).
+                items:
+                  type: string
+                type: array
+                x-kubernetes-list-type: set
               sinkRefs:
                 description: sinkRefs lists namespaced KollectSink names permitted
                   for export from this scope.

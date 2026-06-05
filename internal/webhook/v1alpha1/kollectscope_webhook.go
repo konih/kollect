@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/validation"
 )
 
 //nolint:lll // kubebuilder webhook marker must stay on one line
@@ -49,20 +50,15 @@ func (v *kollectScopeValidator) ValidateDelete(
 }
 
 func (v *kollectScopeValidator) validate(scope *kollectdevv1alpha1.KollectScope) error {
-	for i, gvk := range scope.Spec.AllowedGVKs {
-		if gvk.Version == "" || gvk.Kind == "" {
-			return fmt.Errorf("spec.allowedGVKs[%d]: version and kind are required", i)
-		}
+	if errs := validation.ValidateScopeCeilingSpec(&scope.Spec.ScopeCeilingSpec, nil); len(errs) > 0 {
+		return validation.ScopeInvalid(scope.Name, errs)
 	}
 
-	if err := validateUniqueNonEmptyStrings(scope.Spec.AllowedNamespaces, "spec.allowedNamespaces"); err != nil {
-		return err
-	}
-
-	return validateUniqueNonEmptyStrings(scope.Spec.SinkRefs, "spec.sinkRefs")
+	return validateUniqueNonEmptyStrings(scope.Spec.SinkRefs)
 }
 
-func validateUniqueNonEmptyStrings(values []string, field string) error {
+func validateUniqueNonEmptyStrings(values []string) error {
+	const field = "spec.sinkRefs"
 	seen := make(map[string]struct{}, len(values))
 	for i, value := range values {
 		if value == "" {

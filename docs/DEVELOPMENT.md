@@ -253,12 +253,19 @@ If Docker is unavailable, MinIO tests skip; unit tests under `internal/sink/` st
 
 ### End-to-end (kind)
 
+L4 e2e is **shell-first** (`hack/kind/e2e/` + `hack/e2e/`). Use `task test:e2e` for local CI parity
+(setup → smoke → teardown). Nightly and path-filtered PR workflows use the same scripts.
+
 ```sh
-make test-e2e
+task test:e2e
+# or step-by-step:
+task kind-e2e-up
+bash hack/kind/e2e/smoke.sh
+task kind-e2e-down
 ```
 
-Creates (or reuses) kind cluster `kollect-e2e`, runs `test/e2e/`, then deletes the cluster.
-E2E is also available as a manual GitHub Actions workflow (`.github/workflows/test-e2e.yaml`).
+Manual extended workflow: `.github/workflows/test-e2e.yaml`. Webhook/cert path changes on PRs also
+trigger `.github/workflows/e2e-webhook-path.yaml` (kind smoke only).
 
 ### Nightly kind smoke (CI)
 
@@ -347,6 +354,21 @@ task perf-report
 ```
 
 See [PERFORMANCE.md](PERFORMANCE.md) for operator tuning and the metrics catalog.
+
+## UI development
+
+The kollect-ui SPA lives in `ui/`. Default local workflow uses MSW mocks — no cluster required:
+
+```sh
+task ui-dev          # VITE_MOCK_API=true
+task ui-ci           # typecheck, test, lint, build
+task ui-mock-prism   # optional real HTTP mock on :4010
+```
+
+Live Read API: `VITE_MOCK_API=false VITE_READ_API_URL=http://127.0.0.1:8082 npm run dev` (from `ui/`).
+
+Full guide: [examples/ui-local-development.md](examples/ui-local-development.md) ·
+[ADR-0412](adr/0412-mock-read-api-for-ui-development.md) · [`ui/README.md`](../ui/README.md).
 
 ## Lint and format
 
