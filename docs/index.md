@@ -38,6 +38,8 @@ stakeholder inventory. Kollect maintains a **read model**:
 
 Inventory is **configuration, not code** — owned per team in its own namespace.
 
+![Vertical K-shaped funnel diagram showing Kubernetes resources filtered by Scope and Target, attributes extracted by Profile, aggregated into Inventory rows, and exported to sinks.](assets/illustrations/k-funnel-crd-pipeline-dark.webp){ .kollect-illus .kollect-illus--portrait width="320" }
+
 !!! warning "Pre-beta"
     APIs and defaults may change until the first release candidate. See the
     [roadmap](ROADMAP.md) for current status.
@@ -48,6 +50,8 @@ Inventory is **configuration, not code** — owned per team in its own namespace
 Kubernetes API  →  shared informer (per GVK)  →  in-memory collect store
        →  KollectInventory debounce  →  sink projection(s)
 ```
+
+![Left-to-right operator pipeline from Kubernetes API through shared per-GVK informers and an in-memory collect store, KollectInventory debounce, to fan-out sink projections for Git, object store, and Postgres.](assets/illustrations/how-it-works-informer-sink-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
 
 The in-memory snapshot per inventory is **canonical**; every sink is a **projection** of it — no
 single backend is privileged. Sink roles (snapshot store, relational store, event emitter) are

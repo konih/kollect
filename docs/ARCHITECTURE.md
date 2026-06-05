@@ -23,6 +23,8 @@ four recurring consequences:
 - **Schema rigidity** — hardcoded collector schemas break whenever a new CRD or attribute is needed.
 - **Fleet storms** — naive per-cluster export produces **N export/commit storms** per logical change.
 
+![Split diagram contrasting unbounded live Kubernetes API access (chaotic loops) with reading structured inventory from durable export sinks (Git, database, object store).](assets/illustrations/read-model-vs-live-api-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
+
 Kollect resolves this by maintaining a **read model** of the cluster: **select** resources by GVK →
 **extract** the attributes that matter via CEL/JSONPath → **aggregate** in memory across targets (and,
 optionally, clusters) → **debounce** → **export** to role-based pluggable sinks. The per-inventory

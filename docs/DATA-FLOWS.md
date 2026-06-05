@@ -108,6 +108,8 @@ When some sinks export and others are debounced, aggregate `Synced=False` with r
 
 How a watched object becomes an inventory row.
 
+![Left-to-right operator pipeline from Kubernetes API through shared per-GVK informers and an in-memory collect store, KollectInventory debounce, to fan-out sink projections for Git, object store, and Postgres.](assets/illustrations/how-it-works-informer-sink-dark.webp){ .kollect-illus .kollect-illus--wide width="800" }
+
 ```mermaid
 flowchart LR
   subgraph api [Kubernetes API]
@@ -137,6 +139,14 @@ flowchart LR
 - **One informer per GVK** across all targets ([ADR-0301](adr/0301-event-driven-informers.md)).
 - Targets only differ by **namespace/label selectors** and **profileRef**.
 - Extraction runs on the **cached unstructured object** — no per-target API list calls.
+
+### Collection filter layers
+
+Before a watched object reaches the collect store, it passes through stacked policy layers — Helm
+watch boundary, Scope denials, Target include/exclude intent, `resourceRules`, CEL `matchPolicy`, and
+watch labels ([ADR-0207](adr/0207-target-collection-filtering.md)).
+
+![Stacked filter layers showing how Kubernetes resources pass through operator watch scope, Scope denials, Target include and exclude rules, resource rules, CEL match policy, and watch labels before becoming inventory rows.](assets/illustrations/collection-filter-layers-dark.webp){ .kollect-illus .kollect-illus--portrait width="360" }
 
 ---
 
