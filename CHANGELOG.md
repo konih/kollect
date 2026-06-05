@@ -27,6 +27,10 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **controller:** Gate validating webhooks when chart disables TLS [06eef97](https://github.com/konih/kollect/commit/06eef970672722795338529d8acc5cf3066299f0)
+
+- **ci:** Merge internal coverage profile without -p 1 [db8d50e](https://github.com/konih/kollect/commit/db8d50e81901ff30e11691c43cd09be1b1f48200)
+
 - **ci:** Stabilize coverage profile merge and cmd skip [758cb29](https://github.com/konih/kollect/commit/758cb298d96e9dbd426df823726c9635818f920b)
 
 - **ci:** Raise kind e2e helm install wait timeouts [61c61f2](https://github.com/konih/kollect/commit/61c61f25735fe7ed3b2f8e2b35c7b96452c2e429)
