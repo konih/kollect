@@ -92,7 +92,7 @@ func (s *IngestServer) handleReports(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	report, _, err := ReceiveReport(headerCluster, body, s.Merger)
+	report, _, err := ReceiveReport(headerCluster, body, s.Merger, nil)
 	if err != nil {
 		metrics.HubSpokeReportsTotal.WithLabelValues("http-ingest", metrics.ResultFailure).Inc()
 		status := http.StatusBadRequest

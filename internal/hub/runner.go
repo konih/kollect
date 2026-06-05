@@ -95,7 +95,7 @@ func NewRunner(store *collect.Store, cfg RunnerConfig, statusClient client.Clien
 	}
 
 	merger := NewMerger(store)
-	consumer := NewConsumer(sub, merger, cfg.Subject, cfg.HubName, statusClient)
+	consumer := NewConsumer(sub, merger, cfg.Subject, cfg.HubName, statusClient, cfg.RemoteClusters)
 
 	return &Runner{consumer: consumer}, nil
 }

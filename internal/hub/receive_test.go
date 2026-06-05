@@ -58,7 +58,7 @@ func TestReceiveReportMergesWithWireCluster(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, applied, err := hub.ReceiveReport("spoke-a", payload, merger)
+	got, applied, err := hub.ReceiveReport("spoke-a", payload, merger, nil)
 	if err != nil {
 		t.Fatalf("receive: %v", err)
 	}
@@ -74,5 +74,31 @@ func TestReceiveReportMergesWithWireCluster(t *testing.T) {
 	snap := store.SnapshotNamespace("spoke-a")
 	if len(snap) != 1 {
 		t.Fatalf("snapshot len = %d", len(snap))
+	}
+}
+
+func TestReceiveReportRejectsUnregisteredCluster(t *testing.T) {
+	t.Parallel()
+
+	store := collect.NewStore()
+	merger := hub.NewMerger(store)
+
+	report := hub.SpokeReport{
+		APIVersion: "kollect.dev/v1alpha1",
+		Cluster:    "rogue",
+	}
+
+	payload, err := json.Marshal(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, err = hub.ReceiveReport("rogue", payload, merger, []string{"spoke-a"})
+	if err == nil {
+		t.Fatal("expected acl error")
+	}
+
+	if store.TotalCount() != 0 {
+		t.Fatalf("store count = %d, want 0", store.TotalCount())
 	}
 }

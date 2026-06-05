@@ -17,11 +17,12 @@ const defaultSubject = "inventory/reports"
 
 // Consumer merges spoke reports from a transport subscriber into store.
 type Consumer struct {
-	Subscriber   transport.Subscriber
-	Merger       *Merger
-	Subject      string
-	HubName      string
-	StatusClient client.Client
+	Subscriber      transport.Subscriber
+	Merger          *Merger
+	Subject         string
+	HubName         string
+	StatusClient    client.Client
+	AllowedClusters []string
 }
 
 // NewConsumer returns a hub consumer for subject (default inventory/reports).
@@ -30,17 +31,19 @@ func NewConsumer(
 	merger *Merger,
 	subject, hubName string,
 	statusClient client.Client,
+	allowedClusters []string,
 ) *Consumer {
 	if subject == "" {
 		subject = defaultSubject
 	}
 
 	return &Consumer{
-		Subscriber:   sub,
-		Merger:       merger,
-		Subject:      subject,
-		HubName:      hubName,
-		StatusClient: statusClient,
+		Subscriber:      sub,
+		Merger:          merger,
+		Subject:         subject,
+		HubName:         hubName,
+		StatusClient:    statusClient,
+		AllowedClusters: allowedClusters,
 	}
 }
 
@@ -51,7 +54,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 	}
 
 	handler := func(handleCtx context.Context, wireCluster string, payload []byte) error {
-		report, _, err := ReceiveReport(wireCluster, payload, c.Merger)
+		report, _, err := ReceiveReport(wireCluster, payload, c.Merger, c.AllowedClusters)
 		if err != nil {
 			metrics.HubSpokeReportsTotal.WithLabelValues(c.hubLabel(), metrics.ResultFailure).Inc()
 

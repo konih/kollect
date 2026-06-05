@@ -58,3 +58,14 @@ func TestConfigFromEnvNATS(t *testing.T) {
 		t.Fatalf("url = %q", cfg.NATS.URL)
 	}
 }
+
+func TestConfigFromEnvRedisTLS(t *testing.T) {
+	t.Setenv("KOLLECT_TRANSPORT_TYPE", "redis")
+	t.Setenv("KOLLECT_REDIS_URL", "rediss://localhost:6379")
+	t.Setenv("KOLLECT_TRANSPORT_TLS_INSECURE_SKIP_VERIFY", "true")
+
+	cfg := ConfigFromEnv()
+	if !cfg.Redis.TLS.InsecureSkipVerify {
+		t.Fatal("expected redis tls insecure skip verify")
+	}
+}

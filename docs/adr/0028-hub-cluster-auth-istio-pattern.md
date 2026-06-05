@@ -87,8 +87,9 @@ Spokes POST summarized `SpokeReport` JSON to hub ingress:
 - **`X-Kollect-Cluster-Id: <spec.clusterName>`** — must match `SpokeReport.cluster` body field.
 - Hub flag **`--hub-ingest-auth-mode=kubernetes`** (default); `disabled` for dev/CI only.
 
-Lean queue transports (Redis/NATS/Kafka) remain **unauthenticated at the wire** in Phase 2 spike;
-HTTP push is the reference authenticated channel. Queue ACLs/TLS are a later hardening step.
+Lean queue transports (Redis/NATS/Kafka) carry **`cluster_id` wire metadata** in Phase 2; HTTP push
+remains the reference **application-auth** channel (TokenReview + SAR). Queue **TLS + hub ACL**
+hardening ships as follows (see § Queue wire hardening).
 
 ### 4. `KollectHub` references remote clusters
 
@@ -195,12 +196,31 @@ Emits a labeled `Secret` with a base64 kubeconfig fragment (`server`, `token`, `
 placeholders when flags are omitted). Pair with `KollectRemoteCluster.spec.credentialsSecretRef` for
 optional hub pull; push path remains default.
 
+### 6. Queue wire hardening (TLS + hub ACL)
+
+Queue transports are **not** a substitute for HTTP TokenReview — they rely on **network +
+registration gates** until a future signed-envelope spike.
+
+| Layer | Mechanism | Config |
+| --- | --- | --- |
+| **Transport TLS** | `rediss://` / NATS with `nats.Secure` | Shared env: `KOLLECT_TRANSPORT_TLS_CA_FILE`, `KOLLECT_TRANSPORT_TLS_CLIENT_CERT_FILE`, `KOLLECT_TRANSPORT_TLS_CLIENT_KEY_FILE`, `KOLLECT_TRANSPORT_TLS_INSECURE_SKIP_VERIFY` (dev only) |
+| **Wire identity** | `cluster_id` field (Redis stream) or `X-Kollect-Cluster-Id` header (NATS) | Spoke sets via `KOLLECT_SPOKE_CLUSTER` publish context |
+| **Hub ACL** | Reject reports whose `report.cluster` ∉ `KOLLECT_REMOTE_CLUSTERS` | Populated from `KollectHub.spec.remoteClusters[]` → resolved `KollectRemoteCluster.spec.clusterName` values; **empty allowlist = dev open mode** |
+
+HTTP ingest continues to use TokenReview + SAR; queue consumer uses ACL only. Platform teams run
+queue brokers with vendor ACLs (Redis ACL / NATS accounts) in addition to kollect's registration gate.
+
+**Deferred:** signed `SpokeReport` envelopes, Kafka SASL/TLS (same env pattern when wired).
+
 ## Open questions
 
 - **RESOLVED (2026-06-05):** Hub/spoke identity model **locked** — this ADR is default; push-first
   TokenReview + `X-Kollect-Cluster-Id`; optional remote `Secret` for pull; mTLS/OIDC/bootstrap not primary.
+- **RESOLVED (2026-06-05):** Queue wire hardening — TLS via shared `KOLLECT_TRANSPORT_TLS_*` env;
+  hub registration ACL via `KOLLECT_REMOTE_CLUSTERS`; vendor broker ACLs remain operator responsibility.
 - **OPEN:** Federated trust / mTLS for HTTP ingress behind non-Kubernetes load balancers?
-- **OPEN:** Map `KollectRemoteCluster` list into `KollectHub` spec for shard routing?
+- **RESOLVED (2026-06-05):** `KollectHub.spec.remoteClusters[]` wires `KOLLECT_REMOTE_CLUSTERS` env
+  for hub consumer ACL + shard routing inputs — list discovery alone is insufficient for production hubs.
 
 ## See also
 

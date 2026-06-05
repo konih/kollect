@@ -20,6 +20,7 @@ const defaultNATSStream = "kollect_hub"
 // NATSConfig configures a NATS JetStream transport backend.
 type NATSConfig struct {
 	URL string
+	TLS TLSSettings
 }
 
 // NATSTransport publishes and consumes inventory reports via NATS JetStream.
@@ -38,7 +39,14 @@ func newNATSTransport(cfg Config) (Publisher, Subscriber, error) {
 		return nil, nil, fmt.Errorf("nats transport: url is required")
 	}
 
-	nc, err := nats.Connect(url)
+	connectOpts := []nats.Option{}
+	if tlsCfg, err := cfg.NATS.TLS.ClientConfig(); err != nil {
+		return nil, nil, err
+	} else if tlsCfg != nil {
+		connectOpts = append(connectOpts, nats.Secure(tlsCfg))
+	}
+
+	nc, err := nats.Connect(url, connectOpts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("nats connect: %w", err)
 	}
