@@ -79,10 +79,15 @@ kind_use_context() {
 kind_create_cluster() {
   local name="$1" config="$2"
   if kind_cluster_exists "$name"; then
-    _kind_log "Cluster ${name} already exists; refreshing kubeconfig context."
-    kind export kubeconfig --name "$name"
-    kind_use_context "$name"
-    return 0
+    _kind_log "Cluster ${name} already exists; verifying health."
+    if kind export kubeconfig --name "$name" 2>/dev/null \
+      && kind_use_context "$name" \
+      && kubectl wait --for=condition=Ready node --all --timeout=60s >/dev/null 2>&1; then
+      _kind_log "Reusing healthy cluster ${name}."
+      return 0
+    fi
+    _kind_log "Cluster ${name} is missing or unhealthy; recreating."
+    kind delete cluster --name "$name"
   fi
 
   _kind_log "Creating kind cluster ${name} (k8s ${K8S_VERSION}, image ${KIND_NODE_IMAGE})..."
@@ -168,7 +173,7 @@ kollect_wait_crds_established() {
 }
 
 kollect_wait_kube_system_ready() {
-  local timeout="${1:-120s}"
+  local timeout="${1:-$KIND_CLUSTER_WAIT}"
   _kind_log "Waiting for kube-system pods Ready (timeout ${timeout})..."
   kubectl wait --for=condition=Ready pods --all -n kube-system --timeout="$timeout"
 }
