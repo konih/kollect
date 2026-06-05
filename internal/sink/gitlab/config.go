@@ -40,7 +40,7 @@ func ConfigFromSpec(spec kollectdevv1alpha1.KollectSinkSpec, caPEM []byte) (Conf
 		return Config{}, fmt.Errorf("parse endpoint: %w", err)
 	}
 
-	if u.Scheme != "https" && u.Scheme != "http" {
+	if !isHTTPSEndpointScheme(u.Scheme) {
 		return Config{}, fmt.Errorf("gitlab endpoint must use https or http, got %q", u.Scheme)
 	}
 
