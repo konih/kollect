@@ -6,6 +6,7 @@ package validation
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
@@ -61,6 +62,22 @@ func ValidateClusterInventorySpec(spec *kollectdevv1alpha1.KollectClusterInvento
 	}
 
 	return allErrs
+}
+
+// ClusterExportMinIntervalFor returns the effective export debounce for a cluster inventory.
+func ClusterExportMinIntervalFor(spec *kollectdevv1alpha1.KollectClusterInventorySpec, fallback time.Duration) time.Duration {
+	if spec != nil && spec.ExportMinInterval != nil {
+		d := spec.ExportMinInterval.Duration
+		if d > 0 {
+			return d
+		}
+	}
+
+	if fallback > 0 {
+		return fallback
+	}
+
+	return 30 * time.Second
 }
 
 // ClusterInventoryInvalid formats a validation failure for admission.
