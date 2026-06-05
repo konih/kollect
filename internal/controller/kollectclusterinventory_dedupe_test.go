@@ -128,7 +128,8 @@ func TestKollectClusterInventoryReconciler_dedupesCrossTargetRows(t *testing.T) 
 		Data:       map[string][]byte{"dsn": []byte("postgres://example")},
 	}
 
-	objs := []client.Object{ns, sinkObj, inv, pgSecret}
+	objs := make([]client.Object, 0, 4+len(targetObjs))
+	objs = append(objs, ns, sinkObj, inv, pgSecret)
 	for _, ct := range targetObjs {
 		objs = append(objs, ct)
 	}
