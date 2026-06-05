@@ -12,9 +12,13 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const defaultAPIVersion = "v4"
+
+// HTTPClientTimeout bounds GitLab REST calls (matches git sink export timeout).
+const HTTPClientTimeout = 2 * time.Minute
 
 // MergeRequestAPI abstracts GitLab REST merge request operations (testable stub).
 type MergeRequestAPI interface {
@@ -40,7 +44,7 @@ func NewRESTClient(endpoint, token string, httpClient *http.Client) (*RESTClient
 	}
 
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{Timeout: HTTPClientTimeout}
 	}
 
 	return &RESTClient{
