@@ -33,23 +33,48 @@ Polling the API on a short `RequeueAfter` loop would duplicate informer work and
    enqueue mappers.
 7. **SAR-gated degradation:** if cluster-scoped list is forbidden, degrade to namespace scope and
    record `skipped:forbidden` in status (port collector logic).
+8. **Committed sample catalog** — maintain **many tested samples** for common use cases, checked into
+   `config/samples/` and documented under `docs/examples/`:
+
+| Sample | GVK / focus | CI |
+| --- | --- | --- |
+| Deployment inventory | `apps/v1 Deployment` | Contract / envtest where feasible |
+| Service endpoints | `v1 Service` | Same |
+| Ingress rules | `networking.k8s.io/v1 Ingress` | Same |
+| Generic CRD | user-defined CRD instance | Golden extraction tests |
+| Helm release metadata | Helm release CRD / labels (future) | Deferred until filtering for secrets |
+
+Samples double as **documentation and regression contracts** — breaking extractor or selector behavior
+should fail CI before release.
+
+```mermaid
+flowchart TD
+  Prof[KollectProfile GVK]
+  Inf[Dynamic informer]
+  Tgt[KollectTarget reconcile]
+  Prof --> Inf
+  Inf -->|Add/Update/Delete| Tgt
+  Tgt --> Inv[KollectInventory]
+```
 
 ## Consequences
 
 ### Positive
 
-- Near-real-time updates with ~99% fewer API reads vs batch polling (per collector experience).
+- Near-real-time updates with far fewer API reads than batch polling.
 - Matches controller-runtime best practices and kube-state-metrics informer model.
 - Natural fit for multi-GVK profiles without codegen per type.
+- Samples give human-user-0 a copy-paste path and protect refactors.
 
 ### Negative
 
 - Dynamic informer lifecycle (register on Profile add, tear down on remove) is more complex than
   static typed informers.
 - Memory scales with watched objects — requires selector discipline and profiling.
+- CI must install CRDs/fixtures for generic CRD and Helm samples.
 
 ## Open questions
 
 - **OPEN:** Single shared informer per GVK across Targets, or per-Target scoped caches?
   (Prefer shared per GVK for memory.)
-- **OPEN:** Maximum concurrent GVK watches before sharding or warning?
+- **OPEN:** Helm release sample GVK/version (Flux `HelmRelease` vs chart-specific CRDs)?

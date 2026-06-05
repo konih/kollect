@@ -21,7 +21,7 @@ OSS validation:
   (those live in Git or the live cluster).
 
 kollect aggregates attributes from many resources; a naive "put everything in status" design fails
-at scale.
+at scale. Developer portals also need a **read path** without scraping Git — addressed here via HTTP.
 
 ## Decision
 
@@ -34,6 +34,30 @@ at scale.
    golden tests are reproducible.
 4. **Bounded lists:** paginate API `List` calls; scope informer caches with namespace/label selectors.
 5. **Status patch discipline:** patch status only when changed; avoid hot loops writing large status.
+6. **Read-only HTTP inventory API (core):** expose aggregated inventory via operator HTTP
+   (feature-gated in spec or manager flags). Same schema as sink export where possible.
+   - **TODO:** Sidecar or deployment pattern for **oauth2-proxy** (or equivalent) for production auth.
+   - **TODO:** Async push to clients — **SSE** or **watch** endpoint when inventory changes, not only GET snapshot.
+7. **Optional PVC buffer:** when in-memory aggregate exceeds `maxAggregateSize`, spill full payload
+   to a mounted volume for export and HTTP serve — still not written to etcd status.
+8. **`maxAggregateSize` configuration:** manager flag or `KollectInventory` spec field with a
+   conservative default. Research basis: etcd ~1.5 MB object limit → default **512 KiB** for data
+   kept in status *summaries* and in-memory hot path; full payload only to PVC/sink/HTTP body.
+
+```mermaid
+flowchart LR
+  Inv[KollectInventory reconcile]
+  Mem[In-memory aggregate]
+  Status[status: counts + conditions]
+  PVC[(optional PVC)]
+  HTTP[HTTP /inventory]
+  Sink[Git / S3 / ...]
+  Inv --> Mem
+  Mem --> Status
+  Mem -->|over maxAggregateSize| PVC
+  Mem --> HTTP
+  Mem --> Sink
+```
 
 ## Consequences
 
@@ -41,18 +65,17 @@ at scale.
 
 - Safe at scale for clusters with thousands of collected objects.
 - Aligns with how mature operators treat status as **observed state summary**, not a database.
-- Git/S3 exports become the **auditable source of truth** for stakeholders and developer portals.
+- Git/S3 exports remain the **auditable source of truth** for stakeholders and developer portals.
+- HTTP API enables portal caching without CRD reads.
 
 ### Negative
 
-- Consumers cannot `kubectl get kinv -o yaml` and see full inventory — they must read the sink
-  (Git file, HTTP API if added, or metrics in Phase 4).
-- Reconcile must tolerate sink-unavailable periods without stuffing fallback data into status.
+- HTTP surface adds auth, TLS, and network policy obligations.
+- PVC spill path adds storage class and backup considerations.
+- Consumers must still use sink or HTTP for full payload — `kubectl get kinv -o yaml` is not enough.
 
 ## Open questions
 
-- **OPEN:** Should Phase 1 include an optional **read-only HTTP `/inventory` endpoint** (in-memory
-  or sink-backed cache) for developer portal frontends, avoiding CRD reads? Adds attack surface and
-  ops burden; ESO/Flux do not expose inventory HTTP by default.
-- **OPEN:** Max in-memory aggregate size per Inventory before spilling to temp object storage
-  mid-reconcile?
+- **OPEN:** Exact HTTP paths and OpenAPI schema versioning (`/v1alpha1/inventory` vs negotiation).
+- **OPEN:** Whether `maxAggregateSize` is global manager default only or per-Inventory override.
+- **OPEN:** oauth2-proxy as optional Helm subchart vs documented sidecar manifest only.

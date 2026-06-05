@@ -2,6 +2,16 @@
 
 Binding guidelines for the kollect operator: error handling, robustness, security, and testing.
 Enforced by lint, CI, and review. ADRs in `docs/adr/` capture major decisions.
+Product priorities: [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md).
+
+## 0. Product priorities (summary)
+
+- **Custom CA TLS** on Git/GitLab sinks from early phases (`caBundle` / `caSecretRef`).
+- **Validating webhooks early** for Profile CEL/JSONPath and Sink `type` enum.
+- **Helm chart day 1**; **Prometheus metrics** testable in CI; **connection test** with clear status.
+- **HTTP inventory API** is core, not optional later.
+- **Aggregation** — one export per logical change; design for ~60 clusters without blocking single-cluster.
+- **Defer `KollectPublication`** until collection is mature.
 
 ## 1. Error handling
 
@@ -34,8 +44,8 @@ Enforced by lint, CI, and review. ADRs in `docs/adr/` capture major decisions.
 - **Secrets** — credentials only via `secretRef`; never in spec/status or logs.
 - **Container hardening** — distroless non-root, read-only rootfs, dropped capabilities, seccomp.
 - **Network** — restrictive `NetworkPolicy` for production egress.
-- **Transport** — TLS verification required for sink and doc endpoints.
-- **Input validation** — CEL in CRD OpenAPI + validating webhooks where needed.
+- **Transport** — TLS verification required for sink and doc endpoints; support org **custom CA** (no disable-verify in prod).
+- **Input validation** — CEL in CRD OpenAPI + **validating webhooks before reconcile workarounds**.
 - **Supply chain** — pinned dependencies and GitHub Action SHAs, gitleaks, govulncheck, image scanning in release pipeline.
 
 ## 4. Testing
@@ -44,6 +54,7 @@ Enforced by lint, CI, and review. ADRs in `docs/adr/` capture major decisions.
 - **Pyramid:** unit → envtest (Ginkgo) → golden OpenAPI fragments → integration → e2e.
 - **Gates:** `task verify` for codegen drift; race detector on unit/envtest; coverage goals on `internal/`.
 - **Mocks** — mockery on small interfaces only.
+- **Metrics** — assert Prometheus counters/histograms in controller tests where behavior changes.
 
 ## 5. Definition of done (per change)
 
