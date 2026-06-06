@@ -69,7 +69,7 @@
   display: block;
   width: min(14rem, 55vw);
   height: auto;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 0.75rem;
   border-radius: 0.45rem;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
 }
@@ -92,16 +92,16 @@
 }
 
 .kollect-badges {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem 0.5rem;
-  margin-top: 1.5rem;
-  line-height: 1;
+  display: block;
+  text-align: center;
+  margin: 0 auto 1rem;
+  line-height: 1.6;
 }
 
 .kollect-badges img {
+  display: inline;
   height: 1.25rem;
+  margin: 0.15rem 0.2rem;
   vertical-align: middle;
 }
 

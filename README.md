@@ -4,17 +4,23 @@
   </a>
 </p>
 
-# Kollect
+<p align="center">
+<a href="https://securityscorecards.dev/viewer/?uri=github.com/konih/kollect"><img src="https://api.securityscorecards.dev/projects/github.com/konih/kollect/badge" alt="OpenSSF Scorecard"></a>
+<a href="https://www.bestpractices.dev/projects/13106"><img src="https://www.bestpractices.dev/projects/13106/badge" alt="OpenSSF Best Practices"></a>
+<a href="https://github.com/konih/kollect/actions/workflows/ci.yaml"><img src="https://github.com/konih/kollect/actions/workflows/ci.yaml/badge.svg" alt="CI"></a>
+<a href="https://github.com/konih/kollect/actions/workflows/preflight.yaml"><img src="https://github.com/konih/kollect/actions/workflows/preflight.yaml/badge.svg" alt="Preflight"></a>
+<br />
+<a href="https://github.com/konih/kollect/actions/workflows/docs.yaml"><img src="https://github.com/konih/kollect/actions/workflows/docs.yaml/badge.svg" alt="Docs"></a>
+<a href="https://github.com/konih/kollect/actions/workflows/codeql.yaml"><img src="https://github.com/konih/kollect/actions/workflows/codeql.yaml/badge.svg" alt="CodeQL"></a>
+<a href="https://github.com/konih/kollect/releases"><img src="https://img.shields.io/github/v/release/konih/kollect?label=release" alt="Release"></a>
+<a href="https://codecov.io/gh/konih/kollect"><img src="https://codecov.io/gh/konih/kollect/graph/badge.svg" alt="codecov"></a>
+<br />
+<a href="https://github.com/konih/kollect/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+<a href="https://pkg.go.dev/github.com/konih/kollect"><img src="https://img.shields.io/github/go-mod/go-version/konih/kollect" alt="Go"></a>
+<a href="https://github.com/konih/kollect/pkgs/container/kollect"><img src="https://img.shields.io/badge/ghcr.io-konih%2Fkollect-2496ED?logo=docker&logoColor=white" alt="Container"></a>
+</p>
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/konih/kollect/badge)](https://securityscorecards.dev/viewer/?uri=github.com/konih/kollect)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13106/badge)](https://www.bestpractices.dev/projects/13106)
-[![CI](https://github.com/konih/kollect/actions/workflows/ci.yaml/badge.svg)](https://github.com/konih/kollect/actions/workflows/ci.yaml)
-[![codecov](https://codecov.io/gh/konih/kollect/graph/badge.svg)](https://codecov.io/gh/konih/kollect)
-[![Docs](https://github.com/konih/kollect/actions/workflows/docs.yaml/badge.svg)](https://github.com/konih/kollect/actions/workflows/docs.yaml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/konih/kollect/blob/main/LICENSE)
-[![Go](https://img.shields.io/github/go-mod/go-version/konih/kollect)](https://pkg.go.dev/github.com/konih/kollect)
-[![Docs site](https://img.shields.io/badge/docs-konih.github.io%2Fkollect-blue)](https://konih.github.io/kollect/)
-[![Container](https://img.shields.io/badge/ghcr.io-konih%2Fkollect-2496ED?logo=docker&logoColor=white)](https://github.com/konih/kollect/pkgs/container/kollect)
+# Kollect
 
 **Kollect** is a Kubernetes operator that turns selected, live cluster state into a **durable,
 queryable, diffable inventory** — decoupled from the apiserver's availability, RBAC, and scale
