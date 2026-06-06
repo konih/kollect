@@ -11,12 +11,14 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/httpauth"
@@ -35,6 +37,22 @@ type IngestAuthConfig struct {
 	Client            kubernetes.Interface
 	ClusterClient     client.Reader
 	PlatformNamespace string
+	CacheTTL          time.Duration
+	cache             *ingestAuthCache
+}
+
+// InitCache allocates the in-memory TokenReview/SAR cache when CacheTTL is set.
+func (a *IngestAuthConfig) InitCache() {
+	if a == nil || a.cache != nil {
+		return
+	}
+
+	ttl := a.CacheTTL
+	if ttl <= 0 {
+		ttl = defaultIngestAuthCacheTTL
+	}
+
+	a.cache = newIngestAuthCache(ttl)
 }
 
 // AuthDisabled reports whether ingest auth middleware should be bypassed.
@@ -53,9 +71,12 @@ func (a IngestAuthConfig) Middleware(next http.Handler) http.Handler {
 		return next
 	}
 
+	ingestLog := logf.Log.WithName("hub-ingest")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := httpauth.BearerToken(r.Header.Get("Authorization"))
 		if err != nil {
+			ingestLog.Info("ingest auth denied", "reason", "missing_token", "error", err.Error())
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 
 			return
@@ -63,13 +84,28 @@ func (a IngestAuthConfig) Middleware(next http.Handler) http.Handler {
 
 		clusterID := strings.TrimSpace(r.Header.Get(kollectdevv1alpha1.HeaderClusterID))
 		if clusterID == "" {
+			ingestLog.Info("ingest auth denied", "reason", "missing_cluster_header")
 			http.Error(w, "missing "+kollectdevv1alpha1.HeaderClusterID+" header", http.StatusBadRequest)
+
+			return
+		}
+
+		a.InitCache()
+		cacheKey := ingestAuthCacheKey(ingestTokenHash(token), clusterID)
+		if allowed, ok := a.cache.getAllowed(cacheKey); ok {
+			if !allowed {
+				ingestLog.Info("ingest auth denied", "reason", "forbidden", "cluster", clusterID)
+				http.Error(w, "forbidden", http.StatusForbidden)
+			} else {
+				next.ServeHTTP(w, r)
+			}
 
 			return
 		}
 
 		user, err := a.authenticate(r.Context(), token)
 		if err != nil {
+			ingestLog.Info("ingest auth denied", "reason", "token_review_failed", "error", err.Error())
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 
 			return
@@ -77,12 +113,16 @@ func (a IngestAuthConfig) Middleware(next http.Handler) http.Handler {
 
 		ok, err := a.authorizeIngest(r.Context(), user, clusterID)
 		if err != nil {
+			ingestLog.Error(err, "ingest authorization check failed", "user", user.Username, "cluster", clusterID)
 			http.Error(w, "authorization check failed", http.StatusInternalServerError)
 
 			return
 		}
 
+		a.cache.set(cacheKey, user, ok)
+
 		if !ok {
+			ingestLog.Info("ingest auth denied", "reason", "forbidden", "user", user.Username, "cluster", clusterID)
 			http.Error(w, "forbidden", http.StatusForbidden)
 
 			return

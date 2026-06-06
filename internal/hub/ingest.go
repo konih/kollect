@@ -5,6 +5,7 @@ package hub
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,7 +21,8 @@ import (
 
 const ingestReportsPath = "/hub/v1alpha1/reports"
 
-// MaxIngestBodyBytes caps spoke report POST bodies (ADR-0103 — bounded payloads, not full dumps in etcd).
+// MaxIngestBodyBytes caps spoke report POST bodies. ADR-0103 recommends 512 KiB for inline status;
+// hub ingest accepts larger delta reports (spill to sinks) up to 8 MiB.
 const MaxIngestBodyBytes = 8 << 20
 
 // IngestReportsPath is the hub HTTP ingest endpoint for spoke push (ADR-0503).
@@ -108,7 +110,7 @@ func (s *IngestServer) handleReports(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		metrics.HubSpokeReportsTotal.WithLabelValues("http-ingest", metrics.ResultFailure).Inc()
 		status := http.StatusBadRequest
-		if strings.Contains(err.Error(), "merge") {
+		if errors.Is(err, ErrMergeFailed) {
 			status = http.StatusInternalServerError
 		}
 
