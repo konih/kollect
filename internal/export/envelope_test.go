@@ -61,6 +61,36 @@ func TestValidateEnvelopeSchemaVersion(t *testing.T) {
 	}
 }
 
+func TestItemsJSONFromEnvelope_andGeneration(t *testing.T) {
+	t.Parallel()
+
+	items := []collect.Item{{
+		Namespace: "apps",
+		Name:      "web",
+		UID:       "uid-1",
+		Version:   "v1",
+		Kind:      "Deployment",
+	}}
+	meta := Metadata{Generation: 42, Cluster: "spoke-a", ExportedAt: time.Unix(1, 0).UTC()}
+
+	payload, err := MarshalEnvelope(items, meta)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	itemsJSON, err := ItemsJSONFromEnvelope(payload)
+	if err != nil || len(itemsJSON) == 0 {
+		t.Fatalf("ItemsJSONFromEnvelope: %v (%q)", err, itemsJSON)
+	}
+
+	if got := GenerationFromEnvelope(payload); got != 42 {
+		t.Fatalf("GenerationFromEnvelope = %d, want 42", got)
+	}
+	if GenerationFromEnvelope([]byte("not-json")) != 0 {
+		t.Fatal("invalid envelope should return generation 0")
+	}
+}
+
 func TestItemsFromPayloadLegacyArray(t *testing.T) {
 	t.Parallel()
 
