@@ -24,8 +24,6 @@ const (
 	reasonSinksReachable  = "SinksReachable"
 	reasonExportFailed    = "ExportFailed"
 	reasonProgressing     = "Progressing"
-
-	defaultSecretNamespace = "default"
 )
 
 func setTargetCondition(

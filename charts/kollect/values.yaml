@@ -56,7 +56,7 @@ transport:
 # Default for KollectSink connection probes in bundled samples (ADR-0403).
 # CRD default is true; set false to opt out of automatic probes.
 sinkDefaults:
-  connectionTest: true
+  connectionTest: false
 
 leaderElection:
   enabled: true

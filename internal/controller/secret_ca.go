@@ -13,6 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/operator"
 )
 
 var caSecretKeys = []string{"tls.crt", "ca.crt", "ca-bundle.crt"}
@@ -33,7 +34,7 @@ func resolveCAPEM(ctx context.Context, c client.Reader, tlsSpec *kollectdevv1alp
 	ref := tlsSpec.CASecretRef
 	ns := ref.Namespace
 	if ns == "" {
-		ns = defaultSecretNamespace
+		ns = operator.DefaultSecretNamespace
 	}
 
 	var secret corev1.Secret

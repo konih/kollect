@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
@@ -175,7 +176,10 @@ func (r *RedisTransport) subscribe(
 				for _, msg := range stream.Messages {
 					msgSubject, _ := msg.Values["subject"].(string)
 					if msgSubject != subject {
-						_ = r.client.XAck(loopCtx, r.stream, r.group, msg.ID).Err()
+						if ackErr := r.client.XAck(loopCtx, r.stream, r.group, msg.ID).Err(); ackErr != nil {
+							logf.FromContext(loopCtx).Error(ackErr, "redis XAck skipped subject",
+								"stream", r.stream, "message", msg.ID)
+						}
 
 						continue
 					}
@@ -191,7 +195,10 @@ func (r *RedisTransport) subscribe(
 					wireCluster, _ := msg.Values[WireClusterIDKey].(string)
 
 					if err := handler(loopCtx, wireCluster, payload); err == nil {
-						_ = r.client.XAck(loopCtx, r.stream, r.group, msg.ID).Err()
+						if ackErr := r.client.XAck(loopCtx, r.stream, r.group, msg.ID).Err(); ackErr != nil {
+							logf.FromContext(loopCtx).Error(ackErr, "redis XAck after handler",
+								"stream", r.stream, "message", msg.ID)
+						}
 					}
 				}
 			}
