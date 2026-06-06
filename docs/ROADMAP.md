@@ -70,7 +70,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | CI: preflight, verify, lint, test, build, container image | ✅ |
 | Helm chart (`charts/kollect/`) | ✅ |
 | Helm `values.schema.json` + unittest in CI | ✅ |
-| Helm docs generation (`helm-docs`) | ⬜ |
+| Helm docs generation (`helm-docs`) | ✅ |
 | Core documentation + MkDocs (GitHub Pages) | ✅ |
 | CR reference guide (`docs/crds/`, failure modes) | ✅ |
 | Data flows (`DATA-FLOWS.md`) | ✅ |
@@ -88,7 +88,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md), and
 | Release pipeline (SBOM, signing) | 🚧 local dry-run PASS; GH `workflow_dispatch` untested |
 | Public demo Git inventory repo | ✅ |
 
-**Counts:** ✅ 21 · 🚧 1 · ⬜ 1
+**Counts:** ✅ 22 · 🚧 1 · ⬜ 0
 
 ---
 
