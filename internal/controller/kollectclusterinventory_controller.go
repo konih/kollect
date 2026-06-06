@@ -72,6 +72,18 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	if !inv.DeletionTimestamp.IsZero() {
+		return r.finalizeClusterInventoryDeletion(ctx, &inv)
+	}
+
+	if err := r.ensureClusterInventoryFinalizer(ctx, &inv); err != nil {
+		if apierrors.IsConflict(err) {
+			return ctrl.Result{Requeue: true}, nil
+		}
+
+		return ctrl.Result{}, err
+	}
+
 	if inv.Spec.Suspend {
 		return ctrl.Result{}, nil
 	}

@@ -150,7 +150,7 @@ func main() {
 
 	mode := operator.ResolveMode(operatorMode, hubConsumer)
 	if operator.IsHubMode(mode) {
-		runHubConsumer(metricsAddr, probeAddr, secureMetrics, tlsOpts)
+		runHubConsumer(metricsAddr, probeAddr, secureMetrics, tlsOpts, maxConcurrentHub, reconcileRateLimit)
 		return
 	}
 
@@ -337,6 +337,7 @@ func main() {
 	if err := (&controller.KollectRemoteClusterReconciler{
 		Client:  mgr.GetClient(),
 		Scheme:  mgr.GetScheme(),
+		Store:   collectStore,
 		Options: ctrlOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollectremotecluster")
@@ -423,6 +424,8 @@ func runHubConsumer(
 	metricsAddr, probeAddr string,
 	secureMetrics bool,
 	tlsOpts []func(*tls.Config),
+	maxConcurrentHub int,
+	reconcileRateLimit time.Duration,
 ) {
 	hubCfg, err := hub.ConfigFromEnv()
 	if err != nil {
@@ -477,6 +480,20 @@ func runHubConsumer(
 
 	if err := mgr.Add(runner); err != nil {
 		setupLog.Error(err, "Failed to add hub consumer")
+		os.Exit(1)
+	}
+
+	ctrlOpts := controller.RuntimeOptions{
+		MaxConcurrentHub:       maxConcurrentHub,
+		ReconcileRateLimitBase: reconcileRateLimit,
+	}
+	if err := (&controller.KollectRemoteClusterReconciler{
+		Client:  mgr.GetClient(),
+		Scheme:  mgr.GetScheme(),
+		Store:   store,
+		Options: ctrlOpts,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "Failed to create controller", "controller", "kollectremotecluster")
 		os.Exit(1)
 	}
 
