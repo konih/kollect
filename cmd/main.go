@@ -78,6 +78,7 @@ func main() {
 	var watchNamespacesRaw string
 	var defaultIncludedNamespacesRaw string
 	var defaultExcludedNamespacesRaw string
+	var scrubKeysRaw string
 	var validatingWebhooksEnabled bool
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
@@ -135,6 +136,8 @@ func main() {
 		"Comma-separated default Target includedNamespaces when unset on the CRD (Helm defaultIncludedNamespaces).")
 	flag.StringVar(&defaultExcludedNamespacesRaw, "default-excluded-namespaces", "",
 		"Comma-separated default Target excludedNamespaces when unset on the CRD (Helm defaultExcludedNamespaces).")
+	flag.StringVar(&scrubKeysRaw, "scrub-keys", "",
+		"Comma-separated extra attribute keys to redact before store insert (built-in denylist always applies).")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -280,6 +283,7 @@ func main() {
 		Included: operator.ParseWatchNamespaces(defaultIncludedNamespacesRaw),
 		Excluded: operator.ParseWatchNamespaces(defaultExcludedNamespacesRaw),
 	})
+	collectEngine.SetScrubKeys(operator.ParseScrubKeys(scrubKeysRaw))
 
 	if err := mgr.Add(collectEngine); err != nil {
 		setupLog.Error(err, "Failed to add collection engine")
