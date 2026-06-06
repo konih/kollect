@@ -20,6 +20,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
 	"github.com/konih/kollect/internal/metrics"
 	"github.com/konih/kollect/internal/remotecredentials"
 )
@@ -30,6 +31,7 @@ const remoteClusterRequeueInterval = 2 * time.Minute
 type KollectRemoteClusterReconciler struct {
 	client.Client
 	Scheme  *runtime.Scheme
+	Store   *collect.Store
 	Options RuntimeOptions
 
 	// APIChecker probes spoke API health from credentialsSecretRef (nil uses DefaultAPIChecker).
@@ -51,6 +53,20 @@ func (r *KollectRemoteClusterReconciler) Reconcile(ctx context.Context, req ctrl
 	var rc kollectdevv1alpha1.KollectRemoteCluster
 	if err := r.Get(ctx, req.NamespacedName, &rc); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if !rc.DeletionTimestamp.IsZero() {
+		return r.finalizeRemoteClusterDeletion(ctx, &rc)
+	}
+
+	if err := r.ensureRemoteClusterFinalizer(ctx, &rc); err != nil {
+		if apierrors.IsConflict(err) {
+			return ctrl.Result{Requeue: true}, nil
+		}
+
+		retErr = err
+
+		return ctrl.Result{}, err
 	}
 
 	rc.Status.ObservedGeneration = rc.Generation
