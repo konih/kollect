@@ -5,6 +5,7 @@ package hub
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -77,7 +78,7 @@ func ReceiveReport(
 
 	applied, err := merger.Apply(report)
 	if err != nil {
-		return SpokeReport{}, 0, nil, err
+		return SpokeReport{}, 0, nil, errors.Join(ErrMergeFailed, err)
 	}
 
 	return report, applied, prior, nil
