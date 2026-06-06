@@ -26,7 +26,8 @@ func (c *countingBackend) Export(context.Context, []byte, string) error {
 }
 
 func TestAcquireBackend_reusesPooledInstance(t *testing.T) {
-	t.Parallel()
+	backendPoolDisabled.Store(false)
+	t.Cleanup(func() { ResetBackendPoolForTest() })
 
 	scheme := runtime.NewScheme()
 	_ = kollectdevv1alpha1.AddToScheme(scheme)
@@ -62,5 +63,49 @@ func TestAcquireBackend_reusesPooledInstance(t *testing.T) {
 
 	if b1 != b2 {
 		t.Fatal("expected same pooled backend instance")
+	}
+}
+
+// 40d77cf7: disabled pool creates a fresh backend per acquire (envtest isolation).
+func TestAcquireBackend_disabledPoolCreatesNewEachTime(t *testing.T) {
+	DisableBackendPoolForTest()
+	t.Cleanup(func() {
+		backendPoolDisabled.Store(false)
+		ResetBackendPoolForTest()
+	})
+
+	scheme := runtime.NewScheme()
+	_ = kollectdevv1alpha1.AddToScheme(scheme)
+
+	sinkObj := &kollectdevv1alpha1.KollectSink{
+		ObjectMeta: metav1.ObjectMeta{Name: "pool", Namespace: "team-a"},
+		Spec:       kollectdevv1alpha1.KollectSinkSpec{Type: "counting"},
+	}
+
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(sinkObj).Build()
+	reg := NewRegistry()
+	reg.Register("counting", func(_ kollectdevv1alpha1.KollectSinkSpec, _ BuildContext) (Backend, error) {
+		cb := &countingBackend{}
+		cb.created.Add(1)
+
+		return cb, nil
+	})
+
+	ctx := context.Background()
+
+	b1, release1, err := acquireBackend(ctx, cl, reg, "team-a", "pool")
+	if err != nil {
+		t.Fatalf("first acquire: %v", err)
+	}
+	release1()
+
+	b2, release2, err := acquireBackend(ctx, cl, reg, "team-a", "pool")
+	if err != nil {
+		t.Fatalf("second acquire: %v", err)
+	}
+	release2()
+
+	if b1 == b2 {
+		t.Fatal("disabled pool must not reuse backend instances")
 	}
 }
