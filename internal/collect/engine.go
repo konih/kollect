@@ -50,6 +50,7 @@ type Engine struct {
 	kube      kubernetes.Interface
 	access    *AccessChecker
 	extractor *Extractor
+	scrubber  *Scrubber
 	store     *Store
 	runCtx    context.Context
 
@@ -76,6 +77,7 @@ func NewEngine(dynamicClient dynamic.Interface, kubeClient kubernetes.Interface,
 		kube:      kubeClient,
 		access:    NewAccessChecker(kubeClient),
 		extractor: ext,
+		scrubber:  NewScrubber(nil),
 		store:     store,
 		factories: make(map[schema.GroupVersionResource]dynamicinformer.DynamicSharedInformerFactory),
 		started:   make(map[schema.GroupVersionResource]bool),
@@ -97,6 +99,13 @@ func (e *Engine) SetNamespaceDefaults(defaults NamespaceDefaults) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.defaults = defaults
+}
+
+// SetScrubKeys configures operator scrubKeys[] extensions (built-in denylist always applies).
+func (e *Engine) SetScrubKeys(keys []string) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.scrubber = NewScrubber(keys)
 }
 
 // RegisterTarget records the target and ensures a dynamic informer exists for its profile GVK.
@@ -416,6 +425,8 @@ func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, 
 
 			continue
 		}
+
+		attrs = e.scrubber.ScrubAttributes(attrs)
 
 		gvkLabel := fmt.Sprintf("%s/%s/%s", st.profile.Spec.TargetGVK.Group,
 			st.profile.Spec.TargetGVK.Version, st.profile.Spec.TargetGVK.Kind)
