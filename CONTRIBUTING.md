@@ -112,6 +112,8 @@ headings automatically.
 | `task changelog:write` | Regenerate full `CHANGELOG.md` |
 | `task changelog:release` | Print notes for the latest tag |
 | `task changelog:verify` | Fail if `CHANGELOG.md` is stale (CI/preflight) |
+| `task helm-docs` | Regenerate `charts/kollect/README.md` from `values.yaml` |
+| `task helm-docs:verify` | Fail if chart README is stale (CI `helm` job via `task helm-test`) |
 | `task release-dry-run` | Build `dist/` assets without pushing |
 
 Only `feat`, `fix`, `perf`, `refactor`, and breaking commits appear in the user-facing changelog;
@@ -300,6 +302,15 @@ troubleshooting tables need more.
 - Run `task lint:markdown` and `mkdocs build` before opening a PR
 
 Glossary CRD section: regenerate with `python3 hack/gen-glossary.py` after schema description changes.
+
+### Helm chart documentation
+
+`charts/kollect/README.md` is generated from [`values.yaml`](charts/kollect/values.yaml) comments and
+[`README.md.gotmpl`](charts/kollect/README.md.gotmpl) via [helm-docs](https://github.com/norwoodj/helm-docs).
+
+- Document values with `# -- description` comments in `values.yaml`.
+- Edit narrative sections in `README.md.gotmpl` (install recipes, hub mode, monitoring, auth).
+- Regenerate: `task helm-docs` — CI enforces drift via `task helm-docs:verify` in the `helm` job (`task helm-test`).
 
 ## License
 

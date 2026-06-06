@@ -24,6 +24,9 @@ vars:
   GO_ARCH_LINT_VERSION: v1.15.0
   # renovate: datasource=github-releases depName=helm/helm
   HELM_VERSION: v3.17.3
+  # renovate: datasource=github-releases depName=norwoodj/helm-docs
+  HELM_DOCS_VERSION: v1.14.2
+  HELM_DOCS_BIN: "{{.BIN_DIR}}/helm-docs"
   COVERAGE_MIN: "65"
   MANAGER_BINARY: "{{.BIN_DIR}}/manager"
   DOCKER_IMAGE: kollect-controller-manager:dev
@@ -278,6 +281,32 @@ tasks:
       - bash hack/release-assets.sh "{{.RELEASE_VERSION}}" "{{.IMAGE_REPO}}"
       - echo "release assets in dist/ (image tag not pushed)"
 
+  tools:helm-docs:
+    desc: Download pinned helm-docs binary ({{.HELM_DOCS_VERSION}})
+    status:
+      - test -x {{.HELM_DOCS_BIN}}
+    cmds:
+      - bash hack/install-helm-docs.sh {{.HELM_DOCS_VERSION}} {{.HELM_DOCS_BIN}}
+
+  helm-docs:
+    desc: Regenerate charts/kollect/README.md from values.yaml
+    deps: [tools:helm-docs]
+    cmds:
+      - "{{.HELM_DOCS_BIN}} --chart-search-root charts/kollect"
+    sources:
+      - charts/kollect/values.yaml
+      - charts/kollect/Chart.yaml
+      - charts/kollect/README.md.gotmpl
+      - .helm-docs.yaml
+    generates:
+      - charts/kollect/README.md
+
+  helm-docs:verify:
+    desc: Fail if charts/kollect/README.md is stale (CI/helm-test)
+    deps: [tools:helm-docs]
+    cmds:
+      - bash hack/verify-helm-docs.sh
+
   helm-lint:
     desc: Lint the kollect Helm chart
     cmds:
@@ -289,9 +318,10 @@ tasks:
       - helm unittest charts/kollect
 
   helm-test:
-    desc: Lint chart and run helm-unittest
+    desc: Lint chart, verify helm-docs drift, run helm-unittest
     cmds:
       - task: helm-lint
+      - task: helm-docs:verify
       - task: helm-unittest
 
   ui-dev:

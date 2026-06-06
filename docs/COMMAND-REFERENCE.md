@@ -102,7 +102,9 @@ Run from repository root with [Task](https://taskfile.dev/). Full list: `task --
 | --- | --- |
 | `task scrub` | Scan staged diff for private strings |
 | `task test-integration` | Sink integration tests (Docker) |
-| `task helm-test` | `helm lint` + chart unit tests |
+| `task helm-test` | `helm lint` + helm-docs drift + chart unit tests |
+| `task helm-docs` | Regenerate `charts/kollect/README.md` |
+| `task helm-docs:verify` | Fail if chart README drift |
 | `task release-dry-run` | Build `dist/install.yaml` and chart tarball |
 | `task changelog:verify` | Fail if `CHANGELOG.md` drift |
 

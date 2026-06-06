@@ -309,7 +309,8 @@ task arch-lint     # import-graph fitness only
 task vulncheck     # govulncheck (CI vulncheck job)
 task format        # go fmt ./...
 task format:check  # fail if gofmt or goimports would change files
-task helm-test     # helm lint + unittest
+task helm-test     # helm lint + helm-docs drift + unittest
+task helm-docs     # regenerate charts/kollect/README.md
 task lint:markdown # markdownlint-cli2 on docs/**/*.md
 ```
 
