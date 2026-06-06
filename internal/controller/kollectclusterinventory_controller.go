@@ -34,6 +34,8 @@ import (
 	"github.com/konih/kollect/internal/validation"
 )
 
+const clusterTargetBootstrapWindow = 5 * time.Minute
+
 // KollectClusterInventoryReconciler rolls up cluster targets and exports to namespaced sinks.
 type KollectClusterInventoryReconciler struct {
 	client.Client
@@ -81,6 +83,10 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	if len(targets) == 0 {
+		if inv.CreationTimestamp.Time.Add(clusterTargetBootstrapWindow).After(time.Now()) {
+			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		}
+
 		return r.setDegraded(ctx, &inv, "NoTargets", "no KollectClusterTarget objects matched")
 	}
 

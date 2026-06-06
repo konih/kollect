@@ -11,7 +11,10 @@ import (
 	"github.com/konih/kollect/internal/collect"
 )
 
-const defaultPageLimit = 500
+const (
+	defaultPageLimit = 500
+	maxPageLimit     = 5000
+)
 
 func parseListFilter(r *http.Request) ListFilter {
 	q := r.URL.Query()
@@ -92,7 +95,10 @@ func paginateItems(items []collect.Item, limit, offset int) ([]collect.Item, *Pa
 	}
 
 	if limit <= 0 {
-		limit = total
+		limit = defaultPageLimit
+	}
+	if limit > maxPageLimit {
+		limit = maxPageLimit
 	}
 
 	if offset > total {
