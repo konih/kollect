@@ -58,7 +58,7 @@ IDs are stable handles for discussion (`FR-<area>-<n>`).
 
 | ID | Requirement | Reference |
 | --- | --- | --- |
-| FR-API-1 | Inventory is configured by CRDs, not code: extraction schema (`KollectProfile`), resource selection (`KollectTarget`), aggregation/export (`KollectInventory`), backend (`KollectSink`), tenancy (`KollectScope`) | [ADR-0201](adr/0201-crd-model.md) |
+| FR-API-1 | Inventory is configured by CRDs, not code: extraction schema (`KollectProfile`), resource selection (`KollectTarget`), aggregation/export (`KollectInventory`), backends (`KollectSnapshotSink` / `KollectDatabaseSink` / `KollectEventSink`), tenancy (`KollectScope`) | [ADR-0201](adr/0201-crd-model.md), [ADR-0414](adr/0414-sink-family-crds.md) |
 | FR-API-2 | Namespaced-by-default tenancy; cluster-scoped variants for platform-wide use | [ADR-0201](adr/0201-crd-model.md), [ADR-0203](adr/0203-namespaced-multi-tenancy.md) |
 | FR-API-3 | Config kinds (`Profile`, `Scope`) are static (no controller); work kinds are reconciled | [ADR-0202](adr/0202-static-vs-reconciled.md) |
 | FR-API-4 | Invalid CEL/JSONPath and unknown sink types are rejected at admission, not at runtime | [ADR-0201](adr/0201-crd-model.md), [ADR-0302](adr/0302-cel-jsonpath-extraction.md) |
@@ -186,7 +186,7 @@ Enforcement: [guidelines § 4](development/guidelines.md#4-testing),
 | Non-goal | Rationale |
 | --- | --- |
 | In-operator doc/CMS rendering (Confluence, wiki, templating) | Single responsibility — external CI consumes exports ([ADR-0702](adr/0702-doc-sync-templating.md)) |
-| `prometheus` as a `KollectSink.type` | Operator metrics use `/metrics`; avoids scrape/sink confusion ([ADR-0601](adr/0601-prometheus-metrics-stub.md)) |
+| `prometheus` as a sink type | Operator metrics use `/metrics`; avoids scrape/sink confusion ([ADR-0601](adr/0601-prometheus-metrics-stub.md)) |
 | `KollectHub` CRD | Never shipped — hub tier removed ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
 | Full inventory payload in CRD status | etcd limit ([ADR-0103](adr/0103-etcd-limit.md)) |
 | Pairwise agent mesh beyond ~20 peers | Does not scale; use shared sink ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
@@ -197,7 +197,7 @@ Enforcement: [guidelines § 4](development/guidelines.md#4-testing),
 - **Payload spill:** object-store spill is **mandatory above 1 MiB** (warn at 1 MiB; hard cap
   ~1.5 MiB `maxExportBytes`) ([ADR-0103](adr/0103-etcd-limit.md)).
 - **Delivery semantics:** **at-least-once + idempotent** (effectively-once for state); exactly-once is a
-  non-goal (ADR-0502).
+  non-goal.
 - **Parquet schema:** **hybrid** — typed identity columns + JSON `attributes` + a promoted hot-attribute
   allowlist ([ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md)).
 - **Cluster-scoped under OptIn:** honor a **target-level default opt-in**, per-object opt-out wins
