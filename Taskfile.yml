@@ -229,6 +229,20 @@ tasks:
     cmds:
       - "{{.CONTAINER_TOOL | default `docker`}} build -t {{.DOCKER_IMAGE}} ."
 
+  docker:build:local:
+    desc: Build controller image for kind/minikube (ghcr.io/konih/kollect:local by default)
+    cmds:
+      - bash hack/docker-local-image.sh build
+    summary: |
+      Maintainer-only tag (not for production). Override: IMAGE_TAG=dev-foo PLATFORMS=linux/arm64 task docker:build:local
+
+  docker:push:local:
+    desc: Build and push controller image with maintainer-only tag (requires docker login ghcr.io)
+    cmds:
+      - bash hack/docker-local-image.sh push
+    summary: |
+      Default tag test-<short-sha>. Override: IMAGE_TAG=local-dev task docker:push:local
+
   install:crds:
     desc: Apply CRD manifests to the cluster
     cmds:

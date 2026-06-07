@@ -96,6 +96,8 @@ Run from repository root with [Task](https://taskfile.dev/). Full list: `task --
 | --- | --- |
 | `task install:crds` | Apply CRD bundle to current context |
 | `task docker:build` | Build `kollect-controller-manager:dev` image |
+| `task docker:build:local` | Build `ghcr.io/konih/kollect:local` for kind/minikube load |
+| `task docker:push:local` | Build and push maintainer-only tag to GHCR (default `test-<short-sha>`) |
 | `task deploy:operator` | Helm install to `kollect-system` |
 | `task kind-dev-load` | Load dev image into kind |
 
