@@ -13,6 +13,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Playwright webServer polls 127.0.0.1; explicit host avoids localhost/IPv6 mismatch on CI.
+    host: "127.0.0.1",
     proxy: {
       "/v1alpha1": {
         target: process.env.VITE_READ_API_URL ?? "http://127.0.0.1:8082",

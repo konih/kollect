@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const port = 5173;
 const baseURL = `http://127.0.0.1:${port}`;
+const ci = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -21,9 +22,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
+    // CI: preview serves pre-built assets (workflow build step); dev is too slow on cold runners.
+    command: ci
+      ? "npm run preview -- --host 127.0.0.1 --port 5173 --strictPort"
+      : "npm run dev",
     url: baseURL,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !ci,
+    timeout: ci ? 120_000 : 60_000,
     env: {
       VITE_MOCK_API: "true",
     },
