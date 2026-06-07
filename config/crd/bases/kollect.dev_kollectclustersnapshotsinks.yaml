@@ -114,6 +114,20 @@ spec:
                       commitMessage is the git commit message template.
                       Placeholders: {namespace}, {name}, {cluster}, {generation}.
                     type: string
+                  engine:
+                    description: |-
+                      engine selects the git implementation: go-git (default) or host git CLI.
+                      file:// remotes always use the CLI path regardless of this field.
+                    enum:
+                    - go-git
+                    - cli
+                    type: string
+                  forceBasicAuth:
+                    description: |-
+                      forceBasicAuth sends an explicit Authorization header on HTTPS remotes.
+                      Useful when git hosts ignore embedded URL credentials. May also be enabled
+                      via the KOLLECT_GIT_FORCE_BASIC_AUTH environment variable on the operator.
+                    type: boolean
                   prune:
                     description: prune stages deletions in the worktree before commit
                       (git add -A semantics).
