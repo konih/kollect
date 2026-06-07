@@ -27,6 +27,8 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **ci:** Stop perf-report writing agent-context in CI [5ee2088](https://github.com/konih/kollect/commit/5ee208848043b6749362b1d0ddc83ab0c2812fa9)
+
 - **ui:** Disambiguate Playwright inventory row locator [f422a78](https://github.com/konih/kollect/commit/f422a78335266a150280d79d0b9c86b0c10b170d)
 
 - **ci:** Stabilize nightly Playwright and perf-report [b6ea35f](https://github.com/konih/kollect/commit/b6ea35f25b6503bb90281277db54cd347664dea6)
