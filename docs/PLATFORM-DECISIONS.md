@@ -79,6 +79,7 @@ Sink/transport reframe — [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md)
 | `namespaceSelector` | **Required** — webhook rejects empty/missing selector |
 | Helm values profile | **`helm-release-values-redacted`** + operator **`scrubKeys[]`** at extraction |
 | GitLab sink | **Phase 2** — implement with **`tls.caSecretRef`** for internal CA; Git remains small-install default |
+
 ### Export debouncing and scope
 
 | Topic | Decision |
@@ -303,7 +304,7 @@ the merge. See [Multi-cluster fleet example](examples/multi-cluster-fleet.md).
 
 | Topic | ADR |
 | --- | --- |
-| Hub federated mTLS behind external LB | **Deferred** — [ADR-0503](adr/0503-hub-cluster-auth-istio-pattern.md) |
+| Cross-cluster sink auth (mTLS, workload identity) | **Deferred** — sink-specific; no hub tier ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
 
 ---
 
