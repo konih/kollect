@@ -167,6 +167,7 @@ nav:
       - Coding standards: development/coding-standards.md
       - Testing strategy: development/testing.md
       - Tooling setup: development/tooling-setup.md
+      - Local container images: development/local-container-image.md
       - Release process: RELEASE.md
 
 markdown_extensions:
