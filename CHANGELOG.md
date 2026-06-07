@@ -23,7 +23,7 @@ release. See [docs/RELEASE.md](docs/RELEASE.md) for the maintainer runbook.
 Reserve **`v0.1.0` for the first tag pushed at `main` HEAD** — do not use it as a changelog-only
 anchor on an older commit.
 
-## [Unreleased]
+## [0.4.0](https://github.com/konih/kollect/compare/v0.3.0..v0.4.0) - 2026-06-07
 
 ### Features
 
