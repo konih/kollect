@@ -48,31 +48,34 @@ func TestEngineDispatchSARAPIErrorMarksAccessFailure(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "deploys"},
 	}
 
-	e := &Engine{
-		store:     store,
-		extractor: ext,
-		access:    NewAccessChecker(client),
-		forbidden: make(map[string]struct{}),
-		accessErr: make(map[string]struct{}),
-		nsMeta:    map[string]namespaceMeta{"team-a": {}},
-		targets: map[string]targetState{
-			targetKey("team-a", "deploys"): {
-				target:              target,
-				profile:             profile,
-				effectiveNamespaces: map[string]struct{}{"team-a": {}},
-				compiledRules:       rules,
-			},
-		},
-	}
-
 	gvr := schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "deployments"}
+	key := targetKey("team-a", "deploys")
+
+	e := &Engine{
+		store:        store,
+		extractor:    ext,
+		access:       NewAccessChecker(client),
+		forbidden:    make(map[string]struct{}),
+		accessErr:    make(map[string]struct{}),
+		nsMeta:       map[string]namespaceMeta{"team-a": {}},
+		targets:      make(map[string]targetState),
+		targetsByGVR: make(map[schema.GroupVersionResource][]string),
+	}
+	e.targets[key] = targetState{
+		target:              target,
+		profile:             profile,
+		effectiveNamespaces: map[string]struct{}{"team-a": {}},
+		compiledRules:       rules,
+	}
+	e.targetsByGVR[gvr] = []string{key}
+
 	obj := &unstructured.Unstructured{Object: map[string]any{
 		"metadata": map[string]any{
 			"name": "web", "namespace": "team-a", "uid": "uid-1",
 		},
 	}}
 
-	e.dispatch(context.Background(), gvr, obj, false)
+	e.processDispatch(context.Background(), gvr, obj, false)
 
 	if store.CountForTarget("team-a", "deploys") != 0 {
 		t.Fatalf("item count = %d, want 0 when SAR API fails", store.CountForTarget("team-a", "deploys"))

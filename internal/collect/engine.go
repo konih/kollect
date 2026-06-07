@@ -28,7 +28,18 @@ import (
 	"github.com/konih/kollect/internal/metrics"
 )
 
-const informerResync = 12 * time.Hour
+const (
+	informerResync    = 12 * time.Hour
+	dispatchWorkers   = 4
+	dispatchQueueSize = 512
+)
+
+type dispatchJob struct {
+	ctx     context.Context
+	gvr     schema.GroupVersionResource
+	obj     interface{}
+	deleted bool
+}
 
 type targetState struct {
 	target              kollectdevv1alpha1.KollectTarget
@@ -40,11 +51,10 @@ type targetState struct {
 // Engine registers dynamic informers per profile GVK and writes extracted attributes to Store.
 //
 // Scale notes (10k+ objects / 100+ clusters):
-//   - dispatch() scans all targets for a GVR on every informer event — O(targets) per event;
-//     split profiles/GVKs when target count grows.
+//   - targetsByGVR indexes targets per GVR so dispatch is O(targets-for-GVR) not O(all targets).
+//   - dispatch workers drain a bounded queue so extract/upsert does not block informer delivery.
 //   - Cluster-wide informers (metav1.NamespaceAll) cache every object for a GVR; namespace-scoped
 //     watches are preferred when targets agree on one namespace via namespaceSelector.
-//   - extract + store.Upsert run on the informer thread; slow CEL paths block cache delivery.
 type Engine struct {
 	dynamic   dynamic.Interface
 	kube      kubernetes.Interface
@@ -54,15 +64,18 @@ type Engine struct {
 	store     *Store
 	runCtx    context.Context
 
-	mu        sync.RWMutex
-	factories map[schema.GroupVersionResource]dynamicinformer.DynamicSharedInformerFactory
-	started   map[schema.GroupVersionResource]bool
-	targets   map[string]targetState
-	nsMeta    map[string]namespaceMeta
-	nsMu      sync.RWMutex
-	forbidden map[string]struct{}
-	accessErr map[string]struct{}
-	defaults  NamespaceDefaults
+	mu           sync.RWMutex
+	factories    map[schema.GroupVersionResource]dynamicinformer.DynamicSharedInformerFactory
+	started      map[schema.GroupVersionResource]bool
+	targets      map[string]targetState
+	targetsByGVR map[schema.GroupVersionResource][]string
+	nsMeta       map[string]namespaceMeta
+	nsMu         sync.RWMutex
+	forbidden    map[string]struct{}
+	accessErr    map[string]struct{}
+	defaults     NamespaceDefaults
+	dispatchCh   chan dispatchJob
+	dispatchOnce sync.Once
 }
 
 // NewEngine constructs a collection engine.
@@ -73,18 +86,20 @@ func NewEngine(dynamicClient dynamic.Interface, kubeClient kubernetes.Interface,
 	}
 
 	return &Engine{
-		dynamic:   dynamicClient,
-		kube:      kubeClient,
-		access:    NewAccessChecker(kubeClient),
-		extractor: ext,
-		scrubber:  NewScrubber(nil),
-		store:     store,
-		factories: make(map[schema.GroupVersionResource]dynamicinformer.DynamicSharedInformerFactory),
-		started:   make(map[schema.GroupVersionResource]bool),
-		targets:   make(map[string]targetState),
-		nsMeta:    make(map[string]namespaceMeta),
-		forbidden: make(map[string]struct{}),
-		accessErr: make(map[string]struct{}),
+		dynamic:      dynamicClient,
+		kube:         kubeClient,
+		access:       NewAccessChecker(kubeClient),
+		extractor:    ext,
+		scrubber:     NewScrubber(nil),
+		store:        store,
+		factories:    make(map[schema.GroupVersionResource]dynamicinformer.DynamicSharedInformerFactory),
+		started:      make(map[schema.GroupVersionResource]bool),
+		targets:      make(map[string]targetState),
+		targetsByGVR: make(map[schema.GroupVersionResource][]string),
+		nsMeta:       make(map[string]namespaceMeta),
+		forbidden:    make(map[string]struct{}),
+		accessErr:    make(map[string]struct{}),
+		dispatchCh:   make(chan dispatchJob, dispatchQueueSize),
 	}, nil
 }
 
@@ -148,12 +163,18 @@ func (e *Engine) RegisterTarget(
 	}
 
 	e.mu.Lock()
+	if old, ok := e.targets[key]; ok {
+		oldGVR := gvrFromProfile(old.profile.Spec.TargetGVK)
+		e.unindexTargetLocked(key, oldGVR)
+	}
+
 	e.targets[key] = targetState{
 		target:              *target.DeepCopy(),
 		profile:             *profile.DeepCopy(),
 		effectiveNamespaces: EffectiveNamespaceSet(effective),
 		compiledRules:       compiled,
 	}
+	e.indexTargetLocked(key, gvr)
 	needStart := !e.started[gvr]
 	e.mu.Unlock()
 
@@ -171,6 +192,11 @@ func (e *Engine) UnregisterTarget(namespace, name string) {
 	key := targetKey(namespace, name)
 
 	e.mu.Lock()
+	if st, ok := e.targets[key]; ok {
+		gvr := gvrFromProfile(st.profile.Spec.TargetGVK)
+		e.unindexTargetLocked(key, gvr)
+	}
+
 	delete(e.targets, key)
 	delete(e.forbidden, key)
 	delete(e.accessErr, key)
@@ -245,11 +271,47 @@ func (e *Engine) HasAccessCheckFailure(targetNamespace, targetName string) bool 
 	return ok
 }
 
-// Start stores the manager context used for informer factories.
+// Start stores the manager context used for informer factories and starts dispatch workers.
 func (e *Engine) Start(ctx context.Context) error {
 	e.runCtx = ctx
+	e.startDispatchWorkers()
 
 	return nil
+}
+
+func (e *Engine) startDispatchWorkers() {
+	e.dispatchOnce.Do(func() {
+		for i := 0; i < dispatchWorkers; i++ {
+			go e.dispatchWorker()
+		}
+	})
+}
+
+func (e *Engine) dispatchWorker() {
+	for job := range e.dispatchCh {
+		e.processDispatch(job.ctx, job.gvr, job.obj, job.deleted)
+	}
+}
+
+func (e *Engine) indexTargetLocked(key string, gvr schema.GroupVersionResource) {
+	for _, existing := range e.targetsByGVR[gvr] {
+		if existing == key {
+			return
+		}
+	}
+
+	e.targetsByGVR[gvr] = append(e.targetsByGVR[gvr], key)
+}
+
+func (e *Engine) unindexTargetLocked(key string, gvr schema.GroupVersionResource) {
+	keys := e.targetsByGVR[gvr]
+	for i, existing := range keys {
+		if existing == key {
+			e.targetsByGVR[gvr] = append(keys[:i], keys[i+1:]...)
+
+			return
+		}
+	}
 }
 
 func (e *Engine) informerContext() context.Context {
@@ -348,6 +410,22 @@ func (e *Engine) updateInformerMetrics(gvr schema.GroupVersionResource, informer
 }
 
 func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, obj interface{}, deleted bool) {
+	e.startDispatchWorkers()
+
+	job := dispatchJob{ctx: ctx, gvr: gvr, obj: obj, deleted: deleted}
+	select {
+	case e.dispatchCh <- job:
+	default:
+		e.processDispatch(ctx, gvr, obj, deleted)
+	}
+}
+
+func (e *Engine) processDispatch(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	obj interface{},
+	deleted bool,
+) {
 	u := toUnstructured(obj)
 	if u == nil {
 		return
@@ -359,14 +437,12 @@ func (e *Engine) dispatch(ctx context.Context, gvr schema.GroupVersionResource, 
 	}
 
 	e.mu.RLock()
-	states := make([]targetState, 0, len(e.targets))
-	for _, st := range e.targets {
-		tgvr := gvrFromProfile(st.profile.Spec.TargetGVK)
-		if tgvr != gvr {
-			continue
+	keys := e.targetsByGVR[gvr]
+	states := make([]targetState, 0, len(keys))
+	for _, key := range keys {
+		if st, ok := e.targets[key]; ok {
+			states = append(states, st)
 		}
-
-		states = append(states, st)
 	}
 	e.mu.RUnlock()
 

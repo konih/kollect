@@ -115,35 +115,38 @@ func TestEngineDispatchDeleteAndUpsert(t *testing.T) {
 		Spec:       kollectdevv1alpha1.KollectTargetSpec{ProfileRef: "deployments"},
 	}
 
-	e := &Engine{
-		store:     store,
-		extractor: ext,
-		access:    &AccessChecker{},
-		nsMeta:    map[string]namespaceMeta{"team-a": {}},
-		targets: map[string]targetState{
-			targetKey("team-a", "deploys"): {
-				target:              target,
-				profile:             profile,
-				effectiveNamespaces: map[string]struct{}{"team-a": {}},
-				compiledRules:       rules,
-			},
-		},
-	}
-
 	gvr := gvrFromProfile(profile.Spec.TargetGVK)
+	key := targetKey("team-a", "deploys")
+
+	e := &Engine{
+		store:        store,
+		extractor:    ext,
+		access:       &AccessChecker{},
+		nsMeta:       map[string]namespaceMeta{"team-a": {}},
+		targets:      make(map[string]targetState),
+		targetsByGVR: make(map[schema.GroupVersionResource][]string),
+	}
+	e.targets[key] = targetState{
+		target:              target,
+		profile:             profile,
+		effectiveNamespaces: map[string]struct{}{"team-a": {}},
+		compiledRules:       rules,
+	}
+	e.targetsByGVR[gvr] = []string{key}
+
 	obj := &unstructured.Unstructured{Object: map[string]any{
 		"metadata": map[string]any{
 			"name": "web", "namespace": "team-a", "uid": "uid-1",
 		},
 	}}
 
-	e.dispatch(context.Background(), gvr, obj, false)
+	e.processDispatch(context.Background(), gvr, obj, false)
 	if store.CountForTarget("team-a", "deploys") != 1 {
 		t.Fatalf("count = %d", store.CountForTarget("team-a", "deploys"))
 	}
 
 	tombstone := cache.DeletedFinalStateUnknown{Obj: obj}
-	e.dispatch(context.Background(), gvr, tombstone, true)
+	e.processDispatch(context.Background(), gvr, tombstone, true)
 	if store.CountForTarget("team-a", "deploys") != 0 {
 		t.Fatalf("count after tombstone delete = %d", store.CountForTarget("team-a", "deploys"))
 	}
