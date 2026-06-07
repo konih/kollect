@@ -10,4 +10,4 @@ metadata:
 spec:
   suspend: false
   snapshotSinkRefs:
-    - e2e-snapshot-sink
+    - name: e2e-snapshot-sink
