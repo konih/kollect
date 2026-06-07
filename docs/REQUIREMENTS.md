@@ -94,6 +94,7 @@ IDs are stable handles for discussion (`FR-<area>-<n>`).
 | FR-READ-1 | Primary scalable read = sink export (SQL/object store/stream), **not** the live API | [ADR-0103](adr/0103-etcd-limit.md) |
 | FR-READ-2 | Optional read-only HTTP inventory API, **feature-gated off by default**, for debug/small installs | [ADR-0103](adr/0103-etcd-limit.md) |
 | FR-READ-3 | When HTTP is enabled, authenticate via Kubernetes TokenReview + SubjectAccessReview | [ADR-0404](adr/0404-inventory-api-auth.md) |
+| FR-READ-4 | Fleet read plane: a standalone read-only console may materialize a **fleet-wide** read model from the shared event stream (golden path) and serve the Read API extended with a `cluster` dimension — never a hub, never kube-apiserver writes, no bus/DB creds in the browser | [ADR-0418](adr/0418-fleet-console-read-plane.md), [ADR-0501](adr/0501-multi-cluster-fleet.md) |
 
 ### 3.5 Multi-cluster (FR-MC)
 

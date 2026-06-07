@@ -242,8 +242,35 @@ cluster API.
 | **v0.5.x** | Harden + freeze the Read API as the UI contract (filters, `schemaVersion`, OpenAPI) | ⬜ |
 | **v0.6.x** | Memory `InventoryReader` adapter + `ui/` scaffold hardening | 🚧 early adopter preview on `main` |
 | **v0.7.x** | Read-only SPA on **memory adapter**: catalog, search/filter, freshness/health | 🚧 mock MVP + docs; production gate |
-| **v0.8.x – v0.9.x** | Portal mode on **Postgres/Parquet**; **drift-over-time**; optional `kollect-server` split | ⬜ |
+| **v0.8.x – v0.9.x** | **Fleet console** portal — read-side fleet server on **Postgres/Parquet**; multi-cluster picker; **drift-over-time**; optional `kollect-server` split | ⬜ [ADR-0418](adr/0418-fleet-console-read-plane.md) |
 | **v0.10.0** | Presentation-ready demo (UI + docs + stable soak) | ⬜ |
+
+### Fleet console (multi-cluster read plane — [ADR-0418](adr/0418-fleet-console-read-plane.md))
+
+In production Kollect is a **fleet**: N single-mode operators fan into a **shared sink**
+([ADR-0501](adr/0501-multi-cluster-fleet.md)), so the thing worth visualizing is the fleet, not one
+operator's in-memory store. The console therefore evolves from a single-cluster view into a
+**read-only fleet console**: a standalone server consumes the existing event stream
+([ADR-0402](adr/0402-sink-backends-database-kafka.md)) — the per-`(cluster, namespace)` inventory
+envelope every cluster already emits — materializes a fleet read model, and serves the **existing Read
+API contract extended with a `cluster` dimension** plus a `/v1alpha1/clusters` roster. It is a pure
+read consumer: **no hub tier** ([ADR-0501](adr/0501-multi-cluster-fleet.md) holds), no kube-apiserver
+writes, and the browser never holds bus or database credentials.
+
+| Item | Status | Notes |
+| --- | --- | --- |
+| `InventoryReader` interface + `memoryFleet` adapter | ⬜ | v0.6 — fulfils [ADR-0408](adr/0408-read-api-ui-architecture.md) OQ-11 |
+| Read-side fleet server (event consumer → fleet read model) | ⬜ | v0.6–v0.7 · [ADR-0418](adr/0418-fleet-console-read-plane.md) |
+| Read API `cluster` dimension + `/v1alpha1/clusters` (additive OpenAPI) | ⬜ | v0.6 · [ADR-0411](adr/0411-read-api-extensions-for-ui.md) |
+| SPA fleet overview + `cluster` column/filter + cluster picker | ⬜ | v0.7 |
+| `postgresFleet` adapter + consume-to-database upsert (history/drift) | ⬜ | v0.8 |
+| Cold-start rehydrate / compacted-topic replay; "rebuilding" banner | ⬜ | v0.8 |
+| Drift-over-time / "what changed" views | ⬜ | v0.9 |
+| `kollect-fleet-server` chart + oauth2-proxy overlay | ⬜ | v0.9 |
+
+**Honors:** [ADR-0501](adr/0501-multi-cluster-fleet.md) (no hub), [FR-READ-1](REQUIREMENTS.md) (read
+model, never the live API), [ADR-0702](adr/0702-doc-sync-templating.md) (single responsibility — useful
+"actions" belong to a separate publisher component, not cluster writes).
 
 ---
 
