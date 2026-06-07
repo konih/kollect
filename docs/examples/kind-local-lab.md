@@ -38,7 +38,7 @@
     Production values and upgrades: [Operator manual](../OPERATOR-MANUAL.md).
 
 !!! note "No Postgres required"
-    For a minimal e2e without a database, apply `config/samples/e2e/team-inventory.yaml` (`sinkRefs: []`).
+    For a minimal e2e without a database, apply `config/samples/e2e/team-inventory.yaml` (no family sink refs).
     See [QUICKSTART.md](../QUICKSTART.md) and the [Examples index](README.md).
 
 !!! tip "Full showcase demo"

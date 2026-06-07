@@ -27,6 +27,8 @@ anchor on an older commit.
 
 ### Bug Fixes
 
+- **e2e:** Drop legacy sinkRefs from multitenant scope fixture
+
 - **e2e:** Drop removed inventory sinkRefs field [48af9c4](https://github.com/konih/kollect/commit/48af9c4924c150bea36694dac1f691f3b7a88d82)
 
 - **e2e:** Validate collection via inventory HTTP [ca816a0](https://github.com/konih/kollect/commit/ca816a072b89326d0bc6c6a6dae5f4d2f0ec8159)
