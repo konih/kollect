@@ -7,21 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Release notes are generated from [Conventional Commits](https://www.conventionalcommits.org/)
 on the default branch using [git-cliff](https://git-cliff.org/).
 
-## Version mapping (retroactive anchors)
+## [Unreleased]
 
-Retroactive git tags `v0.0.1`–`v0.0.4` segment history before the first published GitHub
-release. See [docs/RELEASE.md](docs/RELEASE.md) for the maintainer runbook.
+### Bug Fixes
 
-| Tag | Anchor commit | Milestone |
-| --- | --- | --- |
-| `v0.0.1` | `13546aff` | Kubebuilder scaffold, MIT license |
-| `v0.0.2` | `1e6f6719` | Core `v1alpha1` CRDs (Profile, Sink, Target, Inventory) |
-| `v0.0.3` | `66421337` | Helm chart, CEL/JSONPath extraction, inventory HTTP |
-| `v0.0.4` | `4234960b` | ADR-0703 platform pivot MVP (namespaced API, export pipeline) |
-| `v0.1.0` | `main` HEAD | First published release (includes hub/cluster APIs since MVP) |
+- **chart:** Sync family-sink CRDs with ADR-0416 fields [067c5c7](https://github.com/konih/kollect/commit/067c5c7008fb6ba2693a79a11a7d658796fca0f0)
 
-Reserve **`v0.1.0` for the first tag pushed at `main` HEAD** — do not use it as a changelog-only
-anchor on an older commit.
+
+### Features
+
+- **sink:** MongoDB database sink (ADR-0417) [f49bf3e](https://github.com/konih/kollect/commit/f49bf3e21deabb89f36f7c01ef96feba40449764)
 
 ## [0.5.0-rc.1](https://github.com/konih/kollect/compare/v0.4.1..v0.5.0-rc.1) - 2026-06-07
 
