@@ -25,6 +25,18 @@ anchor on an older commit.
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/konih/kollect/compare/v0.3.0-rc.1..v0.3.0) - 2026-06-08
+
+### Features
+
+- **ui:** Align sink families and add UI docs [bcca60d](https://github.com/konih/kollect/commit/bcca60d9d1bdfedb7595cfc3b1d57d9fbb6bfc68)
+
+### Refactoring
+
+- **collect:** GVR index and sharded store [2391a55](https://github.com/konih/kollect/commit/2391a551b41d6c2474a3c1eb7670c2e40c744fa3)
+
+## [0.3.0-rc.1](https://github.com/konih/kollect/compare/v0.2.0-rc.1..v0.3.0-rc.1) - 2026-06-07
+
 ### Bug Fixes
 
 - **controller:** Recover panics and suspend status [4cf28cf](https://github.com/konih/kollect/commit/4cf28cff4b647e208a8b5e2f9ec603081ad1e58b)
