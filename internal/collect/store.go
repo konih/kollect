@@ -20,17 +20,21 @@ type Item struct {
 	Attributes      map[string]any `json:"attributes"`
 }
 
+// storeShard holds targets for one target namespace (PERF-06 namespace sharding).
+type storeShard struct {
+	mu      sync.RWMutex
+	targets map[string]map[string]Item // targetName -> uid -> Item
+}
+
 // Store holds collected items keyed by target namespace/name and resource UID.
 //
 // Scale notes (10k+ objects / 100+ clusters):
 //   - Memory is O(n) in collected object count; one map entry per resource UID.
-//   - A single RWMutex guards nested maps — export snapshots hold RLock for O(n) copies;
-//     at 10k+ rows consider namespace-sharded stores (shard key = target namespace) to
-//     reduce lock contention and snapshot payload size.
-//   - Hub deployments should not mirror full spoke stores; push summarized deltas only.
+//   - Shards partition by target namespace so export snapshots and upserts contend
+//     on narrower locks than a single global store mutex.
 type Store struct {
-	mu         sync.RWMutex
-	items      map[string]map[string]Item
+	shardsMu   sync.RWMutex
+	shards     map[string]*storeShard
 	watchMu    sync.RWMutex
 	watchers   map[chan struct{}]struct{}
 	nsWatchers map[chan string]struct{}
@@ -39,7 +43,7 @@ type Store struct {
 // NewStore returns an empty in-memory collection store.
 func NewStore() *Store {
 	return &Store{
-		items:      make(map[string]map[string]Item),
+		shards:     make(map[string]*storeShard),
 		watchers:   make(map[chan struct{}]struct{}),
 		nsWatchers: make(map[chan string]struct{}),
 	}
@@ -106,70 +110,84 @@ func targetKey(namespace, name string) string {
 	return namespace + "/" + name
 }
 
-// Upsert records or replaces an item for a target.
-func (s *Store) Upsert(item Item) {
-	key := targetKey(item.TargetNamespace, item.TargetName)
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.items[key] == nil {
-		s.items[key] = make(map[string]Item)
+func (s *Store) shardFor(targetNamespace string) *storeShard {
+	s.shardsMu.RLock()
+	sh, ok := s.shards[targetNamespace]
+	s.shardsMu.RUnlock()
+	if ok {
+		return sh
 	}
 
-	s.items[key][item.UID] = item
+	s.shardsMu.Lock()
+	defer s.shardsMu.Unlock()
+
+	if sh, ok = s.shards[targetNamespace]; ok {
+		return sh
+	}
+
+	sh = &storeShard{targets: make(map[string]map[string]Item)}
+	s.shards[targetNamespace] = sh
+
+	return sh
+}
+
+// Upsert records or replaces an item for a target.
+func (s *Store) Upsert(item Item) {
+	sh := s.shardFor(item.TargetNamespace)
+
+	sh.mu.Lock()
+	if sh.targets[item.TargetName] == nil {
+		sh.targets[item.TargetName] = make(map[string]Item)
+	}
+
+	sh.targets[item.TargetName][item.UID] = item
+	sh.mu.Unlock()
+
 	s.notifyWatchers(item.TargetNamespace)
 }
 
 // RemoveTarget drops all items for a target.
 func (s *Store) RemoveTarget(targetNamespace, targetName string) {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	sh.mu.Lock()
+	delete(sh.targets, targetName)
+	sh.mu.Unlock()
 
-	delete(s.items, key)
 	s.notifyWatchers(targetNamespace)
 }
 
-// RemoveCluster drops all targets keyed under cluster (hub merge uses cluster as target namespace).
+// RemoveCluster drops all targets for one cluster target namespace.
 func (s *Store) RemoveCluster(cluster string) {
 	if cluster == "" {
 		return
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	for key := range s.items {
-		if !hasPrefixNamespace(key, cluster) {
-			continue
-		}
-
-		delete(s.items, key)
-	}
+	s.shardsMu.Lock()
+	delete(s.shards, cluster)
+	s.shardsMu.Unlock()
 
 	s.notifyWatchers(cluster)
 }
 
 // CountForTarget returns items collected for one target.
 func (s *Store) CountForTarget(targetNamespace, targetName string) int {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	sh.mu.RLock()
+	defer sh.mu.RUnlock()
 
-	return len(s.items[key])
+	return len(sh.targets[targetName])
 }
 
-// CloneTargetItems returns a shallow copy of the target bucket for rollback (hub merge+export).
+// CloneTargetItems returns a shallow copy of the target bucket for rollback.
 func (s *Store) CloneTargetItems(targetNamespace, targetName string) map[string]Item {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	sh.mu.RLock()
+	defer sh.mu.RUnlock()
 
-	bucket := s.items[key]
+	bucket := sh.targets[targetName]
 	if len(bucket) == 0 {
 		return nil
 	}
@@ -184,33 +202,32 @@ func (s *Store) CloneTargetItems(targetNamespace, targetName string) map[string]
 
 // RestoreTarget replaces all items for a target (nil or empty prior removes the target).
 func (s *Store) RestoreTarget(targetNamespace, targetName string, prior map[string]Item) {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
+	sh.mu.Lock()
 	if len(prior) == 0 {
-		delete(s.items, key)
+		delete(sh.targets, targetName)
 	} else {
 		cp := make(map[string]Item, len(prior))
 		for uid, item := range prior {
 			cp[uid] = item
 		}
 
-		s.items[key] = cp
+		sh.targets[targetName] = cp
 	}
+	sh.mu.Unlock()
 
 	s.notifyWatchers(targetNamespace)
 }
 
-// SnapshotTarget returns all items for one target (hub merge uses cluster as target namespace).
+// SnapshotTarget returns all items for one target.
 func (s *Store) SnapshotTarget(targetNamespace, targetName string) []Item {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	sh.mu.RLock()
+	defer sh.mu.RUnlock()
 
-	bucket := s.items[key]
+	bucket := sh.targets[targetName]
 	if len(bucket) == 0 {
 		return nil
 	}
@@ -238,54 +255,44 @@ func (s *Store) MarshalTargetExport(
 
 // Remove deletes an item by target and resource UID.
 func (s *Store) Remove(targetNamespace, targetName, uid string) {
-	key := targetKey(targetNamespace, targetName)
+	sh := s.shardFor(targetNamespace)
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if bucket, ok := s.items[key]; ok {
+	sh.mu.Lock()
+	if bucket, ok := sh.targets[targetName]; ok {
 		delete(bucket, uid)
 		if len(bucket) == 0 {
-			delete(s.items, key)
+			delete(sh.targets, targetName)
 		}
 	}
+	sh.mu.Unlock()
 
 	s.notifyWatchers(targetNamespace)
 }
 
 // CountForNamespace returns total items for targets in the given namespace.
 func (s *Store) CountForNamespace(namespace string) int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	sh := s.shardFor(namespace)
+
+	sh.mu.RLock()
+	defer sh.mu.RUnlock()
 
 	total := 0
-	for key, bucket := range s.items {
-		if !hasPrefixNamespace(key, namespace) {
-			continue
-		}
-
+	for _, bucket := range sh.targets {
 		total += len(bucket)
 	}
 
 	return total
 }
 
-func hasPrefixNamespace(targetKey, namespace string) bool {
-	prefix := namespace + "/"
-	return len(targetKey) > len(prefix) && targetKey[:len(prefix)] == prefix
-}
-
 // SnapshotNamespace returns all items for targets in a namespace.
 func (s *Store) SnapshotNamespace(namespace string) []Item {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	sh := s.shardFor(namespace)
+
+	sh.mu.RLock()
+	defer sh.mu.RUnlock()
 
 	var out []Item
-	for key, bucket := range s.items {
-		if !hasPrefixNamespace(key, namespace) {
-			continue
-		}
-
+	for _, bucket := range sh.targets {
 		for _, item := range bucket {
 			out = append(out, item)
 		}
@@ -311,12 +318,20 @@ func (s *Store) TotalCount() int {
 
 // Len returns the number of items across all targets (used by metrics and HTTP summary).
 func (s *Store) Len() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.shardsMu.RLock()
+	shards := make([]*storeShard, 0, len(s.shards))
+	for _, sh := range s.shards {
+		shards = append(shards, sh)
+	}
+	s.shardsMu.RUnlock()
 
 	total := 0
-	for _, bucket := range s.items {
-		total += len(bucket)
+	for _, sh := range shards {
+		sh.mu.RLock()
+		for _, bucket := range sh.targets {
+			total += len(bucket)
+		}
+		sh.mu.RUnlock()
 	}
 
 	return total
@@ -344,14 +359,22 @@ func (s *Store) Summary(namespace string) NamespaceSummary {
 }
 
 func (s *Store) snapshotAll() []Item {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.shardsMu.RLock()
+	shards := make([]*storeShard, 0, len(s.shards))
+	for _, sh := range s.shards {
+		shards = append(shards, sh)
+	}
+	s.shardsMu.RUnlock()
 
 	var out []Item
-	for _, bucket := range s.items {
-		for _, item := range bucket {
-			out = append(out, item)
+	for _, sh := range shards {
+		sh.mu.RLock()
+		for _, bucket := range sh.targets {
+			for _, item := range bucket {
+				out = append(out, item)
+			}
 		}
+		sh.mu.RUnlock()
 	}
 
 	return out
