@@ -34,19 +34,35 @@ BENCH_FILE="${BENCH_DIR}/latest.txt"
 UNIT_RC=0
 UNIT_SUMMARY=""
 UNIT_START=$(date +%s)
+UNIT_TEST_ARGS=(./... -count=1 -short -timeout=12m)
 if command -v jq >/dev/null 2>&1; then
   UNIT_JSON="${BENCH_DIR}/unit.json"
-  if go test ./... -count=1 -short -json 2>/dev/null >"$UNIT_JSON"; then
-    FAIL_COUNT="$(jq -r 'select(.Action=="fail") | .Package' "$UNIT_JSON" 2>/dev/null | sort -u | wc -l | tr -d ' ')"
+  UNIT_STDERR="${BENCH_DIR}/unit.stderr"
+  if go test "${UNIT_TEST_ARGS[@]}" -json >"$UNIT_JSON" 2>"$UNIT_STDERR"; then
+    FAIL_PKGS="$(jq -r 'select(.Action=="fail") | .Package' "$UNIT_JSON" 2>/dev/null | sort -u)"
+    FAIL_COUNT="$(printf '%s\n' "$FAIL_PKGS" | sed '/^$/d' | wc -l | tr -d ' ')"
     PASS_COUNT="$(jq -r 'select(.Action=="pass" and .Test==null) | .Package' "$UNIT_JSON" 2>/dev/null | sort -u | wc -l | tr -d ' ')"
     UNIT_SUMMARY="${PASS_COUNT} packages passed"
     if [[ "${FAIL_COUNT:-0}" != "0" ]]; then
       UNIT_RC=1
       UNIT_SUMMARY="${UNIT_SUMMARY}, ${FAIL_COUNT} failed"
+      echo "perf-report: failing packages:" >&2
+      printf '%s\n' "$FAIL_PKGS" >&2
     fi
   else
     UNIT_RC=$?
     UNIT_SUMMARY="go test ./... failed (exit ${UNIT_RC})"
+    if [[ -s "$UNIT_STDERR" ]]; then
+      echo "perf-report: go test stderr (tail):" >&2
+      tail -20 "$UNIT_STDERR" >&2
+    fi
+    if [[ -s "$UNIT_JSON" ]]; then
+      FAIL_PKGS="$(jq -r 'select(.Action=="fail") | .Package' "$UNIT_JSON" 2>/dev/null | sort -u)"
+      if [[ -n "$FAIL_PKGS" ]]; then
+        echo "perf-report: failing packages:" >&2
+        printf '%s\n' "$FAIL_PKGS" >&2
+      fi
+    fi
   fi
 else
   if UNIT_OUT="$( { time go test ./internal/... -count=1 -short 2>&1; } 2>&1 )"; then
