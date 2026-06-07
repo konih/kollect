@@ -52,7 +52,7 @@ Set `spec.cluster` on the sink for shared-database fan-in across spokes.
 
 Full walkthrough: [Deployment inventory](deployment-inventory.md).
 
-E2e without live backends: `config/samples/e2e/team-inventory.yaml` (`sinkRefs: []`).
+E2e without live backends: `config/samples/e2e/team-inventory.yaml` (no family sink refs).
 
 ## Hub-and-spoke upgrade
 
