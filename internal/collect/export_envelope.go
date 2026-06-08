@@ -58,6 +58,7 @@ func itemCanonicalKey(item Item) string {
 	return b.String()
 }
 
+// canonicalItems returns items sorted for stable JSON fingerprints and envelopes.
 func canonicalItems(items []Item) []Item {
 	if len(items) == 0 {
 		return []Item{}
