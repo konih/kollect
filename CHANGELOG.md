@@ -11,6 +11,8 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
+- **collect:** Stabilize export fingerprints for debounce [76813eb](https://github.com/konih/kollect/commit/76813eb84f3d7e2cb2ef9115939c69c97d68ccbc)
+
 - **docs:** Purge stale hub/spoke from operator manual [5135c41](https://github.com/konih/kollect/commit/5135c418f6a9e8a5338b99700425367988da2c3a)
 
 - **docs:** Repair broken links and stale ADR references [d8b37cb](https://github.com/konih/kollect/commit/d8b37cbb706560b6d69c9b315cf0ba75db331be9)
