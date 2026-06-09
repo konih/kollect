@@ -42,6 +42,25 @@ func TestKollectSnapshotSinkValidator_validSpec(t *testing.T) {
 	}
 }
 
+func TestKollectSnapshotSinkValidator_rejectsPrivateEndpoint(t *testing.T) {
+	t.Parallel()
+
+	v := &kollectSnapshotSinkValidator{client: fake.NewClientBuilder().Build()}
+	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectSnapshotSink{
+		ObjectMeta: metav1.ObjectMeta{Name: "git-private", Namespace: "default"},
+		Spec: kollectdevv1alpha1.KollectSnapshotSinkSpec{
+			Type: kollectdevv1alpha1.SnapshotSinkTypeGit,
+			SinkCommonFields: kollectdevv1alpha1.SinkCommonFields{
+				Endpoint: "https://127.0.0.1/repo.git",
+			},
+			Git: &kollectdevv1alpha1.GitSpec{},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected private endpoint to be rejected")
+	}
+}
+
 func TestKollectDatabaseSinkValidator_invalidSpec(t *testing.T) {
 	t.Parallel()
 
