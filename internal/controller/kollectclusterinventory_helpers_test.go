@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
 )
 
 func TestTargetSelectorFor_defaultsToNil(t *testing.T) {
@@ -233,5 +234,87 @@ func TestKollectClusterInventoryReconciler_setDegraded(t *testing.T) {
 
 	if stored.Status.ObservedGeneration != 2 {
 		t.Fatalf("observed generation = %d", stored.Status.ObservedGeneration)
+	}
+}
+
+func TestKollectClusterInventoryReconciler_composeNamespaceRollup(t *testing.T) {
+	t.Parallel()
+
+	store := collect.NewStore()
+	store.Upsert(collect.Item{
+		TargetNamespace: "team-a",
+		TargetName:      "target-a",
+		UID:             "uid-a1",
+		Namespace:       "team-a",
+		Name:            "cfg-a1",
+		Version:         "v1",
+		Kind:            "ConfigMap",
+	})
+	store.Upsert(collect.Item{
+		TargetNamespace: "team-a",
+		TargetName:      "target-b",
+		UID:             "uid-a2",
+		Namespace:       "team-a",
+		Name:            "cfg-a2",
+		Version:         "v1",
+		Kind:            "ConfigMap",
+	})
+	store.Upsert(collect.Item{
+		TargetNamespace: "team-b",
+		TargetName:      "target-a",
+		UID:             "uid-b1",
+		Namespace:       "team-b",
+		Name:            "cfg-b1",
+		Version:         "v1",
+		Kind:            "ConfigMap",
+	})
+
+	engine, err := collect.NewEngine(nil, nil, store, collect.EngineConfig{})
+	if err != nil {
+		t.Fatalf("NewEngine: %v", err)
+	}
+	engine.BindClusterTargetNamespaces("target-a", []string{"team-a", "team-b"})
+	engine.BindClusterTargetNamespaces("target-b", []string{"team-a"})
+
+	reconciler := &KollectClusterInventoryReconciler{
+		Store:  store,
+		Engine: engine,
+	}
+
+	inv := &kollectdevv1alpha1.KollectClusterInventory{
+		Spec: kollectdevv1alpha1.KollectClusterInventorySpec{
+			Dedupe: kollectdevv1alpha1.ClusterInventoryDedupeKeepAll,
+		},
+	}
+	targets := []kollectdevv1alpha1.KollectClusterTarget{
+		{ObjectMeta: metav1.ObjectMeta{Name: "target-a"}},
+		{ObjectMeta: metav1.ObjectMeta{Name: "target-b"}},
+	}
+
+	rollup, err := reconciler.composeNamespaceRollup(inv, targets, nil)
+	if err != nil {
+		t.Fatalf("composeNamespaceRollup: %v", err)
+	}
+
+	if len(rollup.Items) != 3 {
+		t.Fatalf("rollup item count = %d, want 3", len(rollup.Items))
+	}
+	if len(rollup.Payload) == 0 {
+		t.Fatal("payload is empty")
+	}
+	if rollup.Checksum == "" {
+		t.Fatal("rollup checksum is empty")
+	}
+	if len(rollup.NamespaceShards) != 2 {
+		t.Fatalf("namespace shards = %d, want 2", len(rollup.NamespaceShards))
+	}
+	if rollup.NamespaceShards[0].Namespace != "team-a" || rollup.NamespaceShards[1].Namespace != "team-b" {
+		t.Fatalf("namespace shard order = %#v, want [team-a team-b]", rollup.NamespaceShards)
+	}
+	if rollup.NamespaceShards[0].ItemCount != 2 || rollup.NamespaceShards[0].TargetCount != 2 {
+		t.Fatalf("team-a shard = %#v, want itemCount=2 targetCount=2", rollup.NamespaceShards[0])
+	}
+	if rollup.NamespaceShards[1].ItemCount != 1 || rollup.NamespaceShards[1].TargetCount != 1 {
+		t.Fatalf("team-b shard = %#v, want itemCount=1 targetCount=1", rollup.NamespaceShards[1])
 	}
 }
