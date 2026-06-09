@@ -9,7 +9,8 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
     Items here are **intent and backlog**, not release promises. Status may change as ADRs land or
     scope is rejected. Pre-beta APIs may shift until the first release candidate.
 
-**Last updated:** 2026-06-09 — UI program **frozen**; **BigQuery** + **NATS** promoted to v0.7.x backends.
+**Last updated:** 2026-06-09 — `main` @ `72674ecf4`. Phase 1 audit-fix wave ✅; **`v0.6.0` cut 🚧**;
+**BigQuery** + **NATS** v0.7.x lanes in flight. UI program **frozen**.
 
 ## Status legend
 
@@ -124,7 +125,7 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 
 | | |
 | --- | --- |
-| **Status** | Planned — **v0.7.x** (maintainer-directed; replaces the current admission stub) |
+| **Status** | **Exploring** — [ADR-0420](../adr/0420-bigquery-database-sink.md) drafted on `main`; implementation lane in flight (re-admits `bigquery` only with a real backend) |
 | **Summary** | **`KollectDatabaseSink.type: bigquery`** as a **relational / analytics** projection of the canonical snapshot — batch load (or streaming insert) of inventory rows into BigQuery for SQL dashboards and fleet analytics. Shipped as a **real backend with L3 testcontainers/emulator coverage and a sample**, not a webhook stub. |
 | **Scope** | New ADR (theme **04**, e.g. ADR-0420) covering: role vs Postgres ([ADR-0402](../adr/0402-sink-backends-database-kafka.md)); CRD fields (`dataset`, `table`, `partitionField`/`clusteringFields`, `writeMode` load vs streaming); delete reconciliation (truncate-and-load vs MERGE on `(cluster, ns, name, uid)`); credential model (Workload Identity Federation vs service-account JSON key in `secretRef`); connection-test probe ([ADR-0403](../adr/0403-connection-test.md)). Remove `bigquery` from the webhook stub allowlist when the backend lands. |
 | **Tests/samples** | L0 config/validation units, L3 integration (BigQuery emulator or `testcontainers` GCP), golden OpenAPI schema for the new type, `config/samples/` `KollectDatabaseSink` example, CRD reference page. |
@@ -136,7 +137,7 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 
 | | |
 | --- | --- |
-| **Status** | Planned — **v0.7.x** (promote the shipped JetStream emitter to fully supported) |
+| **Status** | **Planned / in flight** — **v0.7.x** (promote the shipped JetStream emitter to fully supported; worker lane active) |
 | **Summary** | **`KollectEventSink.type: nats`** already ships a JetStream emitter (`internal/sink/nats/`, envelope publish with content-hash dedupe, TLS, connection probe). The v0.7 work **hardens it to first-class**: deepen L3 testcontainers coverage, raise unit coverage to standard, add a golden OpenAPI schema, document the subject/stream contract, and ship a `config/samples/` `KollectEventSink` example with a consumer walkthrough. |
 | **Scope** | No new CRD shape expected; harden config validation, ensure delete/tombstone semantics match Kafka, document at-least-once + idempotent `MsgID` dedupe, and add the sink to the parallel-export sample. |
 | **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0402](../adr/0402-sink-backends-database-kafka.md) · [ADR-0403](../adr/0403-connection-test.md) · [KollectEventSink](../crds/kollecteventsink.md) |
@@ -147,9 +148,9 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 
 | | |
 | --- | --- |
-| **Status** | Shipped (Phase 1) — to be documented as the headline in v0.7 |
+| **Status** | Shipped (code) — **docs 🚧** (hero harness + [DEMO-GIF-GUIDE](../DEMO-GIF-GUIDE.md) on `main`; ARCHITECTURE fan-out prose + recorded GIF ⬜) |
 | **Roadmap** | Phase 1 ✅ · [Near-term tranches](../ROADMAP.md#near-term-tranches-v06-v07) |
-| **Summary** | A single `KollectInventory` fans out to **all** referenced sinks **concurrently** in one debounced pass — the same snapshot reaches Git, a database, and an event stream together, each with its own `exportMinInterval` and per-sink circuit breaker; partial failure degrades to `PartiallySynced`. The remaining work is **docs**: a fan-out diagram and a hero example, not code. |
+| **Summary** | A single `KollectInventory` fans out to **all** referenced sinks **concurrently** in one debounced pass — the same snapshot reaches Git, a database, and an event stream together, each with its own `exportMinInterval` and per-sink circuit breaker; partial failure degrades to `PartiallySynced`. Phase 1 also landed EC-P1-06 error aggregation + WB-02 debounce coverage. Remaining work is **docs/marketing**: fan-out diagram in ARCHITECTURE and a recorded hero GIF. |
 | **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0413](../adr/0413-export-interval-scheduling.md) |
 
 ---
@@ -158,7 +159,7 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 
 | | |
 | --- | --- |
-| **Status** | Spec needed |
+| **Status** | Spec needed — `azureblob` removed from admission (EC-P1-04); re-entry needs a real backend |
 | **Summary** | **`KollectSink.type: azureblob`** (name TBD) as a **snapshot store** peer to S3/GCS — same canonical JSON (and future Parquet) contract, Azure-specific auth (`secretRef`, managed identity patterns). |
 | **Open design** | Shared object-store backend abstraction vs separate package; connection test probe shape ([ADR-0403](../adr/0403-connection-test.md)); path template parity with [ADR-0407](../adr/0407-git-object-store-layout.md). |
 | **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0406](../adr/0406-sink-registry.md) · [ADR-0403](../adr/0403-connection-test.md) |
