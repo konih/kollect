@@ -204,10 +204,10 @@ Be honest about where the project stands:
 | --- | --- | --- |
 | **0** | ✅ Done | CRDs (9 kinds), RBAC, validating webhooks, manager on kind, CI, Helm chart, samples, docs |
 | **1** | 🚧 Mostly shipped | Dynamic informers, CEL/JSONPath extraction, `KollectTarget`/`KollectInventory` controllers, seven sink types (Git, GitLab, S3, GCS, Postgres incl. delete recon, Kafka, NATS), connection test, `KollectScope` multitenant gate, inventory HTTP API (partial) |
-| **2** | 🚧 In progress | Hub/spoke via Helm `mode`, ingest/merge, pluggable queue transport (in-process, Redis, NATS, Kafka) |
-| **3** | 🚧 Partial | `KollectClusterTarget` + `KollectClusterInventory` controllers (rollup + export); `KollectClusterProfile` admission-only |
+| **2** | ✅ Fleet model | Multi-cluster = one operator per cluster exporting to a shared sink with `spec.cluster` row partitioning ([ADR-0501](adr/0501-multi-cluster-fleet.md)). There is **no** hub/spoke runtime, ingest tier, or queue transport — that design was removed in v0.3 |
+| **3** | ✅ Mostly shipped | `KollectClusterTarget` + `KollectClusterInventory` controllers (rollup + export); `KollectClusterProfile` admission-only; `KollectScope` enforcement |
 
-End-to-end export on kind is green in CI; some items (event-driven export path, S3 Parquet, finalizers)
+End-to-end export on kind is green in CI; some items (GCS Parquet export, terminal finalizer cleanup)
 remain 🚧/⬜ in [ROADMAP.md](ROADMAP.md). Track detail in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Next steps
