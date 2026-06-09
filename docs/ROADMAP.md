@@ -22,8 +22,8 @@ Kollect's differentiator: declare GVK + CEL once, get a diffable Git inventory *
     Phases describe **implementation order**, not semver milestones. Items may land out of phase
     when dependencies allow; deferred (🔮) items are explicitly not on the near-term path.
 
-**Last updated:** 2026-06-09 (**`v0.5.0`** shipped; **next target `v0.6.0`** cuts the export/layout/
-MongoDB/preview tranche already on `main`. The UI program is **frozen** — see
+**Last updated:** 2026-06-09 — `main` @ `72674ecf4` (**`v0.5.0`** shipped; **Phase 1 audit-fix wave ✅**;
+**`v0.6.0` cut 🚧** in progress). The UI program is **frozen** — see
 [Read API + UI console](#read-api-ui-console-frozen). See [RELEASE.md](RELEASE.md#versioning-policy).)
 
 !!! tip "Versioning"
@@ -63,17 +63,26 @@ ADR-0306 full-resource export, ADR-0419 Git serialization/layout, the MongoDB si
 `status.preview` surface are merged on `main` but **unreleased**. v0.6.0 ships them, alongside a batch
 of small correctness/security fixes and the doc cleanup that must precede any announcement.
 
+**Phase 1 audit-fix wave ✅** (landed on `main` pre-tag): EC-P1-02 git credential redaction;
+EC-P1-03 terminal finalizer cleanup + WB-01 no-requeue test; EC-P1-04 stub sink types removed from
+admission (`http`, `azureblob`, `bigquery`); EC-P1-06 parallel per-sink export error aggregation;
+EC-P2-02 `guardReconcile` on family-sink / connection-test / cluster-target reconcilers; WB-02 debounce
+short-circuit test; F65 scaffold test deleted; coverage floor aligned at **72%** + `/artifacts/`
+gitignored; DA-01..04 P0 quickstart/examples/helm-pin fixes; `test/arch` dependency-direction tests;
+hero demo harness (`hack/demo/hero/`, `config/samples/demo/`, [DEMO-GIF-GUIDE](DEMO-GIF-GUIDE.md)).
+
 | Item | Status |
 | --- | --- |
-| Cut **`v0.6.0`** (`task changelog:write`, chart `0.5.0 → 0.6.0`, gates green, tag on green `main`) | ⬜ |
-| ADR-0419 **`ResourceExportMode` wiring** — auto-infer `content: manifest` + `perResource` from `export.mode: Resource` (close the profile→sink hint gap) + end-to-end test | ⬜ |
-| Redact credentials from git probe/export errors before status/Events | ⬜ |
-| Terminal finalizer/cleanup errors return `(Result{}, nil)` after Degraded (+ no-requeue test) | ⬜ |
-| Remove stub sink types (`http`, `azureblob`, `bigquery`) from the webhook allowlist or classify as **terminal** (stop endless retries) | ⬜ |
-| Aggregate parallel per-sink export errors instead of last-write-wins | ⬜ |
-| `guardReconcile` on family-sink / connection-test / cluster-target reconcilers | ⬜ |
-| Align coverage gates (Taskfile vs CI), add `/artifacts/` to `.gitignore` | ⬜ |
-| **P0 docs:** finish the hub/spoke doc exorcism (QUICKSTART, DEVELOPMENT, ARCHITECTURE, examples) + a working default sample path (Git-only golden path + push-secret step) before announcing | ⬜ |
+| Cut **`v0.6.0`** (`task changelog:write`, chart `0.5.0 → 0.6.0`, gates green, tag on green `main`) | 🚧 |
+| ADR-0419 **`ResourceExportMode` wiring** — controller populates `ResourceExportMode` so `export.mode: Resource` auto-infers `content: manifest` + `perResource` without manual `layout` + end-to-end test | ⬜ |
+| Redact credentials from git probe/export errors before status/Events (EC-P1-02) | ✅ |
+| Terminal finalizer/cleanup errors return `(Result{}, nil)` after Degraded (+ no-requeue test) (EC-P1-03, WB-01) | ✅ |
+| Remove stub sink types (`http`, `azureblob`, `bigquery`) from the webhook allowlist (EC-P1-04) | ✅ |
+| Aggregate parallel per-sink export errors instead of last-write-wins (EC-P1-06) | ✅ |
+| `guardReconcile` on family-sink / connection-test / cluster-target reconcilers (EC-P2-02) | ✅ |
+| Align coverage gates (Taskfile vs CI at 72), add `/artifacts/` to `.gitignore` | ✅ |
+| **P0 docs (DA-01..04):** quickstart hub/spoke retcon, working Postgres sample path, family-sink examples, helm version pin | ✅ |
+| **P0 docs (remaining):** hub ghosts in DEVELOPMENT/ARCHITECTURE + recorded hero GIF assets | ⬜ |
 
 ### v0.7.x — BigQuery + NATS + parallel-export story
 
@@ -82,10 +91,10 @@ not webhook stubs. Plus the coverage ramp and documenting parallel multi-sink ex
 
 | Item | Status |
 | --- | --- |
-| **BigQuery sink** — `KollectDatabaseSink.type: bigquery` (analytics projection): real backend replacing the admission stub, delete reconciliation, partition/clustering keys, Workload-Identity/`secretRef` auth, L3 + sample + CRD docs ([planned-features](roadmap/planned-features.md#bigquery-sink-databasesink-v07x)) | ⬜ |
-| **NATS event sink — first-class** — promote the shipped JetStream emitter (`KollectEventSink.type: nats`) to fully supported: L3 testcontainers, coverage to standard, golden schema, connection-test parity, sample + docs | ⬜ |
-| **Parallel multi-sink export** documented as the differentiator (fan-out diagram, per-sink interval/breaker, partial-success semantics) in ARCHITECTURE + a hero example | ⬜ |
-| **Coverage floor 72 → 75 → 80%** via audit-guided behavior tests (not floor-chasing): `internal/controller` envtest (largest lever), `internal/sink/postgres` + `mongodb` testcontainers, terminal-no-requeue + debounce short-circuit tests | ⬜ |
+| **BigQuery sink** — `KollectDatabaseSink.type: bigquery` (analytics projection): real backend replacing the admission stub, delete reconciliation, partition/clustering keys, Workload-Identity/`secretRef` auth, L3 + sample + CRD docs ([ADR-0420](adr/0420-bigquery-database-sink.md) drafted; implementation in flight) | 🚧 |
+| **NATS event sink — first-class** — promote the shipped JetStream emitter (`KollectEventSink.type: nats`) to fully supported: L3 testcontainers, coverage to standard, golden schema, connection-test parity, sample + docs | 🚧 |
+| **Parallel multi-sink export** documented as the differentiator (fan-out diagram, per-sink interval/breaker, partial-success semantics) in ARCHITECTURE + a hero example (harness landed; recorded GIF + ARCHITECTURE prose ⬜) | 🚧 |
+| **Coverage floor 72 → 75 → 80%** via audit-guided behavior tests (not floor-chasing): `internal/controller` envtest (largest lever), `internal/sink/postgres` + `mongodb` testcontainers (terminal-no-requeue + debounce tests ✅ in Phase 1) | ⬜ |
 | SSRF guard (deny RFC1918/link-local/metadata + `file://` unless `allowPrivateEndpoints`) | ⬜ |
 | Export partitioning design → implementation (AR-01) — the one P0 scale lever | ⬜ |
 
