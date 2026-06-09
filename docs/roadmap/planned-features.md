@@ -9,7 +9,7 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
     Items here are **intent and backlog**, not release promises. Status may change as ADRs land or
     scope is rejected. Pre-beta APIs may shift until the first release candidate.
 
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-09 — UI program **frozen**; **BigQuery** + **NATS** promoted to v0.7.x backends.
 
 ## Status legend
 
@@ -21,38 +21,45 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 | **Deferred** | Accepted but explicitly not on the near-term path (🔮 on roadmap) |
 | **Sample / docs** | Reference implementation or walkthrough, not operator code |
 
-## Read API & UI
+## Read API & UI (frozen)
 
-### Read API contract freeze (v0.5.x)
+!!! warning "The UI program is frozen — maintenance-only"
+    The `ui/` mock SPA and the experimental inventory HTTP API are **frozen**: no active SPA, fleet-
+    console, or Read-API-freeze milestones. The Read API freeze is **deferred** (it only ever served
+    to stabilize the UI contract). The `ui/` subtree and `kollect-ui` chart/image are kept building in
+    CI but may be **removed before v1** if no external adopter materializes. See
+    [ROADMAP § Read API + UI console (frozen)](../ROADMAP.md#read-api-ui-console-frozen).
+
+### Read API contract freeze
 
 | | |
 | --- | --- |
-| **Status** | Planned |
-| **Roadmap** | [Read API + UI console](../ROADMAP.md#read-api-ui-console-planned-adr-0408) · Phase 1 HTTP 🚧 |
-| **Summary** | Harden and **freeze the Read API** as the UI contract: list/filter/search, envelope `schemaVersion`, OpenAPI (`openapi/v1alpha1/inventory.yaml`), and auth parity with [ADR-0404](../adr/0404-inventory-api-auth.md). Planned for **v0.5** band (not v0.1/v0.2). |
+| **Status** | Deferred — only needed for the UI; not gating any tranche |
+| **Roadmap** | [Read API + UI console (frozen)](../ROADMAP.md#read-api-ui-console-frozen) · Phase 1 HTTP 🚧 (experimental, gated off) |
+| **Summary** | Hardening and **freezing the Read API** as a UI contract (list/filter/search, envelope `schemaVersion`, OpenAPI) is **deferred** while the UI is frozen. The durable read surface remains the **sink export** ([FR-READ-1](../REQUIREMENTS.md)), not the live HTTP API. |
 | **Related ADRs** | [ADR-0408](../adr/0408-read-api-ui-architecture.md) · [ADR-0411](../adr/0411-read-api-extensions-for-ui.md) · [ADR-0405](../adr/0405-export-data-contract.md) · [ADR-0103](../adr/0103-etcd-limit.md) |
 
 ---
 
-### Inventory UI — memory adapter (v0.7.x)
+### Inventory UI — mock SPA
 
 | | |
 | --- | --- |
-| **Status** | In progress (early adopter preview on `main`) |
-| **Roadmap** | [Read API + UI console](../ROADMAP.md#read-api-ui-console-planned-adr-0408) |
-| **Summary** | Read-only **SPA** (`ui/`, separate `kollect-ui` image) on the **memory `InventoryReader`** adapter: searchable catalog, export/freshness health, SSE watch — zero extra infra, feature-gated on the operator. **Backend for v0.3.x** shipped sink families ([ADR-0414](../adr/0414-sink-family-crds.md)); UI docs and mock MVP are available for early adopters ahead of the **v0.7** milestone. |
+| **Status** | **Frozen** — maintenance-only (mock MVP on `main`; keep CI green, may remove pre-v1) |
+| **Roadmap** | [Read API + UI console (frozen)](../ROADMAP.md#read-api-ui-console-frozen) |
+| **Summary** | A read-only **mock SPA** (`ui/`, separate `kollect-ui` image): GET-only catalog/inventory/targets/sinks views against an MSW mock and an unfrozen live API. It is **not** a production read path and has no validated external users. No further SPA milestones are planned; effort goes to export/sinks instead. |
 | **Related ADRs** | [ADR-0408](../adr/0408-read-api-ui-architecture.md) · [ADR-0409](../adr/0409-kollect-ui-deployment.md) · [ADR-0410](../adr/0410-ui-engineering-and-quality-gates.md) · [ADR-0412](../adr/0412-mock-read-api-for-ui-development.md) |
 
 ---
 
-### Portal UI — Postgres/Parquet adapter + drift (v0.8.x – v0.9.x)
+### Portal / fleet console — Postgres/Parquet adapter + drift
 
 | | |
 | --- | --- |
-| **Status** | Planned |
-| **Roadmap** | [Read API + UI console](../ROADMAP.md#read-api-ui-console-planned-adr-0408) |
-| **Summary** | **Portal mode** on Postgres/Parquet backing stores: multi-cluster rollup, **attribute drift over time**, poll-based freshness; optional **`kollect-server`** split so the portal does not couple to the controller process. |
-| **Related ADRs** | [ADR-0408](../adr/0408-read-api-ui-architecture.md) · [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0411](../adr/0411-read-api-extensions-for-ui.md) |
+| **Status** | **Exploring** (design only) — frozen, not active v0.x work |
+| **Roadmap** | [Read API + UI console (frozen)](../ROADMAP.md#read-api-ui-console-frozen) |
+| **Summary** | **Portal mode** on Postgres/Parquet backing stores (multi-cluster rollup, attribute drift over time, optional `kollect-server` split) remains a **design-only** read-stream consumer per [ADR-0418](../adr/0418-fleet-console-read-plane.md) — **no hub** ([ADR-0501](../adr/0501-multi-cluster-fleet.md)). Not started; thaws only if the UI program reopens. |
+| **Related ADRs** | [ADR-0418](../adr/0418-fleet-console-read-plane.md) · [ADR-0408](../adr/0408-read-api-ui-architecture.md) · [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0411](../adr/0411-read-api-extensions-for-ui.md) |
 
 ---
 
@@ -113,14 +120,37 @@ phased ⬜ backlog, and items that need a design pass before implementation. For
 
 ---
 
-### BigQuery sink
+### BigQuery sink (DatabaseSink, v0.7.x)
 
 | | |
 | --- | --- |
-| **Status** | Spec needed |
-| **Summary** | **`KollectSink.type: bigquery`** (or equivalent) as a **relational / analytics** projection of the canonical snapshot — batch load or streaming insert of inventory rows for SQL dashboards and fleet analytics. |
-| **Open design** | Role vs Postgres ([ADR-0402](../adr/0402-sink-backends-database-kafka.md)), delete reconciliation strategy, partition/clustering keys, and credential model (Workload Identity vs service account key in `secretRef`). Fits theme **04** numbering when accepted. |
-| **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0402](../adr/0402-sink-backends-database-kafka.md) · [ADR-0406](../adr/0406-sink-registry.md) |
+| **Status** | Planned — **v0.7.x** (maintainer-directed; replaces the current admission stub) |
+| **Summary** | **`KollectDatabaseSink.type: bigquery`** as a **relational / analytics** projection of the canonical snapshot — batch load (or streaming insert) of inventory rows into BigQuery for SQL dashboards and fleet analytics. Shipped as a **real backend with L3 testcontainers/emulator coverage and a sample**, not a webhook stub. |
+| **Scope** | New ADR (theme **04**, e.g. ADR-0420) covering: role vs Postgres ([ADR-0402](../adr/0402-sink-backends-database-kafka.md)); CRD fields (`dataset`, `table`, `partitionField`/`clusteringFields`, `writeMode` load vs streaming); delete reconciliation (truncate-and-load vs MERGE on `(cluster, ns, name, uid)`); credential model (Workload Identity Federation vs service-account JSON key in `secretRef`); connection-test probe ([ADR-0403](../adr/0403-connection-test.md)). Remove `bigquery` from the webhook stub allowlist when the backend lands. |
+| **Tests/samples** | L0 config/validation units, L3 integration (BigQuery emulator or `testcontainers` GCP), golden OpenAPI schema for the new type, `config/samples/` `KollectDatabaseSink` example, CRD reference page. |
+| **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0402](../adr/0402-sink-backends-database-kafka.md) · [ADR-0406](../adr/0406-sink-registry.md) · [ADR-0403](../adr/0403-connection-test.md) |
+
+---
+
+### NATS event sink — first-class hardening (v0.7.x)
+
+| | |
+| --- | --- |
+| **Status** | Planned — **v0.7.x** (promote the shipped JetStream emitter to fully supported) |
+| **Summary** | **`KollectEventSink.type: nats`** already ships a JetStream emitter (`internal/sink/nats/`, envelope publish with content-hash dedupe, TLS, connection probe). The v0.7 work **hardens it to first-class**: deepen L3 testcontainers coverage, raise unit coverage to standard, add a golden OpenAPI schema, document the subject/stream contract, and ship a `config/samples/` `KollectEventSink` example with a consumer walkthrough. |
+| **Scope** | No new CRD shape expected; harden config validation, ensure delete/tombstone semantics match Kafka, document at-least-once + idempotent `MsgID` dedupe, and add the sink to the parallel-export sample. |
+| **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0402](../adr/0402-sink-backends-database-kafka.md) · [ADR-0403](../adr/0403-connection-test.md) · [KollectEventSink](../crds/kollecteventsink.md) |
+
+---
+
+### Parallel multi-sink export (differentiator)
+
+| | |
+| --- | --- |
+| **Status** | Shipped (Phase 1) — to be documented as the headline in v0.7 |
+| **Roadmap** | Phase 1 ✅ · [Near-term tranches](../ROADMAP.md#near-term-tranches-v06-v07) |
+| **Summary** | A single `KollectInventory` fans out to **all** referenced sinks **concurrently** in one debounced pass — the same snapshot reaches Git, a database, and an event stream together, each with its own `exportMinInterval` and per-sink circuit breaker; partial failure degrades to `PartiallySynced`. The remaining work is **docs**: a fan-out diagram and a hero example, not code. |
+| **Related ADRs** | [ADR-0401](../adr/0401-sink-taxonomy-state-vs-stream.md) · [ADR-0413](../adr/0413-export-interval-scheduling.md) |
 
 ---
 

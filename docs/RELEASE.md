@@ -45,12 +45,12 @@ Read API + UI milestones moved to the **v0.5–v0.10** band ([ADR-0408](adr/0408
 | **0.2.x** | Platform / sink families — **rc.1 shipped** |
 | **0.3.x** | Quality, perf, coverage ratchet — **`v0.3.0`** shipped |
 | **0.4.x** | Parquet sink, supply-chain attestations — **`v0.4.0`–`v0.4.1`** shipped |
-| **0.5.x – 0.6.x** | Sink config + export tranche (**`v0.5.0`**) · Read API freeze + UI foundation (⬜) |
-| **0.7.x** | Read-only UI MVP |
-| **0.8.x – 0.9.x** | Portal backend + drift UI |
-| **0.10.0** | **Presentation gate** — demo-ready release |
+| **0.5.x** | Sink config layering + export/git hardening (**`v0.5.0`**) |
+| **0.6.0** | Cut the export tranche on `main` (ADR-0306, ADR-0419, MongoDB, `status.preview`) + audit correctness/security fixes + `ResourceExportMode` wiring (⬜ next target) |
+| **0.7.x** | **BigQuery** + **NATS** sinks (full backends) · parallel-export docs · coverage floor 72 → 75 → 80% |
+| **UI** | **Frozen** — mock SPA maintenance-only; Read API freeze deferred; may remove pre-v1 |
 
-Full ladder: [ROADMAP.md § Read API + UI](ROADMAP.md#read-api-ui-console-planned-adr-0408).
+Full ladder: [ROADMAP.md § Near-term tranches](ROADMAP.md#near-term-tranches-v06-v07).
 
 ## Retroactive version anchors
 
@@ -120,8 +120,8 @@ verify inventory HTTP hash only (degraded mode).
 | --- | --- |
 | **`v0.5.0`** | ✅ Shipped 2026-06-07 — sink config layering ([ADR-0416](adr/0416-sink-config-layering.md)) |
 | On `main` post-tag | ADR-0306 full-resource export, ADR-0419 git layout, MongoDB sink, `status.preview` (Unreleased in changelog) |
-| Next target | **`v0.6.0`** — Read API freeze + UI foundation band |
-| Presentation gate | **`v0.10.0`** — UI MVP + demo + docs |
+| Next target | **`v0.6.0`** — cut the export/layout/MongoDB/preview tranche + audit "Now" fixes + `ResourceExportMode` wiring |
+| After v0.6 | **`v0.7.x`** — BigQuery + NATS sinks, parallel-export docs, coverage → 80% |
 
 ### RC pre-release on GitHub Actions
 

@@ -83,8 +83,9 @@ IDs are stable handles for discussion (`FR-<area>-<n>`).
 | FR-EXP-1 | Aggregate target rows into a per-namespace `KollectInventory` snapshot | [ADR-0201](adr/0201-crd-model.md) |
 | FR-EXP-2 | Coalesce identical exports via `spec.exportMinInterval` (default 30s); material changes bypass | [ADR-0201](adr/0201-crd-model.md), [ADR-0603](adr/0603-performance-scalability.md) |
 | FR-EXP-3 | Deterministic, stable-ordered serialization (diffable Git, golden tests) | [ADR-0103](adr/0103-etcd-limit.md) |
-| FR-EXP-4 | Pluggable sinks by **role**: snapshot store (Git, S3/GCS Parquet, HTTP), relational SoR (Postgres), event emitter (NATS, Kafka) | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md), [ADR-0402](adr/0402-sink-backends-database-kafka.md) |
-| FR-EXP-5 | Resource deletions are reflected in sinks (snapshot stores free; Postgres/Kafka via reconcile) | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md) |
+| FR-EXP-4 | Pluggable sinks by **role**: snapshot store (Git, GitLab, S3, GCS), relational/analytics SoR (Postgres; BigQuery planned), document store (MongoDB), event emitter (Kafka, NATS) | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md), [ADR-0402](adr/0402-sink-backends-database-kafka.md) |
+| FR-EXP-5 | Resource deletions are reflected in sinks (snapshot stores free; Postgres/MongoDB/event sinks via reconcile) | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md) |
+| FR-EXP-9 | A single `KollectInventory` exports to **all** referenced sinks **in parallel** in one debounced pass — each sink with its own `exportMinInterval` and circuit breaker; partial failure degrades to `PartiallySynced`, not full failure | [ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md), [ADR-0413](adr/0413-export-interval-scheduling.md) |
 | FR-EXP-6 | First-class sink connectivity testing (`KollectConnectionTest` CR + sink probe) | [ADR-0403](adr/0403-connection-test.md) |
 | FR-EXP-7 | Custom CA / self-signed TLS trust for Git/GitLab/Postgres sinks (`caSecretRef` / `caBundle`) | [ADR-0201](adr/0201-crd-model.md) |
 | FR-EXP-8 | Git/GitLab sinks default to human-readable **YAML** with zero config; optional `spec.layout` (`document`/`perResource`/`split`), path templates, and auto-prune for per-resource trees | [ADR-0419](adr/0419-git-export-serialization-layout.md), [ADR-0416](adr/0416-sink-config-layering.md), [ADR-0306](adr/0306-full-resource-export-pruning.md) |
@@ -96,7 +97,7 @@ IDs are stable handles for discussion (`FR-<area>-<n>`).
 | FR-READ-1 | Primary scalable read = sink export (SQL/object store/stream), **not** the live API | [ADR-0103](adr/0103-etcd-limit.md) |
 | FR-READ-2 | Optional read-only HTTP inventory API, **feature-gated off by default**, for debug/small installs | [ADR-0103](adr/0103-etcd-limit.md) |
 | FR-READ-3 | When HTTP is enabled, authenticate via Kubernetes TokenReview + SubjectAccessReview | [ADR-0404](adr/0404-inventory-api-auth.md) |
-| FR-READ-4 | Fleet read plane: a standalone read-only console may materialize a **fleet-wide** read model from the shared event stream (golden path) and serve the Read API extended with a `cluster` dimension — never a hub, never kube-apiserver writes, no bus/DB creds in the browser | [ADR-0418](adr/0418-fleet-console-read-plane.md), [ADR-0501](adr/0501-multi-cluster-fleet.md) |
+| FR-READ-4 | Fleet read plane (**frozen — design only**): a standalone read-only console may materialize a **fleet-wide** read model from the shared event stream and serve the Read API extended with a `cluster` dimension — never a hub, never kube-apiserver writes, no bus/DB creds in the browser. The UI program is frozen and the Read API freeze is deferred; see [ROADMAP § Read API + UI console (frozen)](ROADMAP.md#read-api-ui-console-frozen) | [ADR-0418](adr/0418-fleet-console-read-plane.md), [ADR-0501](adr/0501-multi-cluster-fleet.md) |
 
 ### 3.5 Multi-cluster (FR-MC)
 

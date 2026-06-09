@@ -3,8 +3,14 @@
 Phased delivery plan for [Kollect](https://github.com/konih/kollect) — a Kubernetes inventory
 operator that watches arbitrary GVKs, aggregates extracted attributes, and exports to **role-based
 pluggable sinks** — **`KollectSnapshotSink`** (Git, GitLab, S3, GCS), **`KollectDatabaseSink`**
-(Postgres, MongoDB), and **`KollectEventSink`** (Kafka) — with optional HTTP for debug. The
+(Postgres, MongoDB), and **`KollectEventSink`** (Kafka, NATS) — with optional HTTP for debug. The
 in-memory snapshot is canonical; every sink is a projection ([ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md)).
+
+**One inventory, many destinations in parallel.** A single `KollectInventory` fans out to all its
+referenced sinks concurrently — the same snapshot lands in Git, a database, and an event stream in one
+debounced pass, each with its own interval and circuit breaker. That parallel multi-sink projection is
+Kollect's differentiator: declare GVK + CEL once, get a diffable Git inventory **and** a SQL table
+**and** a stream without running three collectors.
 
 **Build order, not releases** — see [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md), ADR-0703 (archived).
 
@@ -16,8 +22,9 @@ in-memory snapshot is canonical; every sink is a projection ([ADR-0401](adr/0401
     Phases describe **implementation order**, not semver milestones. Items may land out of phase
     when dependencies allow; deferred (🔮) items are explicitly not on the near-term path.
 
-**Last updated:** 2026-06-08 (**`v0.5.0`** shipped — sink config + export tranche; Read API freeze still ⬜;
-see [RELEASE.md](RELEASE.md#versioning-policy))
+**Last updated:** 2026-06-09 (**`v0.5.0`** shipped; **next target `v0.6.0`** cuts the export/layout/
+MongoDB/preview tranche already on `main`. The UI program is **frozen** — see
+[Read API + UI console](#read-api-ui-console-frozen). See [RELEASE.md](RELEASE.md#versioning-policy).)
 
 !!! tip "Versioning"
     Semver milestones (0.2 → 0.10) track **release tranches**, not build phases. Phases 0–4 below
@@ -27,7 +34,7 @@ see [RELEASE.md](RELEASE.md#versioning-policy))
 
 **#1 build item.** Full-resource export lets a profile snapshot an entire target object (minus noise)
 instead of hand-authoring every attribute — the foundation for audit/drift snapshots, exploratory
-profiles, and GitOps debugging. It precedes the Fleet UI, Read API freeze, and remaining sink work.
+profiles, and GitOps debugging. It anchors the v0.6 export tranche ahead of the v0.7 sink work.
 
 See [ADR-0306](adr/0306-full-resource-export-pruning.md) — **Accepted; Phase 1 ✅ on `main`**
 (post-**`v0.5.0`** tag — listed under Unreleased in [CHANGELOG.md](../CHANGELOG.md) until next release).
@@ -43,6 +50,50 @@ See [ADR-0306](adr/0306-full-resource-export-pruning.md) — **Accepted; Phase 1
 | Size governance honored — full-object rows count toward `maxExportBytes` ([ADR-0405](adr/0405-export-data-contract.md)) | ✅ |
 | Docs, `config/samples/` (deployment-snapshot, argo-application-snapshot), unit + envtest coverage | ✅ |
 | Phase 2: `prune.cel`, `prune.preset`, jqPathExpressions alias, nested-object metrics, scope-level `allowResourceExport` | ⬜ |
+
+## Near-term tranches — v0.6 → v0.7
+
+The next two minors are **export-and-sink work, not UI**. v0.6 ships the export tranche already on
+`main` plus correctness/security hardening; v0.7 adds two backends (BigQuery, NATS) and the
+parallel-export story. The UI program is frozen for the duration ([below](#read-api-ui-console-frozen)).
+
+### v0.6.0 — cut the export tranche + hardening
+
+ADR-0306 full-resource export, ADR-0419 Git serialization/layout, the MongoDB sink, and the
+`status.preview` surface are merged on `main` but **unreleased**. v0.6.0 ships them, alongside a batch
+of small correctness/security fixes and the doc cleanup that must precede any announcement.
+
+| Item | Status |
+| --- | --- |
+| Cut **`v0.6.0`** (`task changelog:write`, chart `0.5.0 → 0.6.0`, gates green, tag on green `main`) | ⬜ |
+| ADR-0419 **`ResourceExportMode` wiring** — auto-infer `content: manifest` + `perResource` from `export.mode: Resource` (close the profile→sink hint gap) + end-to-end test | ⬜ |
+| Redact credentials from git probe/export errors before status/Events | ⬜ |
+| Terminal finalizer/cleanup errors return `(Result{}, nil)` after Degraded (+ no-requeue test) | ⬜ |
+| Remove stub sink types (`http`, `azureblob`, `bigquery`) from the webhook allowlist or classify as **terminal** (stop endless retries) | ⬜ |
+| Aggregate parallel per-sink export errors instead of last-write-wins | ⬜ |
+| `guardReconcile` on family-sink / connection-test / cluster-target reconcilers | ⬜ |
+| Align coverage gates (Taskfile vs CI), add `/artifacts/` to `.gitignore` | ⬜ |
+| **P0 docs:** finish the hub/spoke doc exorcism (QUICKSTART, DEVELOPMENT, ARCHITECTURE, examples) + a working default sample path (Git-only golden path + push-secret step) before announcing | ⬜ |
+
+### v0.7.x — BigQuery + NATS + parallel-export story
+
+Two new/hardened backends, implemented as **proper backends with L3 testcontainers and samples** —
+not webhook stubs. Plus the coverage ramp and documenting parallel multi-sink export as the headline.
+
+| Item | Status |
+| --- | --- |
+| **BigQuery sink** — `KollectDatabaseSink.type: bigquery` (analytics projection): real backend replacing the admission stub, delete reconciliation, partition/clustering keys, Workload-Identity/`secretRef` auth, L3 + sample + CRD docs ([planned-features](roadmap/planned-features.md#bigquery-sink-databasesink-v07x)) | ⬜ |
+| **NATS event sink — first-class** — promote the shipped JetStream emitter (`KollectEventSink.type: nats`) to fully supported: L3 testcontainers, coverage to standard, golden schema, connection-test parity, sample + docs | ⬜ |
+| **Parallel multi-sink export** documented as the differentiator (fan-out diagram, per-sink interval/breaker, partial-success semantics) in ARCHITECTURE + a hero example | ⬜ |
+| **Coverage floor 72 → 75 → 80%** via audit-guided behavior tests (not floor-chasing): `internal/controller` envtest (largest lever), `internal/sink/postgres` + `mongodb` testcontainers, terminal-no-requeue + debounce short-circuit tests | ⬜ |
+| SSRF guard (deny RFC1918/link-local/metadata + `file://` unless `allowPrivateEndpoints`) | ⬜ |
+| Export partitioning design → implementation (AR-01) — the one P0 scale lever | ⬜ |
+
+!!! note "Why these two backends"
+    BigQuery and NATS are maintainer-directed: BigQuery extends the analytics/SQL wedge beyond
+    Postgres; NATS is already wired as a JetStream emitter and just needs hardening to first-class.
+    Other deferred backends (`azureblob`, `http`) and new cluster CRDs stay frozen until an external
+    adopter asks for them.
 
 ## Status legend
 
@@ -216,7 +267,7 @@ Multi-cluster support must **not** block single-cluster installs. **Fleet model:
 
 | Criterion | Status |
 | --- | --- |
-| Hub ingest → Postgres **and** Kafka parallel export | ✅ |
+| Parallel multi-sink export (one inventory → Postgres **and** Kafka concurrently) | ✅ |
 | `KollectClusterInventory` rollup + export to namespaced sinks | ✅ |
 | `KollectClusterTarget` engine end-to-end | ✅ |
 | `KollectClusterProfile` stub + profileRef resolution | ✅ |
@@ -251,53 +302,30 @@ Multi-cluster support must **not** block single-cluster installs. **Fleet model:
 
 ---
 
-## Read API + UI console (planned — [ADR-0408](adr/0408-read-api-ui-architecture.md))
+## Read API + UI console (frozen)
 
-A read-only web console (searchable inventory catalog, export/freshness health, multi-cluster rollup,
-attribute drift over time) is the priority adoption lever before the **v0.10 presentation gate**. The
-UI depends only on a **versioned Read API** with a **pluggable backing store** (memory → Postgres →
-Parquet), so the same SPA serves a zero-infra console and a scale portal — and never reads the live
-cluster API.
+!!! warning "The UI program is frozen — maintenance-only"
+    Kollect ships a polished **read-only mock SPA** in `ui/` (React, GET-only catalog/inventory/
+    targets/sinks views) and an experimental inventory HTTP API on the operator. Both are **frozen**:
+    no active SPA, fleet-console, or Read-API-freeze milestones are on the near-term roadmap. The UI
+    rides an **unfrozen** Read API and has zero validated external users, so building it further is a
+    second product ahead of demand. **The Read API freeze is deferred** (it was only needed to stabilize
+    the UI contract). The `ui/` subtree and `kollect-ui` chart/image are kept building in CI but may be
+    **removed before v1** if no adopter materializes. Near-term effort goes to export, sinks, and
+    hardening instead — see [Near-term tranches](#near-term-tranches-v06-v07).
 
-!!! note "`v0.5.0` was not the Read API freeze"
-    **`v0.5.0`** shipped **sink config layering** ([ADR-0416](adr/0416-sink-config-layering.md)) plus export/git
-    hardening on `main` post-tag (ADR-0306, ADR-0419, MongoDB). **Read API contract freeze** remains ⬜ —
-    UI milestones stay in the **v0.5–v0.10** band ([RELEASE.md](RELEASE.md#versioning-policy)).
+| Area | Status |
+| --- | --- |
+| `ui/` read-only mock SPA + `kollect-ui` chart/image | Frozen — maintenance-only (keep CI green; may remove pre-v1) |
+| Read API contract freeze (`schemaVersion`, filters, OpenAPI) | Deferred — only needed for the UI; not gating any tranche |
+| Fleet console / multi-cluster read plane ([ADR-0418](adr/0418-fleet-console-read-plane.md)) | **Exploring** (design only) — not active v0.x work |
 
-| Milestone | Item | Status |
-| --- | --- | --- |
-| **v0.5.x** | Harden + freeze the Read API as the UI contract (filters, `schemaVersion`, OpenAPI) | ⬜ |
-| **v0.6.x** | Memory `InventoryReader` adapter + `ui/` scaffold hardening | 🚧 early adopter preview on `main` |
-| **v0.7.x** | Read-only SPA on **memory adapter**: catalog, search/filter, freshness/health | 🚧 mock MVP + docs; production gate |
-| **v0.8.x – v0.9.x** | **Fleet console** portal — read-side fleet server on **Postgres/Parquet**; multi-cluster picker; **drift-over-time**; optional `kollect-server` split | ⬜ [ADR-0418](adr/0418-fleet-console-read-plane.md) |
-| **v0.10.0** | Presentation-ready demo (UI + docs + stable soak) | ⬜ |
-
-### Fleet console (multi-cluster read plane — [ADR-0418](adr/0418-fleet-console-read-plane.md))
-
-In production Kollect is a **fleet**: N single-mode operators fan into a **shared sink**
-([ADR-0501](adr/0501-multi-cluster-fleet.md)), so the thing worth visualizing is the fleet, not one
-operator's in-memory store. The console therefore evolves from a single-cluster view into a
-**read-only fleet console**: a standalone server consumes the existing event stream
-([ADR-0402](adr/0402-sink-backends-database-kafka.md)) — the per-`(cluster, namespace)` inventory
-envelope every cluster already emits — materializes a fleet read model, and serves the **existing Read
-API contract extended with a `cluster` dimension** plus a `/v1alpha1/clusters` roster. It is a pure
-read consumer: **no hub tier** ([ADR-0501](adr/0501-multi-cluster-fleet.md) holds), no kube-apiserver
-writes, and the browser never holds bus or database credentials.
-
-| Item | Status | Notes |
-| --- | --- | --- |
-| `InventoryReader` interface + `memoryFleet` adapter | ⬜ | v0.6 — fulfils [ADR-0408](adr/0408-read-api-ui-architecture.md) OQ-11 |
-| Read-side fleet server (event consumer → fleet read model) | ⬜ | v0.6–v0.7 · [ADR-0418](adr/0418-fleet-console-read-plane.md) |
-| Read API `cluster` dimension + `/v1alpha1/clusters` (additive OpenAPI) | ⬜ | v0.6 · [ADR-0411](adr/0411-read-api-extensions-for-ui.md) |
-| SPA fleet overview + `cluster` column/filter + cluster picker | ⬜ | v0.7 |
-| `postgresFleet` adapter + consume-to-database upsert (history/drift) | ⬜ | v0.8 |
-| Cold-start rehydrate / compacted-topic replay; "rebuilding" banner | ⬜ | v0.8 |
-| Drift-over-time / "what changed" views | ⬜ | v0.9 |
-| `kollect-fleet-server` chart + oauth2-proxy overlay | ⬜ | v0.9 |
-
-**Honors:** [ADR-0501](adr/0501-multi-cluster-fleet.md) (no hub), [FR-READ-1](REQUIREMENTS.md) (read
-model, never the live API), [ADR-0702](adr/0702-doc-sync-templating.md) (single responsibility — useful
-"actions" belong to a separate publisher component, not cluster writes).
+The experimental inventory HTTP API stays feature-gated **off by default** ([ADR-0103](adr/0103-etcd-limit.md),
+[ADR-0404](adr/0404-inventory-api-auth.md)); the durable read surface is the **sink export** (Git, SQL,
+object store, stream), never the live API ([FR-READ-1](REQUIREMENTS.md)). The fleet-console design
+([ADR-0418](adr/0418-fleet-console-read-plane.md)) remains a read-only event-stream consumer — **no hub
+tier** ([ADR-0501](adr/0501-multi-cluster-fleet.md)), no kube-apiserver writes — but is design-only until
+the UI thaws.
 
 ---
 
@@ -310,11 +338,11 @@ Cross-cutting NFRs accepted in [ADR-0603](adr/0603-performance-scalability.md). 
 
 | Target | Value | ADR |
 | --- | --- | --- |
-| Watched objects per spoke (baseline) | **10,000+** | [ADR-0603](adr/0603-performance-scalability.md) |
+| Watched objects per operator (baseline) | **10,000+** | [ADR-0603](adr/0603-performance-scalability.md) |
 | Giant single cluster | 1000+ nodes, 10k+ resources | [ADR-0603](adr/0603-performance-scalability.md) |
-| Hub spoke count | many spokes (see [ADR-0603](adr/0603-performance-scalability.md)) | [ADR-0501](adr/0501-multi-cluster-fleet.md) |
-| Spoke working set (typical profiles) | ≤512 MiB at 10k rows | [ADR-0603](adr/0603-performance-scalability.md) |
-| Hub merge complexity | O(total rows), sharded | [ADR-0501](adr/0501-multi-cluster-fleet.md) |
+| Fleet size (single-mode operators → shared sink) | 100–500+ clusters | [ADR-0501](adr/0501-multi-cluster-fleet.md) |
+| Operator working set (typical profiles) | ≤512 MiB at 10k rows | [ADR-0603](adr/0603-performance-scalability.md) |
+| Shared-sink merge complexity | O(total rows), keyed by `(cluster, ns, name, uid)` | [ADR-0501](adr/0501-multi-cluster-fleet.md) |
 
 ### Developer perf tooling
 
@@ -477,7 +505,7 @@ Full locked table: **[PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md)**.
 | Shared informer per GVK | Accepted ([ADR-0301](adr/0301-event-driven-informers.md)) |
 | Postgres (relational SoR) + Kafka (event emitter) as first-class sinks; in-memory snapshot canonical, sinks are projections | Accepted ([ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md), [ADR-0402](adr/0402-sink-backends-database-kafka.md)) |
 | Doc-sync / `KollectPublication` | Rejected ([ADR-0702](adr/0702-doc-sync-templating.md)) |
-| **Read API + read-only UI console** — versioned API, pluggable backing store (memory→Postgres→Parquet); SPA reads the read model, never live API | Accepted, planned **v0.5–v0.10** ([ADR-0408](adr/0408-read-api-ui-architecture.md)) |
+| **Read API + read-only UI console** — versioned API, pluggable backing store (memory→Postgres→Parquet); SPA reads the read model, never live API | Accepted but **frozen** — mock SPA only; Read API freeze deferred ([ADR-0408](adr/0408-read-api-ui-architecture.md)) |
 | Inventory HTTP auth: **K8s TokenReview + SAR**; `--inventory-auth-mode=kubernetes` default | Accepted |
 | oauth2-proxy: **optional** Helm sidecar for OIDC browsers; not primary auth | Accepted |
 | Git, object storage, and agent mesh documented as alternatives | Accepted |
