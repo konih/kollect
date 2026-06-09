@@ -15,11 +15,14 @@ import (
 func TestItemDocument_UsesInventoryNamespaceFallback(t *testing.T) {
 	t.Parallel()
 
+	scope := exportScope{
+		inventoryNamespace: "team-a",
+		inventoryName:      "apps",
+		cluster:            "prod-a",
+	}
 	ts := time.Date(2026, time.June, 10, 0, 0, 0, 0, time.UTC)
 	doc, err := itemDocument(
-		"team-a",
-		"apps",
-		"prod-a",
+		scope,
 		collect.Item{
 			UID:        "uid-1",
 			TargetName: "deployments",
@@ -50,7 +53,12 @@ func TestItemDocument_UsesInventoryNamespaceFallback(t *testing.T) {
 func TestStaleDeleteFilter_DeleteAllScopeOnly(t *testing.T) {
 	t.Parallel()
 
-	filter, deleteAll := staleDeleteFilter("team-a", "apps", "prod-a", nil)
+	scope := exportScope{
+		inventoryNamespace: "team-a",
+		inventoryName:      "apps",
+		cluster:            "prod-a",
+	}
+	filter, deleteAll := staleDeleteFilter(scope, nil)
 	if !deleteAll {
 		t.Fatal("deleteAll = false, want true")
 	}
@@ -65,11 +73,16 @@ func TestStaleDeleteFilter_DeleteAllScopeOnly(t *testing.T) {
 func TestStaleDeleteFilter_ExcludesCurrentSnapshotItems(t *testing.T) {
 	t.Parallel()
 
+	scope := exportScope{
+		inventoryNamespace: "team-a",
+		inventoryName:      "apps",
+		cluster:            "prod-a",
+	}
 	items := []collect.Item{
 		{TargetName: "deployments", UID: "uid-1"},
 		{TargetName: "pods", UID: "uid-2"},
 	}
-	filter, deleteAll := staleDeleteFilter("team-a", "apps", "prod-a", items)
+	filter, deleteAll := staleDeleteFilter(scope, items)
 	if deleteAll {
 		t.Fatal("deleteAll = true, want false")
 	}
@@ -83,5 +96,25 @@ func TestStaleDeleteFilter_ExcludesCurrentSnapshotItems(t *testing.T) {
 	}
 	if nor[0]["target_name"] != "deployments" || nor[0]["source_uid"] != "uid-1" {
 		t.Fatalf("unexpected first $nor filter: %#v", nor[0])
+	}
+}
+
+func TestNewExportScopeAndUpsertFilter(t *testing.T) {
+	t.Parallel()
+
+	scope := newExportScope("inventory/team-a/apps.json", "prod-a")
+	if scope.inventoryNamespace != "team-a" || scope.inventoryName != "apps" || scope.cluster != "prod-a" {
+		t.Fatalf("scope = %#v", scope)
+	}
+
+	filter := upsertFilter(scope, collect.Item{TargetName: "deployments", UID: "uid-1"})
+	if got := filter["inventory_namespace"]; got != "team-a" {
+		t.Fatalf("inventory_namespace = %v, want team-a", got)
+	}
+	if got := filter["target_name"]; got != "deployments" {
+		t.Fatalf("target_name = %v, want deployments", got)
+	}
+	if got := filter["source_uid"]; got != "uid-1" {
+		t.Fatalf("source_uid = %v, want uid-1", got)
 	}
 }
