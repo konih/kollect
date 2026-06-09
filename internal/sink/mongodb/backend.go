@@ -213,6 +213,20 @@ func deleteStaleDocuments(
 	invNS, invName, cluster string,
 	items []collect.Item,
 ) error {
+	filter, deleteAll := staleDeleteFilter(invNS, invName, cluster, items)
+	_, err := coll.DeleteMany(ctx, filter)
+	if err != nil {
+		if deleteAll {
+			return fmt.Errorf("mongodb delete all: %w", err)
+		}
+
+		return fmt.Errorf("mongodb delete stale: %w", err)
+	}
+
+	return nil
+}
+
+func staleDeleteFilter(invNS, invName, cluster string, items []collect.Item) (bson.M, bool) {
 	filter := bson.M{
 		"inventory_namespace": invNS,
 		"inventory_name":      invName,
@@ -220,12 +234,7 @@ func deleteStaleDocuments(
 	}
 
 	if len(items) == 0 {
-		_, err := coll.DeleteMany(ctx, filter)
-		if err != nil {
-			return fmt.Errorf("mongodb delete all: %w", err)
-		}
-
-		return nil
+		return filter, true
 	}
 
 	orFilters := make([]bson.M, 0, len(items))
@@ -235,14 +244,9 @@ func deleteStaleDocuments(
 			"source_uid":  item.UID,
 		})
 	}
-
 	filter["$nor"] = orFilters
-	_, err := coll.DeleteMany(ctx, filter)
-	if err != nil {
-		return fmt.Errorf("mongodb delete stale: %w", err)
-	}
 
-	return nil
+	return filter, false
 }
 
 func inventoryFromObjectPath(objectPath string) (namespace, name string) {
