@@ -28,6 +28,10 @@ const (
 	AuthModeDisabled = "disabled"
 
 	sarVerbList = "list"
+
+	// SAR resource names for SubjectAccessReview (goconst).
+	sarResourceKollectInventories = "kollectinventories"
+	sarResourceKollectTargets     = "kollecttargets"
 )
 
 // AuthConfig configures inventory HTTP authentication (ADR-0404).
@@ -62,13 +66,13 @@ func requestAuthScope(r *http.Request) (namespace, name, verb, resource string) 
 	path := r.URL.Path
 	switch {
 	case strings.HasPrefix(path, "/v1alpha1/status/targets"):
-		return strings.TrimSpace(r.URL.Query().Get("namespace")), "", sarVerbList, "kollecttargets"
+		return strings.TrimSpace(r.URL.Query().Get("namespace")), "", sarVerbList, sarResourceKollectTargets
 	case strings.HasPrefix(path, "/v1alpha1/status/inventories"):
-		return strings.TrimSpace(r.URL.Query().Get("namespace")), "", sarVerbList, "kollectinventories"
+		return strings.TrimSpace(r.URL.Query().Get("namespace")), "", sarVerbList, sarResourceKollectInventories
 	default:
 		namespace, name, verb = inventoryAuthScope(r)
 
-		return namespace, name, verb, "kollectinventories"
+		return namespace, name, verb, sarResourceKollectInventories
 	}
 }
 
