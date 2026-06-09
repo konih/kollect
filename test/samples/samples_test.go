@@ -103,10 +103,15 @@ func TestSampleSinksValidate(t *testing.T) {
 		t.Fatalf("database sink sample validation failed: %v", errs)
 	}
 
-	var ev kollectdevv1alpha1.KollectEventSink
-	decodeSample(t, filepath.Join(root, "kollect_v1alpha1_kollecteventsink_kafka.yaml"), &ev)
-	if errs := validation.ValidateEventSinkSpec(&ev.Spec); len(errs) > 0 {
-		t.Fatalf("event sink sample validation failed: %v", errs)
+	for _, name := range []string{
+		"kollect_v1alpha1_kollecteventsink_kafka.yaml",
+		"kollect_v1alpha1_kollecteventsink_nats.yaml",
+	} {
+		var ev kollectdevv1alpha1.KollectEventSink
+		decodeSample(t, filepath.Join(root, name), &ev)
+		if errs := validation.ValidateEventSinkSpec(&ev.Spec); len(errs) > 0 {
+			t.Fatalf("%s: validation failed: %v", name, errs)
+		}
 	}
 }
 
@@ -134,6 +139,7 @@ func TestSampleKindsDecode(t *testing.T) {
 		"kollect_v1alpha1_kollectdatabasesink.yaml",
 		"kollect_v1alpha1_kollectsnapshotsink.yaml",
 		"kollect_v1alpha1_kollecteventsink_kafka.yaml",
+		"kollect_v1alpha1_kollecteventsink_nats.yaml",
 		"kollect_v1alpha1_kollectclusterprofile.yaml",
 		"kollect_v1alpha1_kollectclustertarget.yaml",
 		"kollect_v1alpha1_kollectclusterinventory.yaml",
