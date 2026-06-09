@@ -22,8 +22,9 @@ const connectTimeout = 30 * time.Second
 
 // Backend upserts inventory rows into BigQuery.
 type Backend struct {
-	cfg    Config
-	client *bigquery.Client
+	cfg      Config
+	client   *bigquery.Client
+	executor queryExecutor
 }
 
 type mergeRow struct {
@@ -34,6 +35,14 @@ type mergeRow struct {
 	SourceUID          string `bigquery:"source_uid"`
 	ResourceNamespace  string `bigquery:"resource_namespace"`
 	PayloadJSON        string `bigquery:"payload_json"`
+}
+
+type queryExecutor interface {
+	Execute(ctx context.Context, statement string, params []bigquery.QueryParameter, location string) error
+}
+
+type clientQueryExecutor struct {
+	client *bigquery.Client
 }
 
 // NewBackend constructs a bigquery sink backend.
@@ -64,7 +73,11 @@ func NewBackend(
 		return nil, classifyError(fmt.Errorf("bigquery connect: %w", err))
 	}
 
-	b := &Backend{cfg: cfg, client: client}
+	b := &Backend{
+		cfg:      cfg,
+		client:   client,
+		executor: clientQueryExecutor{client: client},
+	}
 
 	// ensureTable runs once when the backend is constructed; pooled backends reuse the same
 	// instance so DDL is not repeated on every export (PERF-02).
@@ -175,7 +188,7 @@ func (b *Backend) ensureTable(ctx context.Context) error {
 
 func (b *Backend) runMergeUpsert(ctx context.Context, rows []mergeRow) error {
 	sourceRows := mergeSourceRowsSQL(rows)
-	query := b.client.Query(fmt.Sprintf(`
+	statement := fmt.Sprintf(`
 MERGE %s AS t
 USING %s AS s
 ON t.inventory_namespace = s.inventory_namespace
@@ -208,25 +221,12 @@ WHEN NOT MATCHED BY TARGET THEN
     PARSE_JSON(s.payload_json),
     @exported_at
   )
-`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows))
-	query.Parameters = []bigquery.QueryParameter{
+`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows)
+	params := []bigquery.QueryParameter{
 		{Name: "exported_at", Value: time.Now().UTC()},
 	}
-	if b.cfg.Location != "" {
-		query.Location = b.cfg.Location
-	}
-
-	job, err := query.Run(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery merge upsert run: %w", err))
-	}
-
-	status, err := job.Wait(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery merge upsert wait: %w", err))
-	}
-	if statusErr := status.Err(); statusErr != nil {
-		return classifyError(fmt.Errorf("bigquery merge upsert status: %w", statusErr))
+	if err := b.executeQuery(ctx, statement, params); err != nil {
+		return classifyError(fmt.Errorf("bigquery merge upsert: %w", err))
 	}
 
 	return nil
@@ -238,7 +238,7 @@ func (b *Backend) runDeleteStale(
 	rows []mergeRow,
 ) error {
 	sourceRows := mergeSourceRowsSQL(rows)
-	query := b.client.Query(fmt.Sprintf(`
+	statement := fmt.Sprintf(`
 DELETE FROM %s AS t
 WHERE t.inventory_namespace = @inv_ns
   AND t.inventory_name = @inv_name
@@ -248,59 +248,33 @@ WHERE t.inventory_namespace = @inv_ns
     WHERE s.target_name = t.target_name
       AND s.source_uid = t.source_uid
   )
-`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows))
-	query.Parameters = []bigquery.QueryParameter{
+`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows)
+	params := []bigquery.QueryParameter{
 		{Name: "inv_ns", Value: invNS},
 		{Name: "inv_name", Value: invName},
 		{Name: "cluster", Value: cluster},
 	}
-	if b.cfg.Location != "" {
-		query.Location = b.cfg.Location
-	}
-
-	job, err := query.Run(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery delete stale run: %w", err))
-	}
-
-	status, err := job.Wait(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery delete stale wait: %w", err))
-	}
-	if statusErr := status.Err(); statusErr != nil {
-		return classifyError(fmt.Errorf("bigquery delete stale status: %w", statusErr))
+	if err := b.executeQuery(ctx, statement, params); err != nil {
+		return classifyError(fmt.Errorf("bigquery delete stale: %w", err))
 	}
 
 	return nil
 }
 
 func (b *Backend) runDeleteAll(ctx context.Context, invNS, invName, cluster string) error {
-	query := b.client.Query(fmt.Sprintf(`
+	statement := fmt.Sprintf(`
 DELETE FROM %s
 WHERE inventory_namespace = @inv_ns
   AND inventory_name = @inv_name
   AND cluster = @cluster
-`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table)))
-	query.Parameters = []bigquery.QueryParameter{
+`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table))
+	params := []bigquery.QueryParameter{
 		{Name: "inv_ns", Value: invNS},
 		{Name: "inv_name", Value: invName},
 		{Name: "cluster", Value: cluster},
 	}
-	if b.cfg.Location != "" {
-		query.Location = b.cfg.Location
-	}
-
-	job, err := query.Run(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery delete run: %w", err))
-	}
-
-	status, err := job.Wait(ctx)
-	if err != nil {
-		return classifyError(fmt.Errorf("bigquery delete wait: %w", err))
-	}
-	if statusErr := status.Err(); statusErr != nil {
-		return classifyError(fmt.Errorf("bigquery delete status: %w", statusErr))
+	if err := b.executeQuery(ctx, statement, params); err != nil {
+		return classifyError(fmt.Errorf("bigquery delete: %w", err))
 	}
 
 	return nil
@@ -391,7 +365,7 @@ func (b *Backend) runEmulatorReplace(
 	}
 
 	sourceRows := mergeSourceRowsSQL(rows)
-	query := b.client.Query(fmt.Sprintf(`
+	statement := fmt.Sprintf(`
 INSERT INTO %s (
   inventory_namespace,
   inventory_name,
@@ -412,25 +386,49 @@ SELECT
   PARSE_JSON(s.payload_json),
   @exported_at
 FROM %s AS s
-`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows))
-	query.Parameters = []bigquery.QueryParameter{
+`, qualifiedTable(b.cfg.Project, b.cfg.Dataset, b.cfg.Table), sourceRows)
+	params := []bigquery.QueryParameter{
 		{Name: "exported_at", Value: time.Now().UTC()},
 	}
-	if b.cfg.Location != "" {
-		query.Location = b.cfg.Location
+	if err := b.executeQuery(ctx, statement, params); err != nil {
+		return classifyError(fmt.Errorf("bigquery emulator insert: %w", err))
+	}
+
+	return nil
+}
+
+func (b *Backend) executeQuery(ctx context.Context, statement string, params []bigquery.QueryParameter) error {
+	executor := b.executor
+	if executor == nil {
+		executor = clientQueryExecutor{client: b.client}
+	}
+
+	return executor.Execute(ctx, statement, params, b.cfg.Location)
+}
+
+func (e clientQueryExecutor) Execute(
+	ctx context.Context,
+	statement string,
+	params []bigquery.QueryParameter,
+	location string,
+) error {
+	query := e.client.Query(statement)
+	query.Parameters = params
+	if location != "" {
+		query.Location = location
 	}
 
 	job, err := query.Run(ctx)
 	if err != nil {
-		return classifyError(fmt.Errorf("bigquery emulator insert run: %w", err))
+		return fmt.Errorf("run: %w", err)
 	}
 
 	status, err := job.Wait(ctx)
 	if err != nil {
-		return classifyError(fmt.Errorf("bigquery emulator insert wait: %w", err))
+		return fmt.Errorf("wait: %w", err)
 	}
 	if statusErr := status.Err(); statusErr != nil {
-		return classifyError(fmt.Errorf("bigquery emulator insert status: %w", statusErr))
+		return fmt.Errorf("status: %w", statusErr)
 	}
 
 	return nil
