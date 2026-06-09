@@ -4,6 +4,8 @@
 package controller
 
 import (
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollecterrors "github.com/konih/kollect/internal/errors"
 	"github.com/konih/kollect/internal/validation"
 )
 
@@ -156,5 +159,68 @@ func TestPerSinkCoalesceTracker_shouldSkip_zeroIntervalAfterRecord(t *testing.T)
 	tracker.record(invKey, sinkName, 1, "hash", now)
 	if !tracker.shouldSkip(invKey, sinkName, 1, "hash", 0, now) {
 		t.Fatal("material-change-only cadence should skip identical payload")
+	}
+}
+
+// EC-P1-06: per-sink failures must aggregate instead of last-write-wins.
+func TestPerSinkExportOutcome_addSinkFailure_aggregates(t *testing.T) {
+	t.Parallel()
+
+	var outcome perSinkExportOutcome
+	outcome.addSinkFailure("snapshot/git-main", kollecterrors.Terminal(errors.New("repo not found")))
+	outcome.addSinkFailure("database/pg-demo", kollecterrors.Transient(errors.New("connection refused")))
+
+	if outcome.FailedCount != 2 {
+		t.Fatalf("FailedCount = %d, want 2", outcome.FailedCount)
+	}
+	if outcome.FailedSink != "snapshot/git-main,database/pg-demo" {
+		t.Fatalf("FailedSink = %q, want both failed sink keys", outcome.FailedSink)
+	}
+
+	msg := outcome.ExportErr.Error()
+	if !strings.Contains(msg, "repo not found") || !strings.Contains(msg, "connection refused") {
+		t.Fatalf("ExportErr = %q, want all component failure messages", msg)
+	}
+}
+
+func TestAggregateExportErrs_allTerminalIsTerminal(t *testing.T) {
+	t.Parallel()
+
+	err := aggregateExportErrs([]error{
+		kollecterrors.Terminal(errors.New("bucket missing")),
+		kollecterrors.Terminal(errors.New("bad credentials secret")),
+	})
+	if !kollecterrors.IsTerminal(err) {
+		t.Fatalf("ClassOf = %q, want terminal when all components are terminal", kollecterrors.ClassOf(err))
+	}
+}
+
+func TestAggregateExportErrs_mixedIsTransient(t *testing.T) {
+	t.Parallel()
+
+	// Terminal first: errors.As DFS order would pick the terminal class if the
+	// aggregate were not explicitly re-classified.
+	err := aggregateExportErrs([]error{
+		kollecterrors.Terminal(errors.New("bucket missing")),
+		kollecterrors.Transient(errors.New("connection refused")),
+	})
+	if kollecterrors.IsTerminal(err) {
+		t.Fatal("mixed aggregate classified terminal, want transient so retry still happens")
+	}
+	if !kollecterrors.IsTransient(err) {
+		t.Fatalf("ClassOf = %q, want transient", kollecterrors.ClassOf(err))
+	}
+}
+
+func TestAggregateExportErrs_singleKeepsClass(t *testing.T) {
+	t.Parallel()
+
+	terminal := kollecterrors.Terminal(errors.New("schema invalid"))
+	if got := aggregateExportErrs([]error{terminal}); !kollecterrors.IsTerminal(got) {
+		t.Fatalf("single terminal aggregate ClassOf = %q, want terminal", kollecterrors.ClassOf(got))
+	}
+
+	if got := aggregateExportErrs(nil); got != nil {
+		t.Fatalf("empty aggregate = %v, want nil", got)
 	}
 }

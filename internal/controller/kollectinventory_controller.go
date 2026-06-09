@@ -227,9 +227,7 @@ func (r *KollectInventoryReconciler) exportToSinks(
 		status := upsertSinkExportStatus(&outcome.SinkExports, exportKey)
 		if err != nil {
 			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, err.Error())
-			outcome.FailedCount++
-			outcome.ExportErr = err
-			outcome.FailedSink = exportKey
+			outcome.addSinkFailure(exportKey, err)
 			continue
 		}
 
@@ -297,9 +295,7 @@ func (r *KollectInventoryReconciler) exportToSinks(
 			exportKey := sinkExportKey(job.binding)
 			if err != nil {
 				log.Error(err, "export failed", "sink", exportKey)
-				outcome.FailedCount++
-				outcome.ExportErr = err
-				outcome.FailedSink = exportKey
+				outcome.addSinkFailure(exportKey, err)
 				setSinkExportSynced(job.status, inv.Generation, false, reasonExportFailed, err.Error())
 
 				return
