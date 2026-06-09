@@ -387,8 +387,6 @@ spec:
                 - gitlab
                 - s3
                 - gcs
-                - azureblob
-                - http
                 type: string
             required:
             - type

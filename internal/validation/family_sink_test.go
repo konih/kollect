@@ -82,23 +82,29 @@ func TestValidateSnapshotSinkSpec_s3AcceptsObjectStore(t *testing.T) {
 	}
 }
 
-func TestValidateSnapshotSinkSpec_httpRequiresBlock(t *testing.T) {
+func TestValidateSnapshotSinkSpec_rejectsStubTypes(t *testing.T) {
 	t.Parallel()
 
-	errs := ValidateSnapshotSinkSpec(&kollectdevv1alpha1.KollectSnapshotSinkSpec{
-		Type: kollectdevv1alpha1.SnapshotSinkTypeHTTP,
-	})
-	if len(errs) == 0 {
-		t.Fatal("expected http block required")
-	}
-
-	errs = ValidateSnapshotSinkSpec(&kollectdevv1alpha1.KollectSnapshotSinkSpec{
-		Type: kollectdevv1alpha1.SnapshotSinkTypeHTTP,
-		HTTP: &kollectdevv1alpha1.HTTPSinkSpec{Method: "POST"},
-		Git:  &kollectdevv1alpha1.GitSpec{},
-	})
-	if len(errs) == 0 {
-		t.Fatal("expected forbidden git block for http type")
+	// http and azureblob were ADR-0414 stubs without a backend; admission must reject
+	// them with an actionable "supported values" message instead of admitting CRs that
+	// can never export (EC-P1-04).
+	for _, sinkType := range []string{
+		kollectdevv1alpha1.SnapshotSinkTypeHTTP,
+		kollectdevv1alpha1.SnapshotSinkTypeAzureBlob,
+	} {
+		errs := ValidateSnapshotSinkSpec(&kollectdevv1alpha1.KollectSnapshotSinkSpec{
+			Type: sinkType,
+			HTTP: &kollectdevv1alpha1.HTTPSinkSpec{Method: "POST"},
+		})
+		if len(errs) != 1 {
+			t.Fatalf("type %s: expected exactly one unsupported-type error, got %v", sinkType, errs)
+		}
+		if errs[0].Type != field.ErrorTypeNotSupported {
+			t.Fatalf("type %s: error type = %s, want NotSupported: %v", sinkType, errs[0].Type, errs[0])
+		}
+		if !strings.Contains(errs[0].Error(), kollectdevv1alpha1.SnapshotSinkTypeGit) {
+			t.Fatalf("type %s: error should list supported values: %v", sinkType, errs[0])
+		}
 	}
 }
 
@@ -113,14 +119,24 @@ func TestValidateDatabaseSinkSpec_postgresRequiresBlock(t *testing.T) {
 	}
 }
 
-func TestValidateDatabaseSinkSpec_bigQueryRequiresBlock(t *testing.T) {
+func TestValidateDatabaseSinkSpec_rejectsBigQueryStubType(t *testing.T) {
 	t.Parallel()
 
+	// bigquery re-enters the allowlist only together with a real backend (EC-P1-04).
 	errs := ValidateDatabaseSinkSpec(&kollectdevv1alpha1.KollectDatabaseSinkSpec{
 		Type: kollectdevv1alpha1.DatabaseSinkTypeBigQuery,
+		BigQuery: &kollectdevv1alpha1.BigQuerySpec{
+			Dataset: "analytics",
+		},
 	})
-	if len(errs) == 0 {
-		t.Fatal("expected bigquery block required")
+	if len(errs) != 1 {
+		t.Fatalf("expected exactly one unsupported-type error, got %v", errs)
+	}
+	if errs[0].Type != field.ErrorTypeNotSupported {
+		t.Fatalf("error type = %s, want NotSupported: %v", errs[0].Type, errs[0])
+	}
+	if !strings.Contains(errs[0].Error(), kollectdevv1alpha1.DatabaseSinkTypePostgres) {
+		t.Fatalf("error should list supported values: %v", errs[0])
 	}
 }
 
@@ -273,20 +289,6 @@ func TestValidateSnapshotSinkSpec_invalidPathTemplate(t *testing.T) {
 	})
 	if len(errs) == 0 {
 		t.Fatal("expected pathTemplate error")
-	}
-}
-
-func TestValidateDatabaseSinkSpec_bigQueryAcceptsBlock(t *testing.T) {
-	t.Parallel()
-
-	errs := ValidateDatabaseSinkSpec(&kollectdevv1alpha1.KollectDatabaseSinkSpec{
-		Type: kollectdevv1alpha1.DatabaseSinkTypeBigQuery,
-		BigQuery: &kollectdevv1alpha1.BigQuerySpec{
-			Dataset: "analytics",
-		},
-	})
-	if len(errs) != 0 {
-		t.Fatalf("unexpected errors: %v", errs)
 	}
 }
 

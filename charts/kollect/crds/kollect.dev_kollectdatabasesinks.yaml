@@ -297,7 +297,6 @@ spec:
                 description: type selects the database backend implementation.
                 enum:
                 - postgres
-                - bigquery
                 - mongodb
                 type: string
             required:

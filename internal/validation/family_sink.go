@@ -13,14 +13,14 @@ import (
 )
 
 var (
+	// http, azureblob, and bigquery are intentionally absent: ADR-0414 stubs were removed
+	// (EC-P1-04) and each type only re-enters the allowlist together with a real backend.
 	validSnapshotSinkTypes = []string{
 		kollectdevv1alpha1.SnapshotSinkTypeGit, kollectdevv1alpha1.SnapshotSinkTypeGitLab,
 		kollectdevv1alpha1.SnapshotSinkTypeS3, kollectdevv1alpha1.SnapshotSinkTypeGCS,
-		kollectdevv1alpha1.SnapshotSinkTypeAzureBlob, kollectdevv1alpha1.SnapshotSinkTypeHTTP,
 	}
 	validDatabaseSinkTypes = []string{
-		kollectdevv1alpha1.DatabaseSinkTypePostgres, kollectdevv1alpha1.DatabaseSinkTypeBigQuery,
-		kollectdevv1alpha1.DatabaseSinkTypeMongoDB,
+		kollectdevv1alpha1.DatabaseSinkTypePostgres, kollectdevv1alpha1.DatabaseSinkTypeMongoDB,
 	}
 	validEventSinkTypes = []string{kollectdevv1alpha1.EventSinkTypeNats, kollectdevv1alpha1.EventSinkTypeKafka}
 )
@@ -51,12 +51,8 @@ func ValidateSnapshotSinkSpec(spec *kollectdevv1alpha1.KollectSnapshotSinkSpec) 
 	case kollectdevv1alpha1.SnapshotSinkTypeGitLab:
 		allErrs = append(allErrs, forbidBlocks(snapshotForbiddenWhenGitLab(spec))...)
 		allErrs = append(allErrs, ValidateLayoutSpec(spec.Layout, layoutPath)...)
-	case kollectdevv1alpha1.SnapshotSinkTypeS3, kollectdevv1alpha1.SnapshotSinkTypeGCS, kollectdevv1alpha1.SnapshotSinkTypeAzureBlob:
+	case kollectdevv1alpha1.SnapshotSinkTypeS3, kollectdevv1alpha1.SnapshotSinkTypeGCS:
 		allErrs = append(allErrs, forbidBlocks(snapshotForbiddenWhenObjectStore(spec))...)
-		allErrs = append(allErrs, forbidLayout(spec.Layout, layoutPath)...)
-	case kollectdevv1alpha1.SnapshotSinkTypeHTTP:
-		allErrs = append(allErrs, requireBlock(spec.HTTP, field.NewPath("spec").Child("http"), "required when type is http")...)
-		allErrs = append(allErrs, forbidBlocks(snapshotForbiddenWhenHTTP(spec))...)
 		allErrs = append(allErrs, forbidLayout(spec.Layout, layoutPath)...)
 	}
 	return allErrs
@@ -86,12 +82,6 @@ func ValidateDatabaseSinkSpec(spec *kollectdevv1alpha1.KollectDatabaseSinkSpec) 
 		allErrs = append(allErrs, requireBlock(spec.Postgres, field.NewPath("spec").Child("postgres"), "required when type is postgres")...)
 		allErrs = append(allErrs, forbidBlocks([]forbiddenBlock{
 			{field.NewPath("spec").Child("bigquery"), spec.BigQuery != nil},
-			{field.NewPath("spec").Child("mongodb"), spec.MongoDB != nil},
-		})...)
-	case kollectdevv1alpha1.DatabaseSinkTypeBigQuery:
-		allErrs = append(allErrs, requireBlock(spec.BigQuery, field.NewPath("spec").Child("bigquery"), "required when type is bigquery")...)
-		allErrs = append(allErrs, forbidBlocks([]forbiddenBlock{
-			{field.NewPath("spec").Child("postgres"), spec.Postgres != nil},
 			{field.NewPath("spec").Child("mongodb"), spec.MongoDB != nil},
 		})...)
 	case kollectdevv1alpha1.DatabaseSinkTypeMongoDB:
@@ -199,14 +189,6 @@ func snapshotForbiddenWhenObjectStore(spec *kollectdevv1alpha1.KollectSnapshotSi
 		{field.NewPath("spec").Child("git"), spec.Git != nil},
 		{field.NewPath("spec").Child("gitlab"), spec.GitLab != nil},
 		{field.NewPath("spec").Child("http"), spec.HTTP != nil},
-	}
-}
-
-func snapshotForbiddenWhenHTTP(spec *kollectdevv1alpha1.KollectSnapshotSinkSpec) []forbiddenBlock {
-	return []forbiddenBlock{
-		{field.NewPath("spec").Child("git"), spec.Git != nil},
-		{field.NewPath("spec").Child("gitlab"), spec.GitLab != nil},
-		{field.NewPath("spec").Child("objectStore"), spec.ObjectStore != nil},
 	}
 }
 
