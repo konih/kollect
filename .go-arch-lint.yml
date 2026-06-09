@@ -75,7 +75,6 @@ components:
       - internal/httpauth/**
       - internal/pathvalidate/**
       - internal/operator/**
-      - internal/pprof/**
       - internal/integrationtest/**
 
 commonComponents:

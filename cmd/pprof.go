@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Konrad Heimel
 
-package pprof
+package main
 
 import (
 	"context"
@@ -14,18 +14,18 @@ import (
 	_ "net/http/pprof"
 )
 
-const defaultAddr = ":6060"
+const defaultPprofAddr = ":6060"
 
-// Server exposes Go pprof endpoints on a dedicated listen address (ADR-0603).
-type Server struct {
+// pprofServer exposes Go pprof endpoints on a dedicated listen address (ADR-0603).
+type pprofServer struct {
 	Addr string
 }
 
 // Start implements manager.Runnable.
-func (s *Server) Start(ctx context.Context) error {
+func (s *pprofServer) Start(ctx context.Context) error {
 	addr := s.Addr
 	if addr == "" {
-		addr = defaultAddr
+		addr = defaultPprofAddr
 	}
 
 	srv := &http.Server{
@@ -49,6 +49,6 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 // NeedLeaderElection returns false so profiling is available on any replica when enabled.
-func (s *Server) NeedLeaderElection() bool {
+func (s *pprofServer) NeedLeaderElection() bool {
 	return false
 }

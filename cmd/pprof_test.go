@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Konrad Heimel
 
-package pprof
+package main
 
 import (
 	"context"
@@ -46,22 +46,22 @@ func waitForHTTP(t *testing.T, url string) {
 	t.Fatalf("server at %s did not become ready", url)
 }
 
-func TestServerNeedLeaderElection(t *testing.T) {
+func TestPprofServerNeedLeaderElection(t *testing.T) {
 	t.Parallel()
 
-	if (&Server{}).NeedLeaderElection() {
+	if (&pprofServer{}).NeedLeaderElection() {
 		t.Fatal("pprof server must not require leader election")
 	}
 }
 
-func TestServerStartShutdown(t *testing.T) {
+func TestPprofServerStartShutdown(t *testing.T) {
 	port := freeTCPPort(t)
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)
 	go func() {
-		errCh <- (&Server{Addr: addr}).Start(ctx)
+		errCh <- (&pprofServer{Addr: addr}).Start(ctx)
 	}()
 
 	waitForHTTP(t, fmt.Sprintf("http://%s/debug/pprof/", addr))
@@ -78,8 +78,8 @@ func TestServerStartShutdown(t *testing.T) {
 	}
 }
 
-func TestServerStartDefaultAddrWhenTaken(t *testing.T) {
-	holder, err := net.Listen("tcp", defaultAddr)
+func TestPprofServerStartDefaultAddrWhenTaken(t *testing.T) {
+	holder, err := net.Listen("tcp", defaultPprofAddr)
 	if err != nil {
 		t.Skip("cannot bind default pprof address for conflict test")
 	}
@@ -88,19 +88,19 @@ func TestServerStartDefaultAddrWhenTaken(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	if err := (&Server{Addr: ""}).Start(ctx); err == nil {
+	if err := (&pprofServer{Addr: ""}).Start(ctx); err == nil {
 		t.Fatal("expected error when default address is unavailable")
 	}
 }
 
-func TestServerStartListenError(t *testing.T) {
+func TestPprofServerStartListenError(t *testing.T) {
 	port := freeTCPPort(t)
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 
 	ctx1, cancel1 := context.WithCancel(context.Background())
 	errCh := make(chan error, 1)
 	go func() {
-		errCh <- (&Server{Addr: addr}).Start(ctx1)
+		errCh <- (&pprofServer{Addr: addr}).Start(ctx1)
 	}()
 
 	waitForHTTP(t, fmt.Sprintf("http://%s/debug/pprof/", addr))
@@ -108,7 +108,7 @@ func TestServerStartListenError(t *testing.T) {
 	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second)
 	defer cancel2()
 
-	if err := (&Server{Addr: addr}).Start(ctx2); err == nil {
+	if err := (&pprofServer{Addr: addr}).Start(ctx2); err == nil {
 		t.Fatal("expected error when address is already bound")
 	}
 
