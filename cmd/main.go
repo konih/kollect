@@ -31,7 +31,6 @@ import (
 	"github.com/konih/kollect/internal/inventory"
 	"github.com/konih/kollect/internal/metrics"
 	"github.com/konih/kollect/internal/operator"
-	"github.com/konih/kollect/internal/pprof"
 	"github.com/konih/kollect/internal/sink"
 	"github.com/konih/kollect/internal/validation"
 	webhookv1alpha1 "github.com/konih/kollect/internal/webhook/v1alpha1"
@@ -397,7 +396,7 @@ func main() {
 	}
 	metrics.Register()
 	if enablePprof {
-		if err := mgr.Add(&pprof.Server{Addr: pprofAddr}); err != nil {
+		if err := mgr.Add(&pprofServer{Addr: pprofAddr}); err != nil {
 			setupLog.Error(err, "Failed to add pprof server")
 			os.Exit(1)
 		}
