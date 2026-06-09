@@ -11,6 +11,12 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
+- **controller:** Panic-guard family-sink, connection-test, cluster-target reconcilers [95f2cae](https://github.com/konih/kollect/commit/95f2cae91e0055a269cc0ddfd3d59ee0aad583ed)
+
+- **controller:** Aggregate per-sink export errors [61d28d4](https://github.com/konih/kollect/commit/61d28d44b671029c97f441afe00fa23750cbe16c)
+
+- **controller:** Stop requeue on terminal finalizer cleanup [439e5dd](https://github.com/konih/kollect/commit/439e5dd0e8cd5855b89a9ac4e81011fa3306b30c)
+
 - **api:** [**breaking**] Reject stub sink types at admission [2ebc8df](https://github.com/konih/kollect/commit/2ebc8df3a0cd904136e45dbf2d599801bea214fa)
 
 - **sink:** Remove stub backends, make unknown sink type terminal [f39d19c](https://github.com/konih/kollect/commit/f39d19c6846bf2afe4d2b5bfe25f9cc61e48f23d)
@@ -38,6 +44,10 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 
 ### Refactoring
+
+- **inventory:** Fold internal/httpauth into inventory [f89e2cd](https://github.com/konih/kollect/commit/f89e2cdb4955c8aaa2ab307f2137aa24d29b091c)
+
+- **cmd:** Fold internal/pprof into cmd [8a3004f](https://github.com/konih/kollect/commit/8a3004fd6d2ed38916cc27b3a8ad8801e9a16469)
 
 - **validation:** Decouple layout path checks from sink package [a558394](https://github.com/konih/kollect/commit/a558394204f2425a1ce27c5be8a5dfa47660827f)
 
