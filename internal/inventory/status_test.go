@@ -158,7 +158,7 @@ func TestRequestAuthScope_statusPaths(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/v1alpha1/status/inventories?namespace=team-a", nil)
 	ns, name, verb, resource := requestAuthScope(req)
-	if ns != "team-a" || name != "" || verb != "list" || resource != "kollectinventories" {
+	if ns != "team-a" || name != "" || verb != "list" || resource != sarResourceKollectInventories {
 		t.Fatalf("scope = (%q,%q,%q,%q)", ns, name, verb, resource)
 	}
 }
