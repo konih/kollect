@@ -150,20 +150,5 @@ var _ = Describe("KollectInventory Controller", func() {
 			Expect(synced.Status).To(Equal(metav1.ConditionTrue))
 			Expect(updated.Status.SinkExports).To(HaveLen(1))
 		})
-
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &KollectInventoryReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
-
-			_, err := controllerReconciler.Reconcile(reconcileCtx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
-		})
 	})
 })
