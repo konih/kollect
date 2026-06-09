@@ -82,7 +82,8 @@ hero demo harness (`hack/demo/hero/`, `config/samples/demo/`, [DEMO-GIF-GUIDE](D
 | `guardReconcile` on family-sink / connection-test / cluster-target reconcilers (EC-P2-02) | ✅ |
 | Align coverage gates (Taskfile vs CI at 72), add `/artifacts/` to `.gitignore` | ✅ |
 | **P0 docs (DA-01..04):** quickstart hub/spoke retcon, working Postgres sample path, family-sink examples, helm version pin | ✅ |
-| **P0 docs (remaining):** hub ghosts in DEVELOPMENT/ARCHITECTURE + recorded hero GIF assets | ⬜ |
+| **P0 docs (DA-05..08):** ROADMAP retcon, DEVELOPMENT/ARCHITECTURE hub ghosts, NATS/Kafka examples, metrics nav | ✅ |
+| Recorded hero GIF assets (D1 maintainer) | ⬜ |
 
 ### v0.7.x — BigQuery + NATS + parallel-export story
 
@@ -149,7 +150,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), [REQUIREMENTS.md](REQUIREMENTS.md),
 | --- | --- |
 | Kubebuilder v4 project scaffold | ✅ |
 | MIT license | ✅ |
-| CRDs: `KollectProfile`, `KollectSink`, `KollectTarget`, `KollectInventory` | ✅ |
+| CRDs: `KollectProfile`, family sinks (`KollectSnapshotSink`, `KollectDatabaseSink`, `KollectEventSink`), `KollectTarget`, `KollectInventory` | ✅ |
 | Taskfile, verify gate, golangci-lint, pre-commit, gitleaks | ✅ |
 | CI: preflight, verify, lint, test, build, container image | ✅ |
 | Helm chart (`charts/kollect/`) | ✅ |
@@ -411,7 +412,6 @@ Cross-cutting NFRs accepted in [ADR-0603](adr/0603-performance-scalability.md). 
 
 ## Resolved questions
 
-- ✅ **Hub ingest SAR shape** — `create` on `kollectremoteclusters` locked (ADR-0503 (archived))
 - ✅ **SinkReachable** on Inventory/Target — implemented with `Synced` export conditions ([ADR-0403](adr/0403-connection-test.md))
 
 See [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md) for locked vs still-open items.
@@ -436,16 +436,18 @@ namespace scope where appropriate.
 Migration: re-apply profile manifests into each team namespace (or use GitOps templating). Remove
 cluster-scoped profile objects before upgrade.
 
-### Namespaced `KollectSink` (2026-06-05)
+### Sink family CRDs — `KollectSink` removed (2026-06-05, ADR-0414)
 
-`KollectSink` is **namespaced** (breaking — was cluster-scoped). Each `KollectInventory.spec.sinkRefs`
-entry resolves a sink in the **same namespace** as the Inventory. Cross-namespace sink refs are
-forbidden (webhook rejects `namespace/name`). Platform-shared backends are reserved for
-`KollectClusterSink` (not yet implemented).
+The monolithic **`KollectSink`** CRD was **removed** and replaced by three family kinds:
+`KollectSnapshotSink`, `KollectDatabaseSink`, and `KollectEventSink`. Each
+`KollectInventory` references sinks via **`snapshotSinkRefs`**, **`databaseSinkRefs`**, and
+**`eventSinkRefs`** (not a single `sinkRefs` list). Refs resolve in the **same namespace** as the
+inventory; cross-namespace refs are rejected at admission. Platform-shared backends use
+`KollectCluster*Sink` kinds ([ADR-0414](adr/0414-sink-family-crds.md)).
 
-Migration: re-apply sink manifests into each team namespace alongside profiles and inventories.
-Remove cluster-scoped sink objects before upgrade. Update `KollectScope.spec.sinkRefs` allowlists
-to names in the scope namespace.
+Migration: split each legacy `KollectSink` manifest into the matching family kind; rewrite inventory
+`sinkRefs` into the three family ref lists. Update `KollectScope` allowlists to
+`snapshotSinkRefs` / `databaseSinkRefs` / `eventSinkRefs`.
 
 ## GitLab sink — merge request workflow
 
@@ -488,11 +490,11 @@ Full locked table: **[PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md)**.
 | Decision | Status |
 | --- | --- |
 | Single-cluster MVP is the default install | Accepted |
-| Namespaced inventory is the hub input contract | Accepted |
+| Namespaced inventory is the primary rollup contract | Accepted |
 | **`KollectProfile` namespaced**; `KollectClusterProfile` reserved | Accepted ([ADR-0204](adr/0204-namespaced-profiles.md)) |
 | **`KollectScope` Phase 1** — webhook + reconciler enforcement | Accepted ([ADR-0203](adr/0203-namespaced-multi-tenancy.md)) |
-| **No `KollectHub` CRD** — Helm `mode: hub\|spoke` | Accepted (ADR-0703 (archived)) |
-| **Namespaced `KollectSink`**; `KollectClusterSink` reserved | Accepted (ADR-0703 (archived)) |
+| **No `KollectHub` CRD** — single-mode operator per cluster | Accepted ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
+| **Sink family CRDs** (`KollectSnapshotSink`, `KollectDatabaseSink`, `KollectEventSink`); `KollectCluster*Sink` for platform | Accepted ([ADR-0414](adr/0414-sink-family-crds.md)) |
 | **Role-based sinks** — state stores (Git/object store, Postgres) vs event emitters (NATS default, Kafka opt-in); no single "primary"; HTTP debug optional | Accepted ([ADR-0401](adr/0401-sink-taxonomy-state-vs-stream.md)) |
 | **`KollectConnectionTest` CR** + **`spec.ttlSecondsAfterFinished`** default **300s** | Accepted (ADR-0703 (archived)) |
 | **`spec.exportMinInterval`** default **30s** (not global debounce flag) | Accepted (ADR-0703 (archived)) |
@@ -501,12 +503,8 @@ Full locked table: **[PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md)**.
 | **`maxExportBytes`** global + per-Inventory override (webhook capped) | Accepted ([ADR-0103](adr/0103-etcd-limit.md)) |
 | Postgres PK **`(inventory_namespace, inventory_name, target_name, source_uid)`** | Accepted ([ADR-0402](adr/0402-sink-backends-database-kafka.md)) |
 | **`kollect_sink_errors_total{reason}`** + export histogram buckets (ADR-0602) | Accepted |
-| Hub shard: **`hash(clusterName) % shardCount`** via Helm/env — **no `KollectHub` CRD** | Accepted (ADR-0703 (archived)) |
-| Hub federated mTLS | **Deferred** (ADR-0503 (archived)) |
-| **`KollectClusterInventory`** + **`KollectClusterTarget`** rollup (no `inventoryRef` hack) | Accepted (ADR-0703 (archived)) |
-| Same image **`mode: hub\|spoke`** | Accepted ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
-| Transport: **`inprocess` only default**; Redis/NATS/Kafka explicit opt-in | Accepted (ADR-0502 (archived)) |
-| Transport backend rule: no merge without integration/e2e proof | Accepted |
+| **`KollectClusterInventory`** + **`KollectClusterTarget`** rollup (no `inventoryRef` hack) | Accepted ([ADR-0201](adr/0201-crd-model.md)) |
+| Fleet export: **shared sink fan-in** with `spec.cluster` partitioning — no hub tier | Accepted ([ADR-0501](adr/0501-multi-cluster-fleet.md)) |
 | Connection test: **`KollectConnectionTest` CR** + sink probes; prod `connectionTest: false` | Accepted (ADR-0703 (archived)) |
 | Helm sample: **Argo `Application` primary** + contract test | Accepted ([ADR-0303](adr/0303-helm-release-inventory.md)) |
 | Generic CRD sample: **`cert-manager.io/Certificate`** + contract test | Accepted |

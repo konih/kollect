@@ -162,30 +162,15 @@ task kind-e2e-down
 Helm values: `charts/kollect/ci/e2e-tenant-values.yaml`. Kubernetes version is pinned from
 `go.mod` in `hack/kind/common.sh` (same pin as dev and envtest).
 
-## Multi-cluster hub auth (ADR-0503)
+## Multi-cluster fleet (shared sink)
 
-Hub spoke ingest validates **`TokenReview`** then **`SubjectAccessReview`** (non-resource `POST`
-`/hub/v1alpha1/reports`, or `create` on `kollectremoteclusters`). Spokes send
-`Authorization: Bearer` plus `X-Kollect-Cluster-Id`. See
-ADR-0503.
+Multi-cluster is **N independent single-mode operators** — one Helm release per cluster — exporting
+to a **shared sink** (Postgres, Git, Kafka, NATS) with `spec.cluster` row partitioning. There is
+**no** hub/spoke runtime tier, ingest API, or queue transport between clusters
+([ADR-0501](adr/0501-multi-cluster-fleet.md)).
 
-### Generate Istio-style remote credential secrets
-
-Stub CLI for GitOps registration on the hub (optional pull path):
-
-```sh
-go run ./cmd/kollect create-remote-secret --cluster spoke-a --namespace platform
-# or:
-hack/create-remote-secret.sh --cluster spoke-a --api-server https://spoke-a.example:6443
-```
-
-Omitted `--token` / `--ca-file` emit placeholders; pipe to `kubectl apply -f -` after editing or
-substituting real spoke credentials. Pair with `
-Build the helper binary:
-
-```sh
-go build -o bin/kollect ./cmd/kollect
-```
+Walkthrough: [Multi-cluster fleet example](examples/multi-cluster-fleet.md) ·
+[Deployment topology matrix](deployment/topology-matrix.md).
 
 ## Code generation workflow
 
