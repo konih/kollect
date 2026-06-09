@@ -39,8 +39,29 @@ spec:
     topic: inventory.changes
 ```
 
-A NATS JetStream variant is shown in the
-[NATS event sink example](../examples/nats-event-sink.md).
+A NATS JetStream variant
+([`config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml);
+full consumer walkthrough in the [NATS event sink example](../examples/nats-event-sink.md)):
+
+```yaml
+apiVersion: kollect.dev/v1alpha1
+kind: KollectEventSink
+metadata:
+  name: nats-inventory-demo
+  namespace: default
+spec:
+  type: nats
+  cluster: prod-west
+  connectionTest: false
+  nats:
+    url: nats://nats.kollect-system.svc:4222
+    subject: inventory.events
+    stream: kollect_events
+```
+
+NATS messages carry a versioned `EventEnvelope` (`schemaVersion`, `timestamp`, `cluster`,
+`namespace`, `payload`) with JetStream `Nats-Msg-Id` dedupe — see
+`test/schema/golden/nats-event-envelope.json`.
 
 ## Status
 
