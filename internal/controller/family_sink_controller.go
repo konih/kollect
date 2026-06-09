@@ -38,14 +38,16 @@ func (r *FamilySnapshotSinkReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	if err != nil {
-		log.Error(err, "snapshot sink connection test failed")
-		retErr = err
-	}
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		if err != nil {
+			log.Error(err, "snapshot sink connection test failed")
+			retErr = err
+		}
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilySnapshotSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -71,11 +73,13 @@ func (r *FamilyClusterSnapshotSinkReconciler) Reconcile(ctx context.Context, req
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	retErr = err
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		retErr = err
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilyClusterSnapshotSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -106,11 +110,13 @@ func (r *FamilyDatabaseSinkReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	retErr = err
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		retErr = err
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilyDatabaseSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -136,11 +142,13 @@ func (r *FamilyClusterDatabaseSinkReconciler) Reconcile(ctx context.Context, req
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	retErr = err
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		retErr = err
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilyClusterDatabaseSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -171,11 +179,13 @@ func (r *FamilyEventSinkReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	retErr = err
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		retErr = err
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilyEventSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -201,11 +211,13 @@ func (r *FamilyClusterEventSinkReconciler) Reconcile(ctx context.Context, req ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	conn := familySinkConnection{client: r.Client}
-	err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
-	retErr = err
+	return guardReconcile(ctx, nil, &obj, func() (ctrl.Result, error) {
+		conn := familySinkConnection{client: r.Client}
+		err := conn.reconcile(ctx, &obj, obj.Spec.ToKollectSinkSpec(), &obj.Spec.SinkCommonFields, &obj.Status.Conditions, &obj.Status.Preview)
+		retErr = err
 
-	return ctrl.Result{}, err
+		return ctrl.Result{}, err
+	})
 }
 
 func (r *FamilyClusterEventSinkReconciler) SetupWithManager(mgr ctrl.Manager) error {

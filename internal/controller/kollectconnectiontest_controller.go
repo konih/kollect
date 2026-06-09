@@ -47,75 +47,77 @@ func (r *KollectConnectionTestReconciler) Reconcile(ctx context.Context, req ctr
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if test.Status.Completed && test.Status.ObservedGeneration == test.Generation {
-		return r.reconcileTTL(ctx, &test)
-	}
+	return guardReconcile(ctx, nil, &test, func() (ctrl.Result, error) {
+		if test.Status.Completed && test.Status.ObservedGeneration == test.Generation {
+			return r.reconcileTTL(ctx, &test)
+		}
 
-	family, sinkName, ok := test.Spec.SinkRef.Family()
-	if !ok {
-		retErr = fmt.Errorf("invalid sinkRef")
-		res, setErr := r.setProbeFailed(ctx, &test, "InvalidSinkRef", "exactly one family sink ref must be set")
+		family, sinkName, ok := test.Spec.SinkRef.Family()
+		if !ok {
+			retErr = fmt.Errorf("invalid sinkRef")
+			res, setErr := r.setProbeFailed(ctx, &test, "InvalidSinkRef", "exactly one family sink ref must be set")
 
-		return res, setErr
-	}
+			return res, setErr
+		}
 
-	binding := kollectdevv1alpha1.InventorySinkBinding{Name: sinkName, Family: family}
-	resolved, err := loadResolvedSink(ctx, r.Client, test.Namespace, binding, false)
-	if err != nil && apierrors.IsNotFound(err) {
-		resolved, err = loadResolvedSink(ctx, r.Client, test.Namespace, binding, true)
-	}
-	if err != nil {
-		retErr = err
-		res, setErr := r.setProbeFailed(
-			ctx, &test, reasonSinkNotFound,
-			fmt.Sprintf("%s %q: %v", familySinkKind(family, resolved != nil && resolved.ClusterScoped), sinkName, err),
-		)
+		binding := kollectdevv1alpha1.InventorySinkBinding{Name: sinkName, Family: family}
+		resolved, err := loadResolvedSink(ctx, r.Client, test.Namespace, binding, false)
+		if err != nil && apierrors.IsNotFound(err) {
+			resolved, err = loadResolvedSink(ctx, r.Client, test.Namespace, binding, true)
+		}
+		if err != nil {
+			retErr = err
+			res, setErr := r.setProbeFailed(
+				ctx, &test, reasonSinkNotFound,
+				fmt.Sprintf("%s %q: %v", familySinkKind(family, resolved != nil && resolved.ClusterScoped), sinkName, err),
+			)
 
-		return res, setErr
-	}
+			return res, setErr
+		}
 
-	sinkObj, err := r.familySinkObject(ctx, resolved)
-	if err != nil {
-		retErr = err
-		res, setErr := r.setProbeFailed(ctx, &test, reasonSinkNotFound, err.Error())
+		sinkObj, err := r.familySinkObject(ctx, resolved)
+		if err != nil {
+			retErr = err
+			res, setErr := r.setProbeFailed(ctx, &test, reasonSinkNotFound, err.Error())
 
-		return res, setErr
-	}
+			return res, setErr
+		}
 
-	if ownRefErr := r.ensureOwnerReference(ctx, &test, sinkObj); ownRefErr != nil {
-		log.Error(ownRefErr, "set ownerReference")
-		retErr = ownRefErr
+		if ownRefErr := r.ensureOwnerReference(ctx, &test, sinkObj); ownRefErr != nil {
+			log.Error(ownRefErr, "set ownerReference")
+			retErr = ownRefErr
 
-		return ctrl.Result{}, ownRefErr
-	}
+			return ctrl.Result{}, ownRefErr
+		}
 
-	spec := resolved.Spec
-	buildCtx, err := sink.BuildContextFromSpec(ctx, r.Client, spec, sink.SinkNamespaceForResolved(resolved, test.Namespace))
-	if err != nil {
-		retErr = err
-		res, setErr := r.setProbeFailed(ctx, &test, "SecretResolveFailed", err.Error())
+		spec := resolved.Spec
+		buildCtx, err := sink.BuildContextFromSpec(ctx, r.Client, spec, sink.SinkNamespaceForResolved(resolved, test.Namespace))
+		if err != nil {
+			retErr = err
+			res, setErr := r.setProbeFailed(ctx, &test, "SecretResolveFailed", err.Error())
 
-		return res, setErr
-	}
+			return res, setErr
+		}
 
-	start := time.Now()
-	okMessage, testErr := sink.RunConnectionTest(ctx, spec, buildCtx)
-	elapsed := time.Since(start)
-	test.Status.LatencyMs = elapsed.Milliseconds()
+		start := time.Now()
+		okMessage, testErr := sink.RunConnectionTest(ctx, spec, buildCtx)
+		elapsed := time.Since(start)
+		test.Status.LatencyMs = elapsed.Milliseconds()
 
-	if testErr != nil {
-		log.Error(testErr, "connection test failed", "sink", sinkName, "family", family)
-		metrics.SinkConnectionTestTotal.WithLabelValues(spec.Type, metrics.ResultFailure).Inc()
-		retErr = testErr
+		if testErr != nil {
+			log.Error(testErr, "connection test failed", "sink", sinkName, "family", family)
+			metrics.SinkConnectionTestTotal.WithLabelValues(spec.Type, metrics.ResultFailure).Inc()
+			retErr = testErr
 
-		res, setErr := r.setProbeFailed(ctx, &test, "ConnectionTestFailed", testErr.Error())
+			res, setErr := r.setProbeFailed(ctx, &test, "ConnectionTestFailed", testErr.Error())
 
-		return res, setErr
-	}
+			return res, setErr
+		}
 
-	metrics.SinkConnectionTestTotal.WithLabelValues(spec.Type, metrics.ResultSuccess).Inc()
+		metrics.SinkConnectionTestTotal.WithLabelValues(spec.Type, metrics.ResultSuccess).Inc()
 
-	return r.setProbeSucceeded(ctx, &test, okMessage)
+		return r.setProbeSucceeded(ctx, &test, okMessage)
+	})
 }
 
 func (r *KollectConnectionTestReconciler) familySinkObject(
