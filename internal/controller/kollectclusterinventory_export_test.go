@@ -147,6 +147,18 @@ func TestKollectClusterInventoryReconciler_exportsRollupToSink(t *testing.T) {
 	if got.Status.ItemCount != 1 {
 		t.Fatalf("ItemCount = %d, want 1", got.Status.ItemCount)
 	}
+	if got.Status.NamespaceShardCount != 1 {
+		t.Fatalf("NamespaceShardCount = %d, want 1", got.Status.NamespaceShardCount)
+	}
+	if len(got.Status.NamespaceShards) != 1 {
+		t.Fatalf("NamespaceShards len = %d, want 1", len(got.Status.NamespaceShards))
+	}
+	if got.Status.NamespaceShards[0].Namespace != workloadNS {
+		t.Fatalf("NamespaceShards[0].Namespace = %q, want %q", got.Status.NamespaceShards[0].Namespace, workloadNS)
+	}
+	if got.Status.NamespaceShards[0].Checksum == "" {
+		t.Fatal("NamespaceShards[0].Checksum is empty")
+	}
 
 	exported := findExportSucceededCondition(got.Status.Conditions)
 	if exported == nil || exported.Status != metav1.ConditionTrue {
