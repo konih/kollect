@@ -157,11 +157,11 @@ in-memory snapshot per Inventory is canonical; sinks are projections.
 ## Multi-cluster (build order)
 
 !!! note "Fleet vs single-cluster"
-    **Single-cluster** installs export directly to Postgres, Git, or Kafka — no hub required.
-    **Fleet** topologies default to shared-sink fan-in (`spec.cluster` on each sink); the hub tier
-    (`
-Hub = **`([ADR-0501](adr/0501-multi-cluster-fleet.md)). Spokes push summaries; hub writes merged
-Postgres/Kafka. Auth: ADR-0503.
+    **Single-cluster** installs export directly to Postgres, Git, or event sinks — no central merge
+    tier. **Fleet** topologies deploy one operator per cluster; each writes debounced inventory
+    snapshots to a **shared sink** keyed by `spec.cluster` on family sink CRDs
+    ([ADR-0501](adr/0501-multi-cluster-fleet.md)). Walkthrough:
+    [Multi-cluster fleet example](examples/multi-cluster-fleet.md).
 
 Phases in docs are **build order**, not release milestones — see [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md).
 
@@ -173,16 +173,15 @@ Phases in docs are **build order**, not release milestones — see [PLATFORM-DEC
 ## Package boundaries
 
 Domain code under `internal/` is grouped into components (`controller`, `collect`, `aggregate`,
-`sink`, `hub`, `spoke`, `inventory`, `export`, `transport`, `validation`, `webhook`, and shared
-utilities). The **CRD types** in `api/v1alpha1` are a separate component every layer may import.
+`sink`, `inventory`, `export`, `scope`, `validation`, `webhook`, and shared utilities). The **CRD
+types** in `api/v1alpha1` are a separate component every layer may import.
 
 Intended dependency flow (simplified):
 
 ```text
-api/v1alpha1  ←  controller  →  collect, aggregate, sink, hub, scope, validation, export
+api/v1alpha1  ←  controller  →  collect, aggregate, sink, scope, validation, export
 collect, aggregate  →  (no controller, no sink)
-sink  →  transport, export (not controller)
-hub  →  sink, aggregate, export (not controller reconciliation loops)
+sink  →  export (not controller)
 cmd  →  wires everything
 ```
 
