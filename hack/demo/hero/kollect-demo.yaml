@@ -1,0 +1,57 @@
+# Golden hero sample — Profile + Target + Git sink + Inventory (Git-only path).
+# Postgres variant adds KollectDatabaseSink; see config/samples/demo/git-postgres/.
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectProfile
+metadata:
+  name: deployment-images
+  namespace: default
+spec:
+  targetGVK:
+    group: apps
+    version: v1
+    kind: Deployment
+  attributes:
+    - name: image
+      path: '$.spec.template.spec.containers[0].image'
+      type: string
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectTarget
+metadata:
+  name: shop-deployments
+  namespace: default
+spec:
+  profileRef: deployment-images
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: demo
+  labelSelector:
+    matchLabels:
+      app: shop
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectSnapshotSink
+metadata:
+  name: hero-git-sink
+  namespace: default
+spec:
+  type: git
+  endpoint: http://forgejo.forgejo.svc.cluster.local:3000/kollect/inventory-demo.git
+  serialization:
+    format: yaml
+  layout:
+    mode: perResource
+    content: attributes
+  secretRef:
+    name: hero-git-credentials
+---
+apiVersion: kollect.dev/v1alpha1
+kind: KollectInventory
+metadata:
+  name: demo-inventory
+  namespace: default
+spec:
+  snapshotSinkRefs:
+    - hero-git-sink
+  exportMinInterval: 15s

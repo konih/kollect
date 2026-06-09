@@ -1,0 +1,30 @@
+# Sample workload for the hero drift story (shop:v2.0.0 → shop:v2.1.0).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop
+  namespace: demo
+  labels:
+    app: shop
+    app.kubernetes.io/name: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop
+  template:
+    metadata:
+      labels:
+        app: shop
+    spec:
+      containers:
+        - name: api
+          image: shop:v2.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080

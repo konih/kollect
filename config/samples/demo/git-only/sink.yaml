@@ -1,0 +1,27 @@
+apiVersion: kollect.dev/v1alpha1
+kind: KollectSnapshotSink
+metadata:
+  name: hero-git-sink
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kollect
+    app.kubernetes.io/part-of: kollect-hero-demo
+spec:
+  type: git
+  endpoint: http://forgejo.forgejo.svc.cluster.local:3000/kollect/inventory-demo.git
+  cluster: kollect-hero
+  connectionTest: true
+  serialization:
+    format: yaml
+  layout:
+    mode: perResource
+    content: attributes
+    pathTemplate: 'namespaces/{sourceNamespace}/{kind}/{sourceName}{extension}'
+  secretRef:
+    name: hero-git-credentials
+    namespace: default
+  git:
+    branch: main
+    pushPolicy: Commit
+    auth:
+      type: token
