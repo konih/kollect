@@ -1,0 +1,248 @@
+description: KollectEventSinkSpec defines an event-stream export sink (ADR-0414).
+properties:
+  cluster:
+    description: cluster labels exported inventory in multi-cluster installs.
+    type: string
+  connectionTest:
+    description: connectionTest enables connectivity checks on create/update (default
+      true).
+    type: boolean
+  endpoint:
+    description: endpoint is the backend-specific destination (URL, bucket, and so
+      on).
+    type: string
+  exportMinInterval:
+    description: |-
+      exportMinInterval is the default minimum time between identical exports when an inventory
+      ref omits a per-ref override.
+    type: string
+  kafka:
+    description: kafka configures Kafka inventory change events.
+    properties:
+      brokers:
+        description: brokers lists Kafka bootstrap addresses (host:port).
+        items:
+          type: string
+        type: array
+        x-kubernetes-list-type: atomic
+      secretRef:
+        description: secretRef references a Secret with optional SASL/TLS credentials.
+        properties:
+          name:
+            description: name is the name of the referenced Secret.
+            type: string
+          namespace:
+            description: namespace is the namespace of the referenced Secret.
+            type: string
+        required:
+        - name
+        type: object
+      topic:
+        description: topic is the destination topic for inventory events.
+        type: string
+    required:
+    - brokers
+    - topic
+    type: object
+  layout:
+    description: |-
+      layout configures document shape and folder layout for snapshot Git/GitLab sinks (ADR-0419).
+      The entire block is optional; omitting it yields a single readable inventory document.
+    properties:
+      content:
+        default: item
+        description: |-
+          content selects the per-file payload: item (full Item row, default),
+          attributes (Item.attributes only), or manifest (native object, ADR-0306 Resource export).
+        enum:
+        - item
+        - attributes
+        - manifest
+        type: string
+      filename:
+        description: filename tunes path-segment sanitization and grouping.
+        properties:
+          groupInPath:
+            description: |-
+              groupInPath controls the {group} segment: auto (omit for core types, default),
+              always, or never.
+            enum:
+            - auto
+            - always
+            - never
+            type: string
+          lowercaseKind:
+            description: lowercaseKind lowercases {kind} in paths (default true).
+            type: boolean
+          maxSegmentLength:
+            description: maxSegmentLength caps each path segment for DNS safety (default
+              63).
+            format: int32
+            minimum: 1
+            type: integer
+        type: object
+      index:
+        description: index configures the split-mode index sidecar.
+        properties:
+          enabled:
+            description: enabled toggles the index sidecar (default false; true in
+              split mode).
+            type: boolean
+          pathTemplate:
+            description: pathTemplate is the index file path (default inventory/{namespace}/{name}{extension}).
+            type: string
+        type: object
+      mode:
+        default: document
+        description: |-
+          mode selects the on-disk layout: document (one inventory file, default),
+          perResource (one file per Item), or split (index sidecar + per-resource tree).
+        enum:
+        - document
+        - perResource
+        - split
+        type: string
+      pathTemplate:
+        description: |-
+          pathTemplate is the per-item path used when mode is perResource or split.
+          Placeholders: {cluster}, {namespace}, {name}, {targetNamespace}, {targetName},
+          {sourceNamespace}, {sourceName}, {group}, {kind}, {uid}, {generation}, {extension}.
+          Default: {cluster}/{sourceNamespace}/{kind}/{sourceName}{extension}
+        type: string
+    type: object
+  nats:
+    description: nats configures NATS JetStream inventory change events.
+    properties:
+      secretRef:
+        description: secretRef references a Secret with optional auth credentials
+          (token, username/password).
+        properties:
+          name:
+            description: name is the name of the referenced Secret.
+            type: string
+          namespace:
+            description: namespace is the namespace of the referenced Secret.
+            type: string
+        required:
+        - name
+        type: object
+      stream:
+        description: stream is the JetStream stream name (default kollect_events).
+        type: string
+      subject:
+        description: subject is the JetStream publish subject for inventory events.
+        type: string
+      url:
+        description: |-
+          url is the NATS server connection URL (nats://host:4222).
+          When empty, spec.endpoint is used.
+        type: string
+    required:
+    - subject
+    type: object
+  options:
+    additionalProperties:
+      type: string
+    description: |-
+      options carries non-secret, backend-specific pass-through settings (ADR-0416 §4, Option 2).
+      Secret-like keys are rejected by the webhook; supply credentials via secretRef only.
+    type: object
+  pathTemplate:
+    description: pathTemplate selects the Git/object-store export path layout (ADR-0407).
+    type: string
+  provisioning:
+    description: |-
+      provisioning configures destination resource ownership (ADR-0416 §5).
+      mode ensure (default) creates resources if missing; existing never creates and preflights existence.
+    properties:
+      mode:
+        description: mode selects ensure (create-if-missing, default) or existing
+          (never create; preflight verifies).
+        enum:
+        - ensure
+        - existing
+        type: string
+      naming:
+        description: naming optionally templates the destination resource name using
+          the shared placeholder grammar.
+        properties:
+          template:
+            description: |-
+              template is the destination name template; placeholders match pathTemplate
+              ({cluster}, {namespace}, {name}, {generation}).
+            type: string
+        type: object
+    type: object
+  secretRef:
+    description: secretRef references a Secret holding credentials for the sink.
+    properties:
+      name:
+        description: name is the name of the referenced Secret.
+        type: string
+      namespace:
+        description: namespace is the namespace of the referenced Secret.
+        type: string
+    required:
+    - name
+    type: object
+  serialization:
+    description: |-
+      serialization configures the cross-cutting on-wire format and schema contract (ADR-0416 §4).
+      json is the zero-config default; the backend capability matrix gates which formats are honored.
+    properties:
+      compression:
+        description: compression selects payload compression where the backend supports
+          it (default none).
+        enum:
+        - none
+        - gzip
+        - snappy
+        - zstd
+        type: string
+      format:
+        description: format selects the on-wire serialization (default json; yaml
+          default for git/gitlab).
+        enum:
+        - json
+        - yaml
+        - parquet
+        - csv
+        - ndjson
+        type: string
+    type: object
+  tls:
+    description: tls configures TLS verification for HTTPS git and similar endpoints.
+    properties:
+      caBundle:
+        description: |-
+          caBundle is an inline PEM-encoded CA certificate bundle.
+          Prefer caSecretRef for production; do not set both caBundle and caSecretRef.
+        format: byte
+        type: string
+      caSecretRef:
+        description: caSecretRef references a Secret containing a PEM CA bundle (key
+          tls.crt or ca.crt).
+        properties:
+          name:
+            description: name is the name of the referenced Secret.
+            type: string
+          namespace:
+            description: namespace is the namespace of the referenced Secret.
+            type: string
+        required:
+        - name
+        type: object
+      insecureSkipVerify:
+        description: insecureSkipVerify disables server certificate verification (not
+          recommended).
+        type: boolean
+    type: object
+  type:
+    description: type selects the event backend implementation.
+    enum:
+    - nats
+    - kafka
+    type: string
+required:
+- type
+type: object
