@@ -38,7 +38,7 @@ flowchart TD
 | Relationship | Rule |
 | --- | --- |
 | Targets | `spec.targetRefs[]` names cluster targets; empty = all matching `targetSelector` (or all targets) |
-| Namespaces | `namespaceSelector` **required** — empty selector rejected (no cluster-wide wildcard) |
+| Namespaces | Optional `spec.namespaces` (explicit list) **intersected** with `spec.namespaceSelector` when both set; at least one scope mechanism should be configured for intentional rollups |
 | Sinks | Family ref lists resolved in `spec.sinkNamespace` (default `kollect-system`) |
 | Profile | Optional `spec.profileRef` names a `KollectClusterProfile` (rollup schema override, future) |
 
@@ -52,7 +52,8 @@ flowchart TD
 | `spec.profileRef` | string | No | — | `KollectClusterProfile` name (optional rollup override) |
 | `spec.targetRefs[]` | list | No | all targets | `KollectClusterTarget` names (name only) |
 | `spec.targetSelector` | labelSelector | No | — | Filter cluster targets when `targetRefs` empty |
-| `spec.namespaceSelector` | labelSelector | **Yes** | — | Explicit namespace scope for rollup |
+| `spec.namespaces[]` | list | No | — | Explicit namespace allow-list (DNS-1123 labels); intersected with `namespaceSelector` |
+| `spec.namespaceSelector` | labelSelector | No | — | Label filter for namespace scope; intersected with `namespaces` when both set |
 | `spec.snapshotSinkRefs[]` | list | No | — | Snapshot sink refs (string or `{ name, exportMinInterval? }`) |
 | `spec.databaseSinkRefs[]` | list | No | — | Database sink refs (same shape) |
 | `spec.eventSinkRefs[]` | list | No | — | Event sink refs (same shape); combined max **20** |
@@ -73,7 +74,9 @@ metadata:
 spec:
   targetRefs:
     - platform-argo-applications
-  namespaceSelector:               # required — explicit scope, no cluster-wide wildcard
+  namespaces:                      # optional explicit list — intersected with namespaceSelector
+    - platform-apps
+  namespaceSelector:
     matchLabels:
       kollect.dev/tenant: platform
   databaseSinkRefs:
@@ -138,7 +141,7 @@ inventory ([ADR-0413](../adr/0413-export-interval-scheduling.md)).
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Admission denied | Missing `namespaceSelector` | Add explicit label selector |
+| Admission denied | Invalid or duplicate `namespaces` entry | Use unique DNS-1123 namespace names |
 | Admission denied | `targetRefs` or family sink refs contain `/` | Use name only — no `namespace/name` |
 | No export | Targets not `Ready` or sink misconfigured | `kubectl describe kctgt`; verify sink in `sinkNamespace` |
 | `SinkNotFound` | Bad family sink ref in `sinkNamespace` | Create family sink in export namespace |
