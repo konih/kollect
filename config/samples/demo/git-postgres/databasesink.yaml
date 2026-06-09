@@ -1,0 +1,20 @@
+apiVersion: kollect.dev/v1alpha1
+kind: KollectDatabaseSink
+metadata:
+  name: hero-postgres-sink
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kollect
+    app.kubernetes.io/part-of: kollect-hero-demo
+spec:
+  type: postgres
+  cluster: kollect-hero
+  connectionTest: true
+  provisioning:
+    mode: ensure
+  postgres:
+    databaseRef:
+      name: inventory-postgres-dsn
+      namespace: kollect-system
+    schema: public
+    table: inventory_items

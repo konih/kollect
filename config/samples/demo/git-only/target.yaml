@@ -1,0 +1,17 @@
+apiVersion: kollect.dev/v1alpha1
+kind: KollectTarget
+metadata:
+  name: shop-deployments
+  namespace: default
+  labels:
+    app.kubernetes.io/name: kollect
+    app.kubernetes.io/part-of: kollect-hero-demo
+spec:
+  profileRef: deployment-images
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: demo
+  labelSelector:
+    matchLabels:
+      app: shop
+  suspend: false
