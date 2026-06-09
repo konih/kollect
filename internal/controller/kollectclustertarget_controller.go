@@ -60,94 +60,96 @@ func (r *KollectClusterTargetReconciler) Reconcile(ctx context.Context, req ctrl
 		return ctrl.Result{}, err
 	}
 
-	if !ct.DeletionTimestamp.IsZero() {
-		result, err := r.finalizeClusterTargetDeletion(ctx, &ct)
-		if err != nil {
-			retErr = err
+	return guardReconcile(ctx, r.Recorder, &ct, func() (ctrl.Result, error) {
+		if !ct.DeletionTimestamp.IsZero() {
+			result, err := r.finalizeClusterTargetDeletion(ctx, &ct)
+			if err != nil {
+				retErr = err
+			}
+
+			return result, err
 		}
 
-		return result, err
-	}
+		if err := r.ensureClusterTargetFinalizer(ctx, &ct); err != nil {
+			if apierrors.IsConflict(err) {
+				return ctrl.Result{Requeue: true}, nil
+			}
 
-	if err := r.ensureClusterTargetFinalizer(ctx, &ct); err != nil {
-		if apierrors.IsConflict(err) {
-			return ctrl.Result{Requeue: true}, nil
-		}
-
-		retErr = err
-
-		return ctrl.Result{}, err
-	}
-
-	if ct.Spec.Suspend {
-		r.unregisterAll(&ct)
-		if err := r.setDegraded(ctx, &ct, "Suspended", "spec.suspend is true"); err != nil {
 			retErr = err
+
 			return ctrl.Result{}, err
 		}
 
-		return ctrl.Result{}, nil
-	}
+		if ct.Spec.Suspend {
+			r.unregisterAll(&ct)
+			if err := r.setDegraded(ctx, &ct, "Suspended", "spec.suspend is true"); err != nil {
+				retErr = err
+				return ctrl.Result{}, err
+			}
 
-	profile, err := resolveClusterTargetProfile(ctx, r.Client, ct.Spec.ProfileRef)
-	if err != nil {
-		r.unregisterAll(&ct)
-		if degErr := r.setDegraded(ctx, &ct, "ProfileNotFound", err.Error()); degErr != nil {
-			retErr = degErr
-			return ctrl.Result{}, degErr
+			return ctrl.Result{}, nil
 		}
 
-		return ctrl.Result{}, nil
-	}
-
-	matched, err := r.matchedNamespaces(ctx, &ct)
-	if err != nil {
-		retErr = err
-		return ctrl.Result{}, err
-	}
-
-	clusterBinding, err := scope.LoadCluster(ctx, r.Client)
-	if err != nil {
-		retErr = err
-		return ctrl.Result{}, err
-	}
-
-	ceiling := collect.ScopeCeiling{}
-	if clusterBinding.Enforced {
-		ceiling = collect.ScopeCeilingFromClusterScope(clusterBinding.Scope)
-	}
-
-	nsMeta := listNamespaceMeta(ctx, r.Client)
-	defaults := collect.NamespaceDefaults{}
-	if r.Engine != nil {
-		defaults = r.Engine.NamespaceDefaultsSnapshot()
-	}
-
-	_, effective, activeRules := collect.ComputeFilterStatus(
-		ct.Spec.CollectionFilterSpec,
-		ct.Spec.NamespaceSelector,
-		nsMeta,
-		ceiling,
-		defaults,
-	)
-	updateClusterTargetFilterStatus(&ct, matched, effective, activeRules)
-
-	if r.Engine != nil {
-		if err := r.syncEngineTargets(ctx, &ct, profile, effective, ceiling); err != nil {
-			if degErr := r.setDegraded(ctx, &ct, "InformerRegistrationFailed", err.Error()); degErr != nil {
+		profile, err := resolveClusterTargetProfile(ctx, r.Client, ct.Spec.ProfileRef)
+		if err != nil {
+			r.unregisterAll(&ct)
+			if degErr := r.setDegraded(ctx, &ct, "ProfileNotFound", err.Error()); degErr != nil {
 				retErr = degErr
 				return ctrl.Result{}, degErr
 			}
 
 			return ctrl.Result{}, nil
 		}
-	}
 
-	if err := r.setReady(ctx, &ct, effective); err != nil {
-		return ctrl.Result{}, err
-	}
+		matched, err := r.matchedNamespaces(ctx, &ct)
+		if err != nil {
+			retErr = err
+			return ctrl.Result{}, err
+		}
 
-	return ctrl.Result{}, nil
+		clusterBinding, err := scope.LoadCluster(ctx, r.Client)
+		if err != nil {
+			retErr = err
+			return ctrl.Result{}, err
+		}
+
+		ceiling := collect.ScopeCeiling{}
+		if clusterBinding.Enforced {
+			ceiling = collect.ScopeCeilingFromClusterScope(clusterBinding.Scope)
+		}
+
+		nsMeta := listNamespaceMeta(ctx, r.Client)
+		defaults := collect.NamespaceDefaults{}
+		if r.Engine != nil {
+			defaults = r.Engine.NamespaceDefaultsSnapshot()
+		}
+
+		_, effective, activeRules := collect.ComputeFilterStatus(
+			ct.Spec.CollectionFilterSpec,
+			ct.Spec.NamespaceSelector,
+			nsMeta,
+			ceiling,
+			defaults,
+		)
+		updateClusterTargetFilterStatus(&ct, matched, effective, activeRules)
+
+		if r.Engine != nil {
+			if err := r.syncEngineTargets(ctx, &ct, profile, effective, ceiling); err != nil {
+				if degErr := r.setDegraded(ctx, &ct, "InformerRegistrationFailed", err.Error()); degErr != nil {
+					retErr = degErr
+					return ctrl.Result{}, degErr
+				}
+
+				return ctrl.Result{}, nil
+			}
+		}
+
+		if err := r.setReady(ctx, &ct, effective); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	})
 }
 
 func (r *KollectClusterTargetReconciler) matchedNamespaces(
