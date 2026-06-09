@@ -8,7 +8,7 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // KollectSnapshotSinkSpec defines a snapshot-store export sink (ADR-0414).
 type KollectSnapshotSinkSpec struct {
 	// type selects the snapshot backend implementation.
-	// +kubebuilder:validation:Enum=git;gitlab;s3;gcs;azureblob;http
+	// +kubebuilder:validation:Enum=git;gitlab;s3;gcs
 	// +required
 	Type string `json:"type"`
 
