@@ -235,9 +235,7 @@ func (r *KollectClusterInventoryReconciler) exportClusterToSinks(
 		status := upsertSinkExportStatus(&outcome.SinkExports, exportKey)
 		if err != nil {
 			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, err.Error())
-			outcome.FailedCount++
-			outcome.ExportErr = err
-			outcome.FailedSink = exportKey
+			outcome.addSinkFailure(exportKey, err)
 			continue
 		}
 
@@ -266,9 +264,7 @@ func (r *KollectClusterInventoryReconciler) exportClusterToSinks(
 			Meta:          export.Metadata{Generation: inv.Generation},
 		}); err != nil {
 			log.Error(err, "cluster export failed", "sink", exportKey)
-			outcome.FailedCount++
-			outcome.ExportErr = err
-			outcome.FailedSink = exportKey
+			outcome.addSinkFailure(exportKey, err)
 			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, err.Error())
 			continue
 		}

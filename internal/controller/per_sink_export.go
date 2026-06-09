@@ -4,7 +4,9 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollecterrors "github.com/konih/kollect/internal/errors"
 	"github.com/konih/kollect/internal/validation"
 )
 
@@ -116,6 +119,43 @@ type perSinkExportOutcome struct {
 	ExportErr      error
 	SinkExports    []kollectdevv1alpha1.InventorySinkExportStatus
 	RequeueAfter   time.Duration
+
+	failedSinks []string
+	exportErrs  []error
+}
+
+// addSinkFailure accumulates a per-sink export failure (EC-P1-06): FailedSink
+// names every failed sink and ExportErr aggregates all failure errors instead
+// of last-write-wins.
+func (o *perSinkExportOutcome) addSinkFailure(exportKey string, err error) {
+	o.FailedCount++
+	o.failedSinks = append(o.failedSinks, exportKey)
+	o.exportErrs = append(o.exportErrs, err)
+	o.FailedSink = strings.Join(o.failedSinks, ",")
+	o.ExportErr = aggregateExportErrs(o.exportErrs)
+}
+
+// aggregateExportErrs joins per-sink failures into one classified error. The
+// aggregate is terminal only when ALL components are terminal; otherwise it is
+// transient so retry still happens. The explicit re-wrap is required because
+// errors.As on a joined error returns the first ClassError in DFS order, which
+// would misclassify mixed failures.
+func aggregateExportErrs(errs []error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	if len(errs) == 1 {
+		return errs[0]
+	}
+
+	joined := errors.Join(errs...)
+	for _, err := range errs {
+		if !kollecterrors.IsTerminal(err) {
+			return kollecterrors.Transient(joined)
+		}
+	}
+
+	return kollecterrors.Terminal(joined)
 }
 
 func isTotalExportFailure(outcome perSinkExportOutcome) bool {
