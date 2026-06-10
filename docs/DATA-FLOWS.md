@@ -94,10 +94,31 @@ effectiveInterval(ref) =
 | Payload checksum change | — | Immediate export to **that** sink (material change) |
 | `exportMinInterval: 0s` | — | Material-change only; controller requeues with 30s watchdog |
 
+### Interval semantics
+
+`exportMinInterval` is a **debounce for identical payloads, not a rate limit**:
+
+- **Material changes always export immediately.** A payload checksum change or a
+  `metadata.generation` bump bypasses the interval for that sink, **regardless of the configured
+  value** — even `1h` never delays a changed payload.
+- **The interval only throttles re-export of an unchanged payload.** With `30s`, an identical
+  payload is re-sent at most every 30s; distinct payloads are **not** rate-limited. A burst of
+  material changes produces an export per change, modulo natural reconcile coalescing (events that
+  arrive while a reconcile is in flight are batched into the next one).
+- **`0s` is valid** and means *material-change only*: instant export on change, identical payloads
+  are never periodically re-sent. The controller still requeues on a **30s watchdog**
+  (`ZeroIntervalWatchdog`) to keep status fresh — the watchdog does **not** re-export.
+- **Sub-second values are accepted** (validation allows any non-negative duration up to **24h**,
+  e.g. `500ms`), but requeue wake-ups are floored at **1s**, so identical-payload re-export
+  effectively ticks at ≥ 1s. Since changed payloads bypass the interval anyway, sub-second values
+  buy nothing over `0s`.
+
 !!! tip "Dual-cadence fan-out"
     Portal Postgres at **30s** plus Git audit at **1h** is the canonical multi-role pattern — see
     `config/samples/kollect_v1alpha1_kollectinventory.yaml`
     and [deployment-inventory example](examples/deployment-inventory.md#step-4-kollectinventory).
+    Event sinks (Kafka/NATS) usually want `exportMinInterval: 0s` — emit on material change only,
+    never re-publish an identical payload.
 
 When some sinks export and others are debounced, aggregate `Synced=False` with reason
 **`PartiallySynced`**; per-sink detail lives in `status.sinkExports[]`.

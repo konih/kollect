@@ -97,6 +97,16 @@ Production manifests should keep `spec.connectionTest: false` and use the annota
 
 Detailed table: [Deployment inventory — Troubleshooting](examples/deployment-inventory.md#troubleshooting).
 
+### Does `exportMinInterval` delay exports after a change?
+
+**No.** The interval debounces re-export of an **identical payload** only. A material change
+(payload checksum or `metadata.generation` bump) exports immediately per sink, regardless of the
+configured interval. Set `exportMinInterval: 0s` for *material-change only* semantics (typical for
+Kafka/NATS event sinks): instant export on change, identical payloads never re-sent. `0` and
+sub-second durations are valid (cap: 24h), but wake-ups floor at 1s, so anything below `1s` behaves
+like `0s`. See [DATA-FLOWS §1](DATA-FLOWS.md#1-export-debouncing) and
+[ADR-0413](adr/0413-export-interval-scheduling.md).
+
 ## Pre-beta expectations
 
 ### Is Kollect safe for production today?

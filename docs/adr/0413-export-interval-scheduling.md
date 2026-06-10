@@ -42,10 +42,15 @@ effectiveInterval(ref) =
   )
 ```
 
-- **Material checksum change** bypasses interval **per sink** (FR-EXP-2 spirit).
+- **Material checksum change** bypasses interval **per sink** (FR-EXP-2 spirit). The interval is a
+  debounce for **identical payloads only** — it never delays or rate-limits a changed payload.
 - **Spec generation bump** bypasses debounce for that sink (force refresh after spec edit).
 - **`exportMinInterval: 0s`** — no periodic re-export of identical payload; controller requeues
-  with a **30s watchdog** (`ZeroIntervalWatchdog`).
+  with a **30s watchdog** (`ZeroIntervalWatchdog`). The watchdog refreshes status only, it does not
+  re-export.
+- **Sub-second intervals** pass validation (any non-negative duration ≤ 24h) but requeue wake-ups
+  floor at **1s** (`nextDue`); since material changes bypass the interval, values below `1s` are
+  equivalent to `0s` in practice.
 
 ### 3. Optional `KollectSink.spec.exportMinInterval`
 
