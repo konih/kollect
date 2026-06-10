@@ -3,7 +3,8 @@
 > Drop `KollectClusterProfile` and `KollectCluster*Sink`; cluster targets and inventories resolve
 > profiles and family sinks by explicit namespace + name.
 
-**Theme:** 02 · API & tenancy · **Status:** Accepted (implemented 2026-06-10)
+**Theme:** 02 · API & tenancy · **Status:** Accepted (implemented 2026-06-10 — see
+[Implementation status](#implementation-status))
 
 ## Context
 
@@ -263,6 +264,33 @@ Amends [ADR-0203](0203-namespaced-multi-tenancy.md) (tenantMode vs cluster kinds
 - **Per-ref vs global `sinkNamespace`:** keep both (proposed) or require namespace on every cluster
   inventory sink ref?
 - **Promotion timing:** land API + webhook first, or single atomic release with CRD deletion?
+
+## Implementation status
+
+**Landed (2026-06-10):**
+
+- Cluster static CRDs (`KollectClusterProfile`, `KollectCluster*Sink`) removed: API types, webhooks,
+  validation, controllers' cluster-scoped branches, RBAC, CRD bases + Helm CRDs, samples, golden
+  schemas, docs, codegen.
+- `NamespacedObjectReference` on cluster target `profileRef` and cluster inventory sink refs;
+  explicit namespace + name resolution with no cluster-scoped GET and no platform-namespace fallback.
+- Forbidden vs not-found classification for cross-namespace static refs is driven off the **resolve
+  GET error** (`apierrors.IsForbidden` / `IsNotFound`) rather than a separate SSAR round-trip — the
+  GET is authoritative and avoids extra API calls. Cluster target degrades with `ProfileForbidden`
+  (Warning event) / `ProfileNotFound`; cluster inventory sink reachability reports `SinkForbidden` /
+  `SinkNotFound`. `kollect_static_ref_resolution_total{kind,ref_type,result}` records
+  `ok`/`not_found`/`forbidden` outcomes (transient errors stay on `kollect_reconcile_errors_total`).
+
+**Tracked follow-ups (not yet implemented):**
+
+- **tenantMode admission rejection** of `KollectClusterTarget` / `KollectClusterInventory` — needs
+  the tenantMode flag plumbed from operator config into the validating webhook (today tenantMode is
+  a Helm/RBAC concept only). Until then, trimmed RBAC degrades the cluster kind via the forbidden
+  path above rather than rejecting at admission.
+- **`KollectClusterScope` sink/profile-namespace allowlist** (`SinkNamespaceDenied`) — gated on the
+  `KollectClusterScope` allowlist fields shipping.
+- **Proactive SSAR pre-check** before resolve (the GET-error path covers the degrade + observability
+  contract; a pre-check would only change *when* forbidden is detected, not the outcome).
 
 ## References
 
