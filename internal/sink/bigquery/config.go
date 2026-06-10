@@ -33,6 +33,11 @@ type Config struct {
 	Cluster          string
 	ProvisioningMode string
 	CredentialsJSON  []byte
+	// UseEmulator captures whether BIGQUERY_EMULATOR_HOST was set when the
+	// backend was constructed. Snapshotting it here (rather than reading the
+	// env on every Export) keeps the export path deterministic and isolated
+	// from concurrent tests/processes that mutate the environment.
+	UseEmulator bool
 }
 
 // ConfigFromSpec validates spec and optional secret data for a bigquery sink.
@@ -71,6 +76,7 @@ func ConfigFromSpec(
 		Location:         strings.TrimSpace(bq.Location),
 		Cluster:          strings.TrimSpace(spec.Cluster),
 		ProvisioningMode: kollectdevv1alpha1.EffectiveProvisioningMode(&spec),
+		UseEmulator:      usingEmulator(),
 	}
 
 	if bq.SecretRef != nil {

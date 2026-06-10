@@ -143,11 +143,11 @@ func TestExport_NonEmptySnapshotMergesThenDeletesStale(t *testing.T) {
 }
 
 func TestExport_EmulatorModeUsesReplaceStrategy(t *testing.T) {
-	t.Setenv("BIGQUERY_EMULATOR_HOST", "localhost:9050")
+	t.Parallel()
 
 	exec := &fakeQueryExecutor{}
 	b := &Backend{
-		cfg:      Config{Project: "proj", Dataset: "inventory", Table: "items", Cluster: "cluster-a"},
+		cfg:      Config{Project: "proj", Dataset: "inventory", Table: "items", Cluster: "cluster-a", UseEmulator: true},
 		executor: exec,
 	}
 

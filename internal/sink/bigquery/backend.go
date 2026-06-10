@@ -131,7 +131,7 @@ func (b *Backend) Export(ctx context.Context, payload []byte, objectPath string)
 		return classifyError(fmt.Errorf("bigquery export: build rows: %w", err))
 	}
 
-	if usingEmulator() {
+	if b.cfg.UseEmulator {
 		return b.runEmulatorReplace(ctx, invNS, invName, cluster, rows)
 	}
 
