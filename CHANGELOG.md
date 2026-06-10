@@ -11,6 +11,8 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
+- **test:** Drop duplicate family sink condition tests [f0bfb36](https://github.com/konih/kollect/commit/f0bfb36b9dbce465daf5773741a71a2f3ea8b76d)
+
 - **build:** Fix go-arch-lint exclude paths for local dirs [4e443f6](https://github.com/konih/kollect/commit/4e443f62ad787577a286719ec9561b111a68355e)
 
 - **validation:** Block private sink endpoint targets [f1c0d79](https://github.com/konih/kollect/commit/f1c0d7900f873c1557faccbc1fd7635ff105289a)
