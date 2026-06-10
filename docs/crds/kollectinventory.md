@@ -53,6 +53,15 @@ Debouncing state machine: [DATA-FLOWS.md §1](../DATA-FLOWS.md#1-export-debounci
     floor when scope exists. Material checksum or `metadata.generation` changes bypass debounce **per
     sink**. See [ADR-0413](../adr/0413-export-interval-scheduling.md).
 
+!!! info "Interval semantics — debounce, not rate limit"
+    `exportMinInterval` only throttles re-export of an **identical payload**. Material changes
+    (payload checksum or generation bump) export **immediately, regardless of the interval** —
+    distinct payloads are never delayed or rate-limited. `0s` is valid and means *material-change
+    only*: instant export on change, no periodic re-export (a 30s status watchdog still requeues
+    without exporting). Sub-second values (e.g. `500ms`) are accepted up to the **24h** cap, but
+    requeue wake-ups floor at **1s** — prefer `0s`, which event sinks (Kafka/NATS) typically use.
+    Full semantics: [DATA-FLOWS §1](../DATA-FLOWS.md#1-export-debouncing).
+
 ## Spec fields
 
 | Field | Type | Required | Default | Description |
@@ -60,7 +69,7 @@ Debouncing state machine: [DATA-FLOWS.md §1](../DATA-FLOWS.md#1-export-debounci
 | `spec.snapshotSinkRefs[]` | list | No | — | Snapshot sink names (string) or `{ name, exportMinInterval? }` |
 | `spec.databaseSinkRefs[]` | list | No | — | Database sink refs (same shape) |
 | `spec.eventSinkRefs[]` | list | No | — | Event sink refs (same shape); combined max **20** refs |
-| `spec.exportMinInterval` | duration | No | **30s** | Default min gap for refs without override; bypass on checksum or generation change |
+| `spec.exportMinInterval` | duration | No | **30s** | Debounce for **identical payloads** per ref without override; material changes always export immediately; `0s` = material-change only |
 | `spec.maxExportBytes` | int64 | No | global cap | Max marshalled payload size |
 | `spec.suspend` | bool | No | false | Pause reconciliation |
 | `spec.httpEndpoint.enabled` | bool | No | false | Per-CR HTTP debug (operator gate also required) |

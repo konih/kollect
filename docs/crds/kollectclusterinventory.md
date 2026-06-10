@@ -58,8 +58,15 @@ flowchart TD
 | `spec.databaseSinkRefs[]` | list | No | — | Database sink refs (same shape) |
 | `spec.eventSinkRefs[]` | list | No | — | Event sink refs (same shape); combined max **20** |
 | `spec.sinkNamespace` | string | No | `kollect-system` | Namespace for namespaced family sink resolution |
-| `spec.exportMinInterval` | duration | No | **30s** | Default min gap for refs without override; bypass on checksum or generation change |
+| `spec.exportMinInterval` | duration | No | **30s** | Debounce for **identical payloads** per ref without override; material changes always export immediately; `0s` = material-change only |
 | `spec.suspend` | bool | No | false | Pause reconciliation (reserved) |
+
+!!! info "Interval semantics"
+    Same rules as `KollectInventory`: the interval never delays a changed payload — material checksum
+    or generation changes export immediately per sink; `0s` means material-change only (30s status
+    watchdog, no re-export); sub-second values are accepted but floor at 1s wake-ups. See
+    [DATA-FLOWS §1](../DATA-FLOWS.md#1-export-debouncing) and
+    [ADR-0413](../adr/0413-export-interval-scheduling.md).
 
 ## Example
 
