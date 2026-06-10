@@ -5,15 +5,15 @@ package v1alpha1
 
 // ConnectionTestSinkRef identifies a family sink for KollectConnectionTest (ADR-0414).
 type ConnectionTestSinkRef struct {
-	// snapshotSinkRef names a KollectSnapshotSink or KollectClusterSnapshotSink.
+	// snapshotSinkRef names a KollectSnapshotSink in the test's namespace.
 	// +optional
 	SnapshotSinkRef string `json:"snapshotSinkRef,omitempty"`
 
-	// databaseSinkRef names a KollectDatabaseSink or KollectClusterDatabaseSink.
+	// databaseSinkRef names a KollectDatabaseSink in the test's namespace.
 	// +optional
 	DatabaseSinkRef string `json:"databaseSinkRef,omitempty"`
 
-	// eventSinkRef names a KollectEventSink or KollectClusterEventSink.
+	// eventSinkRef names a KollectEventSink in the test's namespace.
 	// +optional
 	EventSinkRef string `json:"eventSinkRef,omitempty"`
 }

@@ -12,8 +12,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/operator"
 )
+
+func platformProfileRef() kollectdevv1alpha1.NamespacedObjectReference {
+	return kollectdevv1alpha1.NamespacedObjectReference{
+		Name:      "platform-deployments",
+		Namespace: "kollect-system",
+	}
+}
 
 func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 	t.Parallel()
@@ -25,7 +31,7 @@ func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "bad"},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "platform-deployments",
+			ProfileRef: platformProfileRef(),
 		},
 	})
 	if err == nil {
@@ -35,7 +41,7 @@ func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 	_, err = v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ok"},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "platform-deployments",
+			ProfileRef: platformProfileRef(),
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"team": "platform"},
 			},
@@ -43,6 +49,27 @@ func TestKollectClusterTargetValidator_ValidateCreate(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("expected valid cluster target: %v", err)
+	}
+}
+
+func TestKollectClusterTargetValidator_ValidateCreate_requiresProfileNamespace(t *testing.T) {
+	t.Parallel()
+
+	scheme := runtime.NewScheme()
+	_ = kollectdevv1alpha1.AddToScheme(scheme)
+	v := &kollectClusterTargetValidator{client: fake.NewClientBuilder().WithScheme(scheme).Build()}
+
+	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterTarget{
+		ObjectMeta: metav1.ObjectMeta{Name: "no-ns"},
+		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "platform-deployments"},
+			NamespaceSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"team": "platform"},
+			},
+		},
+	})
+	if err == nil {
+		t.Fatal("expected validation error for missing profileRef.namespace")
 	}
 }
 
@@ -54,7 +81,7 @@ func TestKollectClusterTargetValidator_ValidateUpdateDeletion(t *testing.T) {
 	target := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct"},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "platform-deployments",
+			ProfileRef: platformProfileRef(),
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"team": "platform"},
 			},
@@ -80,32 +107,23 @@ func TestResolveClusterTargetProfileForWebhook(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clusterProfile := &kollectdevv1alpha1.KollectClusterProfile{
-		ObjectMeta: metav1.ObjectMeta{Name: "platform-deployments"},
-		Spec: kollectdevv1alpha1.KollectClusterProfileSpec{
-			TargetGVK: kollectdevv1alpha1.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
-		},
-	}
 	namespacedProfile := &kollectdevv1alpha1.KollectProfile{
-		ObjectMeta: metav1.ObjectMeta{Name: "team-deployments", Namespace: operator.DefaultSecretNamespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "team-deployments", Namespace: "kollect-system"},
 		Spec: kollectdevv1alpha1.KollectProfileSpec{
 			TargetGVK: kollectdevv1alpha1.GroupVersionKind{Group: "apps", Version: "v1", Kind: "StatefulSet"},
 		},
 	}
 
-	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(clusterProfile, namespacedProfile).Build()
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(namespacedProfile).Build()
 
-	got, err := resolveClusterTargetProfileForWebhook(context.Background(), cl, "platform-deployments")
-	if err != nil || got.Spec.TargetGVK.Kind != "Deployment" {
-		t.Fatalf("cluster profile = %#v err=%v", got, err)
-	}
-
-	got, err = resolveClusterTargetProfileForWebhook(context.Background(), cl, "team-deployments")
+	ref := kollectdevv1alpha1.NamespacedObjectReference{Name: "team-deployments", Namespace: "kollect-system"}
+	got, err := resolveClusterTargetProfileForWebhook(context.Background(), cl, ref)
 	if err != nil || got.Spec.TargetGVK.Kind != "StatefulSet" {
 		t.Fatalf("namespaced profile = %#v err=%v", got, err)
 	}
 
-	if _, err := resolveClusterTargetProfileForWebhook(context.Background(), cl, "missing"); err == nil {
+	missing := kollectdevv1alpha1.NamespacedObjectReference{Name: "missing", Namespace: "kollect-system"}
+	if _, err := resolveClusterTargetProfileForWebhook(context.Background(), cl, missing); err == nil {
 		t.Fatal("expected not found for missing profile")
 	}
 }

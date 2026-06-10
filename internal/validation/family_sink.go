@@ -248,18 +248,6 @@ func EventSinkInvalid(name string, errs field.ErrorList) error {
 	return fmt.Errorf("KollectEventSink %q is invalid: %s", name, formatErrors(errs))
 }
 
-func ClusterSnapshotSinkInvalid(name string, errs field.ErrorList) error {
-	return fmt.Errorf("KollectClusterSnapshotSink %q is invalid: %s", name, formatErrors(errs))
-}
-
-func ClusterDatabaseSinkInvalid(name string, errs field.ErrorList) error {
-	return fmt.Errorf("KollectClusterDatabaseSink %q is invalid: %s", name, formatErrors(errs))
-}
-
-func ClusterEventSinkInvalid(name string, errs field.ErrorList) error {
-	return fmt.Errorf("KollectClusterEventSink %q is invalid: %s", name, formatErrors(errs))
-}
-
 // ValidateConnectionTestSinkRef requires exactly one family ref field.
 func ValidateConnectionTestSinkRef(ref kollectdevv1alpha1.ConnectionTestSinkRef) field.ErrorList {
 	base := field.NewPath("spec").Child("sinkRef")

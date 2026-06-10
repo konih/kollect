@@ -3,7 +3,9 @@ kind: KollectClusterTarget
 metadata:
   name: platform-argo-applications
 spec:
-  profileRef: argo-application-summary
+  profileRef:
+    name: argo-application-summary
+    namespace: kollect-system
   namespaceSelector:
     matchLabels:
       kollect.dev/tenant: platform

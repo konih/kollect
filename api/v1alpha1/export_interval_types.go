@@ -19,9 +19,15 @@ const (
 
 // InventorySinkRef names a KollectSink with an optional per-ref export interval override.
 type InventorySinkRef struct {
-	// name is the KollectSink object name in the same namespace as the inventory.
+	// name is the family sink object name.
 	// +required
 	Name string `json:"name"`
+
+	// namespace overrides where this sink resolves. Cluster inventory only:
+	// when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+	// which always resolve in the inventory's own namespace (ADR-0208).
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 
 	// exportMinInterval overrides the inventory default for this sink ref.
 	// Zero means material-change only (no periodic re-export of identical payload).
@@ -89,9 +95,13 @@ func NewSinkRefList(names ...string) InventorySinkRefList {
 
 // InventorySinkExportStatus holds per-sink export observation on an inventory.
 type InventorySinkExportStatus struct {
-	// name matches spec.sinkRefs[].name.
+	// name matches spec.sinkRefs[].name (keyed by family/name).
 	// +required
 	Name string `json:"name"`
+
+	// namespace is the resolved namespace the sink was exported to (ADR-0208).
+	// +optional
+	Namespace string `json:"namespace,omitempty"`
 
 	// lastExportTime is when this sink last accepted an export successfully.
 	// +optional

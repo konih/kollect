@@ -9,7 +9,7 @@ tests:
     asserts:
       - hasDocuments:
           count: 0
-  - it: registers all fifteen validating webhooks when enabled
+  - it: registers all eleven validating webhooks when enabled
     set:
       webhooks:
         enabled: true
@@ -25,16 +25,16 @@ tests:
           value: NAMESPACE/RELEASE-NAME-kollect-serving-cert
       - lengthEqual:
           path: webhooks
-          count: 15
+          count: 11
       - equal:
           path: webhooks[0].name
-          value: vkollectclusterdatabasesink.kb.io
+          value: vkollectclusterinventory.kb.io
       - equal:
           path: webhooks[0].clientConfig.service.path
-          value: /validate-kollect-dev-v1alpha1-kollectclusterdatabasesink
+          value: /validate-kollect-dev-v1alpha1-kollectclusterinventory
       - equal:
-          path: webhooks[14].name
+          path: webhooks[10].name
           value: vkollecttarget.kb.io
       - equal:
-          path: webhooks[14].rules[0].resources[0]
+          path: webhooks[10].rules[0].resources[0]
           value: kollecttargets

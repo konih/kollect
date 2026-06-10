@@ -11,6 +11,12 @@ spec:
   namespaceSelector:
     matchLabels:
       kollect.dev/tenant: platform
-  databaseSinkRefs:
-    - postgres
+  # sinkNamespace is the default namespace for sink refs that omit a namespace.
   sinkNamespace: kollect-system
+  databaseSinkRefs:
+    # resolves in sinkNamespace (kollect-system)
+    - name: postgres
+  snapshotSinkRefs:
+    # explicit cross-namespace export to a sink owned by team-a
+    - name: team-git
+      namespace: team-a

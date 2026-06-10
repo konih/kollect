@@ -282,15 +282,6 @@ func TestFamilySinkInvalidMessages(t *testing.T) {
 	if err := EventSinkInvalid("ev", errs); !strings.Contains(err.Error(), "KollectEventSink") {
 		t.Fatalf("EventSinkInvalid: %v", err)
 	}
-	if err := ClusterSnapshotSinkInvalid("snap", errs); !strings.Contains(err.Error(), "KollectClusterSnapshotSink") {
-		t.Fatalf("ClusterSnapshotSinkInvalid: %v", err)
-	}
-	if err := ClusterDatabaseSinkInvalid("db", errs); !strings.Contains(err.Error(), "KollectClusterDatabaseSink") {
-		t.Fatalf("ClusterDatabaseSinkInvalid: %v", err)
-	}
-	if err := ClusterEventSinkInvalid("ev", errs); !strings.Contains(err.Error(), "KollectClusterEventSink") {
-		t.Fatalf("ClusterEventSinkInvalid: %v", err)
-	}
 }
 
 func TestValidateSnapshotSinkSpec_rejectsUnknownType(t *testing.T) {

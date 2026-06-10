@@ -44,12 +44,12 @@ func TestResolveSink_snapshotNamespaced(t *testing.T) {
 	if resolved.Spec.Type != kollectdevv1alpha1.SnapshotSinkTypeGit {
 		t.Fatalf("type = %q", resolved.Spec.Type)
 	}
-	if resolved.Namespace != "team-a" || resolved.ClusterScoped {
+	if resolved.Namespace != "team-a" {
 		t.Fatalf("resolved = %#v", resolved)
 	}
 }
 
-func TestResolveSink_clusterDatabase(t *testing.T) {
+func TestResolveSink_databaseNamespaced(t *testing.T) {
 	t.Parallel()
 
 	scheme := runtime.NewScheme()
@@ -57,8 +57,8 @@ func TestResolveSink_clusterDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	db := &kollectdevv1alpha1.KollectClusterDatabaseSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "warehouse"},
+	db := &kollectdevv1alpha1.KollectDatabaseSink{
+		ObjectMeta: metav1.ObjectMeta{Name: "warehouse", Namespace: "kollect-system"},
 		Spec: kollectdevv1alpha1.KollectDatabaseSinkSpec{
 			Type: kollectdevv1alpha1.DatabaseSinkTypePostgres,
 			Postgres: &kollectdevv1alpha1.PostgresSpec{
@@ -70,14 +70,14 @@ func TestResolveSink_clusterDatabase(t *testing.T) {
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(db).Build()
 
 	resolved, err := ResolveSink(context.Background(), cl, ResolveOptions{
-		Name:          "warehouse",
-		Family:        kollectdevv1alpha1.SinkFamilyDatabase,
-		ClusterScoped: true,
+		Namespace: "kollect-system",
+		Name:      "warehouse",
+		Family:    kollectdevv1alpha1.SinkFamilyDatabase,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !resolved.ClusterScoped || resolved.Family != kollectdevv1alpha1.SinkFamilyDatabase {
+	if resolved.Namespace != "kollect-system" || resolved.Family != kollectdevv1alpha1.SinkFamilyDatabase {
 		t.Fatalf("resolved = %#v", resolved)
 	}
 }
@@ -88,17 +88,9 @@ func TestResolveOptionsForBinding(t *testing.T) {
 	opts := ResolveOptionsForBinding("team-a", kollectdevv1alpha1.InventorySinkBinding{
 		Name:   "pg",
 		Family: kollectdevv1alpha1.SinkFamilyDatabase,
-	}, false)
-	if opts.Namespace != "team-a" || opts.ClusterScoped {
+	})
+	if opts.Namespace != "team-a" || opts.Name != "pg" || opts.Family != kollectdevv1alpha1.SinkFamilyDatabase {
 		t.Fatalf("opts = %#v", opts)
-	}
-
-	opts = ResolveOptionsForBinding("team-a", kollectdevv1alpha1.InventorySinkBinding{
-		Name:   "shared",
-		Family: kollectdevv1alpha1.SinkFamilySnapshot,
-	}, true)
-	if opts.Namespace != "" || !opts.ClusterScoped {
-		t.Fatalf("cluster opts = %#v", opts)
 	}
 }
 
@@ -111,8 +103,8 @@ func TestSinkNamespaceForResolved(t *testing.T) {
 	if got := SinkNamespaceForResolved(&ResolvedSink{Namespace: "team-a"}, "fallback"); got != "team-a" {
 		t.Fatalf("namespaced = %q", got)
 	}
-	if got := SinkNamespaceForResolved(&ResolvedSink{ClusterScoped: true}, "fallback"); got != "fallback" {
-		t.Fatalf("cluster = %q", got)
+	if got := SinkNamespaceForResolved(&ResolvedSink{}, "fallback"); got != "fallback" {
+		t.Fatalf("empty = %q", got)
 	}
 }
 

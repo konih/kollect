@@ -175,7 +175,6 @@ kollect_wait_crds_established() {
     kollectdatabasesinks.kollect.dev \
     kollecteventsinks.kollect.dev \
     kollectscopes.kollect.dev \
-    kollectclusterprofiles.kollect.dev \
     kollectclustertargets.kollect.dev \
     kollectclusterinventories.kollect.dev; do
     kubectl wait --for=condition=Established "crd/${crd}" --timeout="$timeout"

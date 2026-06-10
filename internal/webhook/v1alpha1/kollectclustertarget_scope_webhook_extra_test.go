@@ -12,7 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/operator"
 )
 
 func TestKollectClusterTargetValidator_validateClusterScope(t *testing.T) {
@@ -36,7 +35,7 @@ func TestKollectClusterTargetValidator_validateClusterScope(t *testing.T) {
 		},
 	}
 	profile := &kollectdevv1alpha1.KollectProfile{
-		ObjectMeta: metav1.ObjectMeta{Name: "deployments", Namespace: operator.DefaultSecretNamespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "deployments", Namespace: "kollect-system"},
 		Spec: kollectdevv1alpha1.KollectProfileSpec{
 			TargetGVK: kollectdevv1alpha1.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"},
 		},
@@ -48,7 +47,7 @@ func TestKollectClusterTargetValidator_validateClusterScope(t *testing.T) {
 	target := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct"},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "deployments",
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "deployments", Namespace: "kollect-system"},
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"team": "platform"},
 			},
@@ -62,7 +61,7 @@ func TestKollectClusterTargetValidator_validateClusterScope(t *testing.T) {
 	}
 
 	badGVK := target.DeepCopy()
-	badGVK.Spec.ProfileRef = "deployments"
+	badGVK.Spec.ProfileRef = kollectdevv1alpha1.NamespacedObjectReference{Name: "deployments", Namespace: "kollect-system"}
 	badGVK.Spec.CollectionFilterSpec = kollectdevv1alpha1.CollectionFilterSpec{
 		ResourceRules: []kollectdevv1alpha1.ResourceRule{
 			{GVK: kollectdevv1alpha1.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Pod"}},

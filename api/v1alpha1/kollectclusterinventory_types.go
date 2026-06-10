@@ -16,9 +16,10 @@ const (
 // KollectClusterInventorySpec defines platform-wide rollup across KollectClusterTarget objects
 // (ADR-0703). Reconciled by KollectClusterInventoryReconciler.
 type KollectClusterInventorySpec struct {
-	// profileRef names a KollectClusterProfile stub for shared extraction schema (optional).
+	// profileRef optionally overrides the rollup extraction schema with a namespaced
+	// KollectProfile by name and namespace (ADR-0208). namespace is required when set.
 	// +optional
-	ProfileRef string `json:"profileRef,omitempty"`
+	ProfileRef *NamespacedObjectReference `json:"profileRef,omitempty"`
 
 	// targetRefs lists KollectClusterTarget names to aggregate.
 	// When empty, all cluster targets matching targetSelector are included; when targetSelector is
@@ -42,25 +43,30 @@ type KollectClusterInventorySpec struct {
 	// +optional
 	Namespaces []string `json:"namespaces,omitempty"`
 
-	// snapshotSinkRefs lists KollectSnapshotSink or KollectClusterSnapshotSink names (ADR-0414).
+	// snapshotSinkRefs lists namespaced KollectSnapshotSink refs (ADR-0414, ADR-0208).
+	// Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
 	// +optional
 	SnapshotSinkRefs InventorySinkRefList `json:"snapshotSinkRefs,omitempty"`
 
-	// databaseSinkRefs lists KollectDatabaseSink or KollectClusterDatabaseSink names (ADR-0414).
+	// databaseSinkRefs lists namespaced KollectDatabaseSink refs (ADR-0414, ADR-0208).
+	// Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
 	// +optional
 	DatabaseSinkRefs InventorySinkRefList `json:"databaseSinkRefs,omitempty"`
 
-	// eventSinkRefs lists KollectEventSink or KollectClusterEventSink names (ADR-0414).
+	// eventSinkRefs lists namespaced KollectEventSink refs (ADR-0414, ADR-0208).
+	// Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
 	// +optional
 	EventSinkRefs InventorySinkRefList `json:"eventSinkRefs,omitempty"`
 
-	// sinkNamespace is the namespace where namespaced family sinks are resolved.
+	// sinkNamespace is the default namespace for family sink refs that omit a namespace.
 	// +kubebuilder:default="kollect-system"
 	// +optional
 	SinkNamespace string `json:"sinkNamespace,omitempty"`
 
 	// exportMinInterval is the minimum time between identical exports for this inventory.
-	// Material changes (payload checksum or spec generation) bypass the interval.
+	// It debounces identical payloads only: material changes (payload checksum or spec
+	// generation) always export immediately, regardless of the interval. Zero means
+	// material-change only (no periodic re-export of identical payloads).
 	// +kubebuilder:default="30s"
 	// +optional
 	ExportMinInterval *metav1.Duration `json:"exportMinInterval,omitempty"`

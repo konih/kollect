@@ -14,7 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/operator"
 	"github.com/konih/kollect/internal/scope"
 	"github.com/konih/kollect/internal/validation"
 )
@@ -108,23 +107,14 @@ func (v *kollectClusterTargetValidator) validateClusterScope(
 func resolveClusterTargetProfileForWebhook(
 	ctx context.Context,
 	c client.Client,
-	profileRef string,
+	profileRef kollectdevv1alpha1.NamespacedObjectReference,
 ) (*kollectdevv1alpha1.KollectProfile, error) {
-	var clusterProfile kollectdevv1alpha1.KollectClusterProfile
-	if err := c.Get(ctx, client.ObjectKey{Name: profileRef}, &clusterProfile); err == nil {
-		return &kollectdevv1alpha1.KollectProfile{
-			Spec: kollectdevv1alpha1.KollectProfileSpec{TargetGVK: clusterProfile.Spec.TargetGVK},
-		}, nil
-	} else if !apierrors.IsNotFound(err) {
-		return nil, fmt.Errorf("load KollectClusterProfile: %w", err)
-	}
-
 	var profile kollectdevv1alpha1.KollectProfile
-	key := client.ObjectKey{Name: profileRef, Namespace: operator.DefaultSecretNamespace}
+	key := client.ObjectKey{Name: profileRef.Name, Namespace: profileRef.Namespace}
 	if err := c.Get(ctx, key, &profile); err != nil {
 		if apierrors.IsNotFound(err) {
 			gr := kollectdevv1alpha1.GroupVersion.WithResource("kollectprofiles").GroupResource()
-			return nil, apierrors.NewNotFound(gr, profileRef)
+			return nil, apierrors.NewNotFound(gr, profileRef.Name)
 		}
 
 		return nil, err

@@ -155,23 +155,3 @@ func TestProfileWarnings_export(t *testing.T) {
 		t.Fatalf("expected Phase 2 CEL warning, got %v", warnings)
 	}
 }
-
-func TestValidateClusterProfile_exportSecretGuard(t *testing.T) {
-	t.Parallel()
-
-	cp := &kollectdevv1alpha1.KollectClusterProfile{
-		Spec: kollectdevv1alpha1.KollectClusterProfileSpec{
-			TargetGVK: secretGVK(),
-			Export:    &kollectdevv1alpha1.ExportSpec{Mode: kollectdevv1alpha1.ExportModeResource},
-		},
-	}
-
-	if errs := ValidateClusterProfile(cp); len(errs) == 0 {
-		t.Fatalf("cluster profile secret resource export should require annotation")
-	}
-
-	cp.Annotations = map[string]string{AllowFullResourceExportAnnotation: "true"}
-	if errs := ValidateClusterProfile(cp); len(errs) > 0 {
-		t.Fatalf("cluster profile with annotation should pass: %v", errs)
-	}
-}

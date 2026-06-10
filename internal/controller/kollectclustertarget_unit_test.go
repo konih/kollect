@@ -43,7 +43,7 @@ func TestKollectClusterTargetReconciler_suspend(t *testing.T) {
 	ct := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "cluster-deploys", Generation: 1},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "demo",
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "demo", Namespace: "kollect-system"},
 			Suspend:    true,
 		},
 	}

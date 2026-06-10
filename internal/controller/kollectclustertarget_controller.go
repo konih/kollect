@@ -38,7 +38,6 @@ type KollectClusterTargetReconciler struct {
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclustertargets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclustertargets/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclustertargets/finalizers,verbs=update
-// +kubebuilder:rbac:groups=kollect.dev,resources=kollectclusterprofiles,verbs=get;list;watch
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectprofiles,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
@@ -199,7 +198,7 @@ func (r *KollectClusterTargetReconciler) syncEngineTargets(
 				Namespace: ns,
 			},
 			Spec: kollectdevv1alpha1.KollectTargetSpec{
-				ProfileRef:           ct.Spec.ProfileRef,
+				ProfileRef:           ct.Spec.ProfileRef.Name,
 				CollectionFilterSpec: ct.Spec.CollectionFilterSpec,
 				NamespaceSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
@@ -282,8 +281,8 @@ func (r *KollectClusterTargetReconciler) setReady(
 ) error {
 	count := r.collectedCount(ct, matched)
 	msg := fmt.Sprintf(
-		"profileRef %q resolved; %d namespace(s) matched; collecting %d resource(s)",
-		ct.Spec.ProfileRef, len(matched), count,
+		"profileRef %q in namespace %q resolved; %d namespace(s) matched; collecting %d resource(s)",
+		ct.Spec.ProfileRef.Name, ct.Spec.ProfileRef.Namespace, len(matched), count,
 	)
 
 	apimeta.RemoveStatusCondition(&ct.Status.Conditions, conditionDegraded)
@@ -341,8 +340,8 @@ func (r *KollectClusterTargetReconciler) SetupWithManager(mgr ctrl.Manager) erro
 			handler.EnqueueRequestsFromMapFunc(r.mapNamespaceToClusterTargets),
 		).
 		Watches(
-			&kollectdevv1alpha1.KollectClusterProfile{},
-			handler.EnqueueRequestsFromMapFunc(r.mapClusterProfileToClusterTargets),
+			&kollectdevv1alpha1.KollectProfile{},
+			handler.EnqueueRequestsFromMapFunc(r.mapProfileToClusterTargets),
 		).
 		Named("kollectclustertarget").
 		Complete(r)
@@ -367,11 +366,11 @@ func (r *KollectClusterTargetReconciler) mapNamespaceToClusterTargets(
 	return reqs
 }
 
-func (r *KollectClusterTargetReconciler) mapClusterProfileToClusterTargets(
+func (r *KollectClusterTargetReconciler) mapProfileToClusterTargets(
 	ctx context.Context,
 	obj client.Object,
 ) []reconcile.Request {
-	profile, ok := obj.(*kollectdevv1alpha1.KollectClusterProfile)
+	profile, ok := obj.(*kollectdevv1alpha1.KollectProfile)
 	if !ok {
 		return nil
 	}
@@ -383,7 +382,8 @@ func (r *KollectClusterTargetReconciler) mapClusterProfileToClusterTargets(
 
 	reqs := make([]reconcile.Request, 0)
 	for i := range list.Items {
-		if list.Items[i].Spec.ProfileRef == profile.Name {
+		ref := list.Items[i].Spec.ProfileRef
+		if ref.Name == profile.Name && ref.Namespace == profile.Namespace {
 			reqs = append(reqs, reconcile.Request{
 				NamespacedName: types.NamespacedName{Name: list.Items[i].Name},
 			})

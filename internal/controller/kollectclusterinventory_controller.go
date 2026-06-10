@@ -58,7 +58,7 @@ type KollectClusterInventoryReconciler struct {
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclusterinventories/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclusterinventories/finalizers,verbs=update
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectclustertargets,verbs=get;list;watch
-// +kubebuilder:rbac:groups=kollect.dev,resources=kollectsnapshotsinks;kollectdatabasesinks;kollecteventsinks;kollectclustersnapshotsinks;kollectclusterdatabasesinks;kollectclustereventsinks,verbs=get;list;watch
+// +kubebuilder:rbac:groups=kollect.dev,resources=kollectsnapshotsinks;kollectdatabasesinks;kollecteventsinks,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
@@ -244,6 +244,7 @@ func (r *KollectClusterInventoryReconciler) exportClusterToSinks(
 		exportKey := sinkExportKey(binding)
 		resolved, err := loadClusterInventorySink(ctx, r.Client, sinkNS, binding)
 		status := upsertSinkExportStatus(&outcome.SinkExports, exportKey)
+		status.Namespace = sinkBindingNamespace(binding, sinkNS)
 		if err != nil {
 			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, err.Error())
 			outcome.addSinkFailure(exportKey, err)
@@ -761,18 +762,6 @@ func (r *KollectClusterInventoryReconciler) SetupWithManager(mgr ctrl.Manager) e
 			&kollectdevv1alpha1.KollectEventSink{},
 			handler.EnqueueRequestsFromMapFunc(r.mapClusterEventSinkToInventories),
 		).
-		Watches(
-			&kollectdevv1alpha1.KollectClusterSnapshotSink{},
-			handler.EnqueueRequestsFromMapFunc(r.mapClusterSnapshotSinkToInventories),
-		).
-		Watches(
-			&kollectdevv1alpha1.KollectClusterDatabaseSink{},
-			handler.EnqueueRequestsFromMapFunc(r.mapClusterDatabaseSinkToInventories),
-		).
-		Watches(
-			&kollectdevv1alpha1.KollectClusterEventSink{},
-			handler.EnqueueRequestsFromMapFunc(r.mapClusterEventSinkToInventories),
-		).
 		Named("kollectclusterinventory").
 		Complete(r)
 }
@@ -833,14 +822,15 @@ func (r *KollectClusterInventoryReconciler) mapClusterFamilySinkToInventories(
 		if invSinkNS == "" {
 			invSinkNS = sink.DefaultSecretNamespace
 		}
-		if sinkNS != "" && invSinkNS != sinkNS {
-			continue
-		}
 		for _, binding := range clusterInventorySinkBindings(inv) {
-			if binding.Family == family && binding.Name == sinkName {
-				reqs = append(reqs, reconcile.Request{NamespacedName: types.NamespacedName{Name: inv.Name}})
-				break
+			if binding.Family != family || binding.Name != sinkName {
+				continue
 			}
+			if sinkNS != "" && sinkBindingNamespace(binding, invSinkNS) != sinkNS {
+				continue
+			}
+			reqs = append(reqs, reconcile.Request{NamespacedName: types.NamespacedName{Name: inv.Name}})
+			break
 		}
 	}
 

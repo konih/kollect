@@ -61,7 +61,7 @@ func TestKollectClusterInventoryReconciler_exportsRollupToSink(t *testing.T) {
 	target := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: targetName},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "unused",
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "unused", Namespace: "kollect-system"},
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{tenantLabel: tenantVal},
 			},

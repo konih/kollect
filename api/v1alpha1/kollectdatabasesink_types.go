@@ -48,30 +48,6 @@ type KollectDatabaseSinkList struct {
 	Items           []KollectDatabaseSink `json:"items"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster,shortName=kcdb
-
-// KollectClusterDatabaseSink is a cluster-scoped relational export sink.
-type KollectClusterDatabaseSink struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              KollectDatabaseSinkSpec `json:"spec"`
-	Status            FamilySinkStatus        `json:"status,omitempty"`
-}
-
-// +kubebuilder:object:root=true
-
-// KollectClusterDatabaseSinkList contains a list of KollectClusterDatabaseSink.
-type KollectClusterDatabaseSinkList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KollectClusterDatabaseSink `json:"items"`
-}
-
 func init() {
-	SchemeBuilder.Register(
-		&KollectDatabaseSink{}, &KollectDatabaseSinkList{},
-		&KollectClusterDatabaseSink{}, &KollectClusterDatabaseSinkList{},
-	)
+	SchemeBuilder.Register(&KollectDatabaseSink{}, &KollectDatabaseSinkList{})
 }

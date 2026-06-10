@@ -14,26 +14,24 @@ import (
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 )
 
-// ResolvedSink holds a normalized sink spec loaded from a family CRD (ADR-0414).
+// ResolvedSink holds a normalized sink spec loaded from a namespaced family CRD (ADR-0414, ADR-0208).
 type ResolvedSink struct {
 	Spec              kollectdevv1alpha1.KollectSinkSpec
 	ExportMinInterval *kollectdevv1alpha1.SinkCommonFields
 	Namespace         string
 	Name              string
 	Family            string
-	ClusterScoped     bool
 	UID               types.UID
 }
 
 // ResolveOptions configures sink loading for inventory export.
 type ResolveOptions struct {
-	Namespace     string
-	Name          string
-	Family        string
-	ClusterScoped bool
+	Namespace string
+	Name      string
+	Family    string
 }
 
-// ResolveSink loads a family sink CRD and normalizes it to KollectSinkSpec.
+// ResolveSink loads a namespaced family sink CRD and normalizes it to KollectSinkSpec.
 func ResolveSink(ctx context.Context, c client.Client, opts ResolveOptions) (*ResolvedSink, error) {
 	if c == nil {
 		return nil, fmt.Errorf("client is required")
@@ -58,20 +56,6 @@ func ResolveSink(ctx context.Context, c client.Client, opts ResolveOptions) (*Re
 }
 
 func resolveSnapshotSink(ctx context.Context, c client.Client, opts ResolveOptions) (*ResolvedSink, error) {
-	if opts.ClusterScoped {
-		var ks kollectdevv1alpha1.KollectClusterSnapshotSink
-		if err := c.Get(ctx, client.ObjectKey{Name: opts.Name}, &ks); err != nil {
-			return nil, err
-		}
-		return &ResolvedSink{
-			Spec:              ks.Spec.ToKollectSinkSpec(),
-			ExportMinInterval: &ks.Spec.SinkCommonFields,
-			Name:              opts.Name,
-			Family:            kollectdevv1alpha1.SinkFamilySnapshot,
-			ClusterScoped:     true,
-			UID:               ks.UID,
-		}, nil
-	}
 	var ks kollectdevv1alpha1.KollectSnapshotSink
 	if err := c.Get(ctx, client.ObjectKey{Namespace: opts.Namespace, Name: opts.Name}, &ks); err != nil {
 		return nil, err
@@ -87,20 +71,6 @@ func resolveSnapshotSink(ctx context.Context, c client.Client, opts ResolveOptio
 }
 
 func resolveDatabaseSink(ctx context.Context, c client.Client, opts ResolveOptions) (*ResolvedSink, error) {
-	if opts.ClusterScoped {
-		var ks kollectdevv1alpha1.KollectClusterDatabaseSink
-		if err := c.Get(ctx, client.ObjectKey{Name: opts.Name}, &ks); err != nil {
-			return nil, err
-		}
-		return &ResolvedSink{
-			Spec:              ks.Spec.ToKollectSinkSpec(),
-			ExportMinInterval: &ks.Spec.SinkCommonFields,
-			Name:              opts.Name,
-			Family:            kollectdevv1alpha1.SinkFamilyDatabase,
-			ClusterScoped:     true,
-			UID:               ks.UID,
-		}, nil
-	}
 	var ks kollectdevv1alpha1.KollectDatabaseSink
 	if err := c.Get(ctx, client.ObjectKey{Namespace: opts.Namespace, Name: opts.Name}, &ks); err != nil {
 		return nil, err
@@ -116,20 +86,6 @@ func resolveDatabaseSink(ctx context.Context, c client.Client, opts ResolveOptio
 }
 
 func resolveEventSink(ctx context.Context, c client.Client, opts ResolveOptions) (*ResolvedSink, error) {
-	if opts.ClusterScoped {
-		var ks kollectdevv1alpha1.KollectClusterEventSink
-		if err := c.Get(ctx, client.ObjectKey{Name: opts.Name}, &ks); err != nil {
-			return nil, err
-		}
-		return &ResolvedSink{
-			Spec:              ks.Spec.ToKollectSinkSpec(),
-			ExportMinInterval: &ks.Spec.SinkCommonFields,
-			Name:              opts.Name,
-			Family:            kollectdevv1alpha1.SinkFamilyEvent,
-			ClusterScoped:     true,
-			UID:               ks.UID,
-		}, nil
-	}
 	var ks kollectdevv1alpha1.KollectEventSink
 	if err := c.Get(ctx, client.ObjectKey{Namespace: opts.Namespace, Name: opts.Name}, &ks); err != nil {
 		return nil, err
@@ -155,17 +111,12 @@ func SinkNamespaceForResolved(resolved *ResolvedSink, fallback string) string {
 	return fallback
 }
 
-// ResolveOptionsForBinding builds resolve options for an inventory binding.
+// ResolveOptionsForBinding builds resolve options for an inventory binding in the given namespace.
 func ResolveOptionsForBinding(
 	namespace string,
 	binding kollectdevv1alpha1.InventorySinkBinding,
-	clusterScoped bool,
 ) ResolveOptions {
-	opts := ResolveOptions{Name: binding.Name, Family: binding.Family, ClusterScoped: clusterScoped}
-	if !clusterScoped {
-		opts.Namespace = namespace
-	}
-	return opts
+	return ResolveOptions{Namespace: namespace, Name: binding.Name, Family: binding.Family}
 }
 
 func resolveSinkAnyFamily(ctx context.Context, c client.Client, opts ResolveOptions) (*ResolvedSink, error) {

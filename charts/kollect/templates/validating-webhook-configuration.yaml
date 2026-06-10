@@ -1,11 +1,7 @@
 {{- if .Values.webhooks.enabled }}
 {{- $hooks := list
-  (dict "name" "vkollectclusterdatabasesink.kb.io" "kind" "kollectclusterdatabasesink" "resource" "kollectclusterdatabasesinks")
-  (dict "name" "vkollectclustereventsink.kb.io" "kind" "kollectclustereventsink" "resource" "kollectclustereventsinks")
   (dict "name" "vkollectclusterinventory.kb.io" "kind" "kollectclusterinventory" "resource" "kollectclusterinventories")
-  (dict "name" "vkollectclusterprofile.kb.io" "kind" "kollectclusterprofile" "resource" "kollectclusterprofiles")
   (dict "name" "vkollectclusterscope.kb.io" "kind" "kollectclusterscope" "resource" "kollectclusterscopes")
-  (dict "name" "vkollectclustersnapshotsink.kb.io" "kind" "kollectclustersnapshotsink" "resource" "kollectclustersnapshotsinks")
   (dict "name" "vkollectclustertarget.kb.io" "kind" "kollectclustertarget" "resource" "kollectclustertargets")
   (dict "name" "vkollectconnectiontest.kb.io" "kind" "kollectconnectiontest" "resource" "kollectconnectiontests")
   (dict "name" "vkollectdatabasesink.kb.io" "kind" "kollectdatabasesink" "resource" "kollectdatabasesinks")

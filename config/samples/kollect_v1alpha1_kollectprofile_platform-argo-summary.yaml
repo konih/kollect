@@ -1,7 +1,8 @@
 apiVersion: kollect.dev/v1alpha1
-kind: KollectClusterProfile
+kind: KollectProfile
 metadata:
   name: argo-application-summary
+  namespace: kollect-system
   labels:
     app.kubernetes.io/name: kollect
     app.kubernetes.io/managed-by: kustomize

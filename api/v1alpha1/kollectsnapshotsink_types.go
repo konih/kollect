@@ -52,30 +52,6 @@ type KollectSnapshotSinkList struct {
 	Items           []KollectSnapshotSink `json:"items"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster,shortName=kcsnap
-
-// KollectClusterSnapshotSink is a cluster-scoped snapshot export sink.
-type KollectClusterSnapshotSink struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              KollectSnapshotSinkSpec `json:"spec"`
-	Status            FamilySinkStatus        `json:"status,omitempty"`
-}
-
-// +kubebuilder:object:root=true
-
-// KollectClusterSnapshotSinkList contains a list of KollectClusterSnapshotSink.
-type KollectClusterSnapshotSinkList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KollectClusterSnapshotSink `json:"items"`
-}
-
 func init() {
-	SchemeBuilder.Register(
-		&KollectSnapshotSink{}, &KollectSnapshotSinkList{},
-		&KollectClusterSnapshotSink{}, &KollectClusterSnapshotSinkList{},
-	)
+	SchemeBuilder.Register(&KollectSnapshotSink{}, &KollectSnapshotSinkList{})
 }
