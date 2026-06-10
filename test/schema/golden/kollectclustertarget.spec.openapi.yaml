@@ -108,9 +108,21 @@ properties:
     type: object
     x-kubernetes-map-type: atomic
   profileRef:
-    description: profileRef names a KollectClusterProfile or a platform-namespace
-      KollectProfile stub.
-    type: string
+    description: |-
+      profileRef points at a namespaced KollectProfile by name and namespace (ADR-0208).
+      namespace is required at admission — there is no implicit platform-namespace fallback.
+    properties:
+      name:
+        description: name is the referenced object's name.
+        type: string
+      namespace:
+        description: |-
+          namespace is the referenced object's namespace.
+          Required on cluster-scoped kinds; optional where a default namespace applies.
+        type: string
+    required:
+    - name
+    type: object
   resourceRules:
     description: |-
       resourceRules declares GVK-scoped collection rules. When empty, collection falls back to

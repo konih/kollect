@@ -22,11 +22,11 @@ func ValidateClusterInventorySpec(spec *kollectdevv1alpha1.KollectClusterInvento
 
 	var allErrs field.ErrorList
 
-	if strings.TrimSpace(spec.ProfileRef) != "" {
-		allErrs = append(allErrs, validateNameOnlyRef(
-			spec.ProfileRef,
+	if spec.ProfileRef != nil {
+		allErrs = append(allErrs, ValidateNamespacedObjectRef(
+			*spec.ProfileRef,
 			field.NewPath("spec").Child("profileRef"),
-			"profileRef",
+			true,
 		)...)
 	}
 
@@ -98,11 +98,11 @@ func validateClusterInventoryFamilySinkRefs(spec *kollectdevv1alpha1.KollectClus
 	}
 
 	allErrs := make(field.ErrorList, 0, 3)
-	allErrs = append(allErrs, ValidateInventorySinkRefs(spec.SnapshotSinkRefs,
+	allErrs = append(allErrs, ValidateClusterInventorySinkRefs(spec.SnapshotSinkRefs,
 		field.NewPath("spec").Child("snapshotSinkRefs"))...)
-	allErrs = append(allErrs, ValidateInventorySinkRefs(spec.DatabaseSinkRefs,
+	allErrs = append(allErrs, ValidateClusterInventorySinkRefs(spec.DatabaseSinkRefs,
 		field.NewPath("spec").Child("databaseSinkRefs"))...)
-	allErrs = append(allErrs, ValidateInventorySinkRefs(spec.EventSinkRefs,
+	allErrs = append(allErrs, ValidateClusterInventorySinkRefs(spec.EventSinkRefs,
 		field.NewPath("spec").Child("eventSinkRefs"))...)
 
 	return allErrs

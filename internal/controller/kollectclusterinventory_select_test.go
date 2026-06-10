@@ -44,7 +44,7 @@ func TestKollectClusterInventoryReconciler_selectedClusterTargets(t *testing.T) 
 			Labels: map[string]string{"tier": "gold"},
 		},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "platform-deployments",
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "platform-deployments", Namespace: "kollect-system"},
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"team": "platform"},
 			},
@@ -53,7 +53,7 @@ func TestKollectClusterInventoryReconciler_selectedClusterTargets(t *testing.T) 
 	ctOther := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct-other"},
 		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-			ProfileRef: "other",
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "other", Namespace: "kollect-system"},
 			NamespaceSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"team": "other"},
 			},

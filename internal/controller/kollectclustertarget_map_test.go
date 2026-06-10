@@ -22,22 +22,26 @@ func TestKollectClusterTargetReconciler_mapFunctions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	profile := &kollectdevv1alpha1.KollectClusterProfile{
-		ObjectMeta: metav1.ObjectMeta{Name: "platform-deployments"},
+	profile := &kollectdevv1alpha1.KollectProfile{
+		ObjectMeta: metav1.ObjectMeta{Name: "platform-deployments", Namespace: "kollect-system"},
 	}
 	match := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct-match"},
-		Spec:       kollectdevv1alpha1.KollectClusterTargetSpec{ProfileRef: "platform-deployments"},
+		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "platform-deployments", Namespace: "kollect-system"},
+		},
 	}
 	other := &kollectdevv1alpha1.KollectClusterTarget{
 		ObjectMeta: metav1.ObjectMeta{Name: "ct-other"},
-		Spec:       kollectdevv1alpha1.KollectClusterTargetSpec{ProfileRef: "other"},
+		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
+			ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "other", Namespace: "kollect-system"},
+		},
 	}
 
 	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(match, other).Build()
 	r := &KollectClusterTargetReconciler{Client: cl}
 
-	reqs := r.mapClusterProfileToClusterTargets(context.Background(), profile)
+	reqs := r.mapProfileToClusterTargets(context.Background(), profile)
 	if len(reqs) != 1 || reqs[0].Name != "ct-match" {
 		t.Fatalf("profile map reqs = %#v", reqs)
 	}
@@ -47,7 +51,7 @@ func TestKollectClusterTargetReconciler_mapFunctions(t *testing.T) {
 		t.Fatalf("namespace map reqs = %#v", reqs)
 	}
 
-	if got := r.mapClusterProfileToClusterTargets(context.Background(), match); got != nil {
+	if got := r.mapProfileToClusterTargets(context.Background(), match); got != nil {
 		t.Fatalf("non-profile object should return nil, got %#v", got)
 	}
 }

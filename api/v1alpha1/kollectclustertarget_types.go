@@ -10,9 +10,10 @@ import (
 // KollectClusterTargetSpec defines platform-wide collection across namespaces (ADR-0703).
 // No collection controller is registered in Phase 1 — API + webhook + samples only.
 type KollectClusterTargetSpec struct {
-	// profileRef names a KollectClusterProfile or a platform-namespace KollectProfile stub.
+	// profileRef points at a namespaced KollectProfile by name and namespace (ADR-0208).
+	// namespace is required at admission — there is no implicit platform-namespace fallback.
 	// +required
-	ProfileRef string `json:"profileRef"`
+	ProfileRef NamespacedObjectReference `json:"profileRef"`
 
 	// namespaceSelector restricts collection to namespaces matching the selector.
 	// +optional

@@ -1,8 +1,9 @@
 description: spec defines the desired state of KollectClusterInventory
 properties:
   databaseSinkRefs:
-    description: databaseSinkRefs lists KollectDatabaseSink or KollectClusterDatabaseSink
-      names (ADR-0414).
+    description: |-
+      databaseSinkRefs lists namespaced KollectDatabaseSink refs (ADR-0414, ADR-0208).
+      Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
     items:
       description: InventorySinkRef names a KollectSink with an optional per-ref export
         interval override.
@@ -13,8 +14,13 @@ properties:
             Zero means material-change only (no periodic re-export of identical payload).
           type: string
         name:
-          description: name is the KollectSink object name in the same namespace as
-            the inventory.
+          description: name is the family sink object name.
+          type: string
+        namespace:
+          description: |-
+            namespace overrides where this sink resolves. Cluster inventory only:
+            when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+            which always resolve in the inventory's own namespace (ADR-0208).
           type: string
       required:
       - name
@@ -28,8 +34,9 @@ properties:
     - byResourceUID
     type: string
   eventSinkRefs:
-    description: eventSinkRefs lists KollectEventSink or KollectClusterEventSink names
-      (ADR-0414).
+    description: |-
+      eventSinkRefs lists namespaced KollectEventSink refs (ADR-0414, ADR-0208).
+      Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
     items:
       description: InventorySinkRef names a KollectSink with an optional per-ref export
         interval override.
@@ -40,8 +47,13 @@ properties:
             Zero means material-change only (no periodic re-export of identical payload).
           type: string
         name:
-          description: name is the KollectSink object name in the same namespace as
-            the inventory.
+          description: name is the family sink object name.
+          type: string
+        namespace:
+          description: |-
+            namespace overrides where this sink resolves. Cluster inventory only:
+            when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+            which always resolve in the inventory's own namespace (ADR-0208).
           type: string
       required:
       - name
@@ -51,7 +63,9 @@ properties:
     default: 30s
     description: |-
       exportMinInterval is the minimum time between identical exports for this inventory.
-      Material changes (payload checksum or spec generation) bypass the interval.
+      It debounces identical payloads only: material changes (payload checksum or spec
+      generation) always export immediately, regardless of the interval. Zero means
+      material-change only (no periodic re-export of identical payloads).
     type: string
   namespaceSelector:
     description: namespaceSelector restricts rollup to namespaces matching the selector.
@@ -109,17 +123,30 @@ properties:
     type: array
     x-kubernetes-list-type: set
   profileRef:
-    description: profileRef names a KollectClusterProfile stub for shared extraction
-      schema (optional).
-    type: string
+    description: |-
+      profileRef optionally overrides the rollup extraction schema with a namespaced
+      KollectProfile by name and namespace (ADR-0208). namespace is required when set.
+    properties:
+      name:
+        description: name is the referenced object's name.
+        type: string
+      namespace:
+        description: |-
+          namespace is the referenced object's namespace.
+          Required on cluster-scoped kinds; optional where a default namespace applies.
+        type: string
+    required:
+    - name
+    type: object
   sinkNamespace:
     default: kollect-system
-    description: sinkNamespace is the namespace where namespaced family sinks are
-      resolved.
+    description: sinkNamespace is the default namespace for family sink refs that
+      omit a namespace.
     type: string
   snapshotSinkRefs:
-    description: snapshotSinkRefs lists KollectSnapshotSink or KollectClusterSnapshotSink
-      names (ADR-0414).
+    description: |-
+      snapshotSinkRefs lists namespaced KollectSnapshotSink refs (ADR-0414, ADR-0208).
+      Each ref resolves in its own namespace, or spec.sinkNamespace when omitted.
     items:
       description: InventorySinkRef names a KollectSink with an optional per-ref export
         interval override.
@@ -130,8 +157,13 @@ properties:
             Zero means material-change only (no periodic re-export of identical payload).
           type: string
         name:
-          description: name is the KollectSink object name in the same namespace as
-            the inventory.
+          description: name is the family sink object name.
+          type: string
+        namespace:
+          description: |-
+            namespace overrides where this sink resolves. Cluster inventory only:
+            when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+            which always resolve in the inventory's own namespace (ADR-0208).
           type: string
       required:
       - name

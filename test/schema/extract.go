@@ -21,7 +21,6 @@ type SpecFragmentCase struct {
 // DefaultCases lists CRD kinds with checked-in spec OpenAPI goldens.
 var DefaultCases = []SpecFragmentCase{
 	{CRDFile: "kollect.dev_kollectprofiles.yaml", GoldenFile: "kollectprofile.spec.openapi.yaml"},
-	{CRDFile: "kollect.dev_kollectclusterprofiles.yaml", GoldenFile: "kollectclusterprofile.spec.openapi.yaml"},
 	{CRDFile: "kollect.dev_kollecttargets.yaml", GoldenFile: "kollecttarget.spec.openapi.yaml"},
 	{CRDFile: "kollect.dev_kollectinventories.yaml", GoldenFile: "kollectinventory.spec.openapi.yaml"},
 	{CRDFile: "kollect.dev_kollectclustertargets.yaml", GoldenFile: "kollectclustertarget.spec.openapi.yaml"},

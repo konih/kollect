@@ -84,8 +84,6 @@ func (s scopeCheck) familySinkReachable(
 		return false, "SinkLookupFailed", err.Error()
 	}
 
-	clusterScoped := resolved.ClusterScoped
-
 	verified := apimeta.FindStatusCondition(conditions, kollectdevv1alpha1.ConditionConnectionVerified)
 	if verified != nil && verified.Status == metav1.ConditionFalse {
 		msg := "sink connection not verified"
@@ -97,7 +95,7 @@ func (s scopeCheck) familySinkReachable(
 	}
 
 	if verified != nil && verified.Status == metav1.ConditionTrue {
-		msg := fmt.Sprintf("%s %q connection verified", familySinkKind(binding.Family, clusterScoped), binding.Name)
+		msg := fmt.Sprintf("%s %q connection verified", familySinkKind(binding.Family), binding.Name)
 		if verified.Message != "" {
 			msg = verified.Message
 		}
@@ -105,45 +103,24 @@ func (s scopeCheck) familySinkReachable(
 		return true, "ConnectionVerified", msg
 	}
 
-	return true, "SinkResolved", fmt.Sprintf("%s %q found", familySinkKind(binding.Family, clusterScoped), binding.Name)
+	return true, "SinkResolved", fmt.Sprintf("%s %q found", familySinkKind(binding.Family), binding.Name)
 }
 
 func familySinkConditions(ctx context.Context, c client.Client, resolved *sink.ResolvedSink) ([]metav1.Condition, error) {
 	switch resolved.Family {
 	case kollectdevv1alpha1.SinkFamilySnapshot:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterSnapshotSink
-			if err := c.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return obj.Status.Conditions, nil
-		}
 		var obj kollectdevv1alpha1.KollectSnapshotSink
 		if err := c.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err
 		}
 		return obj.Status.Conditions, nil
 	case kollectdevv1alpha1.SinkFamilyDatabase:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterDatabaseSink
-			if err := c.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return obj.Status.Conditions, nil
-		}
 		var obj kollectdevv1alpha1.KollectDatabaseSink
 		if err := c.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err
 		}
 		return obj.Status.Conditions, nil
 	case kollectdevv1alpha1.SinkFamilyEvent:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterEventSink
-			if err := c.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return obj.Status.Conditions, nil
-		}
 		var obj kollectdevv1alpha1.KollectEventSink
 		if err := c.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err

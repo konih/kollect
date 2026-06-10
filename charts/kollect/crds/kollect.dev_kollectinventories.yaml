@@ -54,8 +54,13 @@ spec:
                         Zero means material-change only (no periodic re-export of identical payload).
                       type: string
                     name:
-                      description: name is the KollectSink object name in the same
-                        namespace as the inventory.
+                      description: name is the family sink object name.
+                      type: string
+                    namespace:
+                      description: |-
+                        namespace overrides where this sink resolves. Cluster inventory only:
+                        when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+                        which always resolve in the inventory's own namespace (ADR-0208).
                       type: string
                   required:
                   - name
@@ -74,8 +79,13 @@ spec:
                         Zero means material-change only (no periodic re-export of identical payload).
                       type: string
                     name:
-                      description: name is the KollectSink object name in the same
-                        namespace as the inventory.
+                      description: name is the family sink object name.
+                      type: string
+                    namespace:
+                      description: |-
+                        namespace overrides where this sink resolves. Cluster inventory only:
+                        when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+                        which always resolve in the inventory's own namespace (ADR-0208).
                       type: string
                   required:
                   - name
@@ -85,7 +95,9 @@ spec:
                 default: 30s
                 description: |-
                   exportMinInterval is the minimum time between identical exports for this inventory.
-                  Material changes (payload checksum or spec generation) bypass the interval.
+                  It debounces identical payloads only: material changes (payload checksum or spec
+                  generation) always export immediately, regardless of the interval. Zero means
+                  material-change only (no periodic re-export of identical payloads).
                 type: string
               httpEndpoint:
                 description: httpEndpoint exposes a read-only inventory summary over
@@ -122,8 +134,13 @@ spec:
                         Zero means material-change only (no periodic re-export of identical payload).
                       type: string
                     name:
-                      description: name is the KollectSink object name in the same
-                        namespace as the inventory.
+                      description: name is the family sink object name.
+                      type: string
+                    namespace:
+                      description: |-
+                        namespace overrides where this sink resolves. Cluster inventory only:
+                        when omitted it inherits spec.sinkNamespace. Forbidden on namespaced inventories,
+                        which always resolve in the inventory's own namespace (ADR-0208).
                       type: string
                   required:
                   - name
@@ -297,7 +314,11 @@ spec:
                       format: date-time
                       type: string
                     name:
-                      description: name matches spec.sinkRefs[].name.
+                      description: name matches spec.sinkRefs[].name (keyed by family/name).
+                      type: string
+                    namespace:
+                      description: namespace is the resolved namespace the sink was
+                        exported to (ADR-0208).
                       type: string
                   required:
                   - name

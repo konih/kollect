@@ -239,7 +239,7 @@ func (r *KollectInventoryReconciler) exportToSinks(
 	for _, binding := range bindings {
 		ref := binding.Ref
 		exportKey := sinkExportKey(binding)
-		resolved, resolvedErr := loadResolvedSink(ctx, r.Client, inv.Namespace, binding, false)
+		resolved, resolvedErr := loadResolvedSink(ctx, r.Client, inv.Namespace, binding)
 		status := upsertSinkExportStatus(&outcome.SinkExports, exportKey)
 		if resolvedErr != nil {
 			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, resolvedErr.Error())
@@ -382,7 +382,7 @@ func (r *KollectInventoryReconciler) previewAllSinksDebounced(
 		exportKey := sinkExportKey(binding)
 		status := upsertSinkExportStatus(&outcome.SinkExports, exportKey)
 		interval := defaultInterval
-		if resolved, err := loadResolvedSink(context.Background(), r.Client, inv.Namespace, binding, false); err == nil {
+		if resolved, err := loadResolvedSink(context.Background(), r.Client, inv.Namespace, binding); err == nil {
 			var sinkInterval *metav1.Duration
 			if resolved.ExportMinInterval != nil {
 				sinkInterval = resolved.ExportMinInterval.ExportMinInterval

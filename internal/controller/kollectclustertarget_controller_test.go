@@ -112,7 +112,10 @@ var _ = Describe("KollectClusterTarget Controller", func() {
 		target := &kollectdevv1alpha1.KollectClusterTarget{
 			ObjectMeta: metav1.ObjectMeta{Name: targetName},
 			Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-				ProfileRef: profileName,
+				ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{
+					Name:      profileName,
+					Namespace: sink.DefaultSecretNamespace,
+				},
 				NamespaceSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{tenantLabel: tenantValue},
 				},
@@ -152,19 +155,29 @@ var _ = Describe("KollectClusterTarget Controller", func() {
 		Expect(engine.NamespacesForClusterTarget(targetName)).To(ConsistOf(nsMatched))
 	})
 
-	It("re-enqueues targets when cluster profile changes", func() {
-		profile := &kollectdevv1alpha1.KollectClusterProfile{
-			ObjectMeta: metav1.ObjectMeta{Name: profileName},
-			Spec: kollectdevv1alpha1.KollectClusterProfileSpec{
+	It("re-enqueues targets when the referenced profile changes", func() {
+		ensureNamespace(ctx, kubeClient, sink.DefaultSecretNamespace, nil)
+
+		profile := &kollectdevv1alpha1.KollectProfile{
+			ObjectMeta: metav1.ObjectMeta{Name: profileName, Namespace: sink.DefaultSecretNamespace},
+			Spec: kollectdevv1alpha1.KollectProfileSpec{
 				TargetGVK: kollectdevv1alpha1.GroupVersionKind{Version: "v1", Kind: "ConfigMap"},
+				Attributes: []kollectdevv1alpha1.AttributeSpec{
+					{Name: "name", Path: "{.metadata.name}"},
+				},
 			},
 		}
 		Expect(k8sClient.Create(ctx, profile)).To(Succeed())
 
+		profileRef := kollectdevv1alpha1.NamespacedObjectReference{
+			Name:      profileName,
+			Namespace: sink.DefaultSecretNamespace,
+		}
+
 		targetA := &kollectdevv1alpha1.KollectClusterTarget{
 			ObjectMeta: metav1.ObjectMeta{Name: targetName},
 			Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-				ProfileRef: profileName,
+				ProfileRef: profileRef,
 				NamespaceSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{tenantLabel: tenantValue},
 				},
@@ -176,7 +189,10 @@ var _ = Describe("KollectClusterTarget Controller", func() {
 		targetB := &kollectdevv1alpha1.KollectClusterTarget{
 			ObjectMeta: metav1.ObjectMeta{Name: targetBName},
 			Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-				ProfileRef: profileName,
+				ProfileRef: profileRef,
+				NamespaceSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{tenantLabel: tenantValue},
+				},
 			},
 		}
 		Expect(k8sClient.Create(ctx, targetB)).To(Succeed())
@@ -190,7 +206,7 @@ var _ = Describe("KollectClusterTarget Controller", func() {
 			Engine: engine,
 		}
 
-		reqs := reconciler.mapClusterProfileToClusterTargets(ctx, profile)
+		reqs := reconciler.mapProfileToClusterTargets(ctx, profile)
 		Expect(reqs).To(ConsistOf(
 			reconcile.Request{NamespacedName: types.NamespacedName{Name: targetName}},
 			reconcile.Request{NamespacedName: types.NamespacedName{Name: targetBName}},

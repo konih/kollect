@@ -8,6 +8,7 @@ resources:
 - kollect_v1alpha1_kollectprofile_argo-application-summary.yaml
 - kollect_v1alpha1_kollectprofile_deployment-snapshot.yaml
 - kollect_v1alpha1_kollectprofile_argo-application-snapshot.yaml
+- kollect_v1alpha1_kollectprofile_platform-argo-summary.yaml
 - kollect_v1alpha1_kollectsnapshotsink.yaml
 - kollect_v1alpha1_kollectsnapshotsink_git_minimal.yaml
 - kollect_v1alpha1_kollectsnapshotsink_git_layout.yaml
@@ -25,7 +26,6 @@ resources:
 - kollect_v1alpha1_kollectinventory_sharded.yaml
 - kollect_v1alpha1_kollectscope_team-a.yaml
 - kollect_v1alpha1_kollectconnectiontest.yaml
-- kollect_v1alpha1_kollectclusterprofile.yaml
 - kollect_v1alpha1_kollectclustertarget.yaml
 - kollect_v1alpha1_kollectclusterinventory.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

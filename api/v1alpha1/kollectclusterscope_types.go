@@ -11,17 +11,17 @@ import (
 type KollectClusterScopeSpec struct {
 	ScopeCeilingSpec `json:",inline"`
 
-	// snapshotSinkRefs lists permitted KollectClusterSnapshotSink names for this scope.
+	// snapshotSinkRefs lists permitted KollectSnapshotSink names for this scope.
 	// +listType=set
 	// +optional
 	SnapshotSinkRefs []string `json:"snapshotSinkRefs,omitempty"`
 
-	// databaseSinkRefs lists permitted KollectClusterDatabaseSink names for this scope.
+	// databaseSinkRefs lists permitted KollectDatabaseSink names for this scope.
 	// +listType=set
 	// +optional
 	DatabaseSinkRefs []string `json:"databaseSinkRefs,omitempty"`
 
-	// eventSinkRefs lists permitted KollectClusterEventSink names for this scope.
+	// eventSinkRefs lists permitted KollectEventSink names for this scope.
 	// +listType=set
 	// +optional
 	EventSinkRefs []string `json:"eventSinkRefs,omitempty"`

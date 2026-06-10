@@ -244,13 +244,6 @@ func main() {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollectsnapshotsink")
 		os.Exit(1)
 	}
-	if err := (&controller.FamilyClusterSnapshotSinkReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "Failed to create controller", "controller", "kollectclustersnapshotsink")
-		os.Exit(1)
-	}
 	if err := (&controller.FamilyDatabaseSinkReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -258,25 +251,11 @@ func main() {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollectdatabasesink")
 		os.Exit(1)
 	}
-	if err := (&controller.FamilyClusterDatabaseSinkReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "Failed to create controller", "controller", "kollectclusterdatabasesink")
-		os.Exit(1)
-	}
 	if err := (&controller.FamilyEventSinkReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Failed to create controller", "controller", "kollecteventsink")
-		os.Exit(1)
-	}
-	if err := (&controller.FamilyClusterEventSinkReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "Failed to create controller", "controller", "kollectclustereventsink")
 		os.Exit(1)
 	}
 	if err := (&controller.KollectConnectionTestReconciler{

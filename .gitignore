@@ -15,6 +15,7 @@ AGENTS.local.md
 .idea/
 .vscode/
 .DS_Store
+.cache
 
 # --- Secrets / credentials: never commit ---
 .env

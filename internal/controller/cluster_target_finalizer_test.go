@@ -43,7 +43,7 @@ func TestKollectClusterTargetReconciler_deleteUnregistersAndRemovesFinalizer(t *
 			Finalizers:        []string{clusterTargetCleanupFinalizer},
 			DeletionTimestamp: &now,
 		},
-		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{ProfileRef: "apps"},
+		Spec: kollectdevv1alpha1.KollectClusterTargetSpec{ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: "apps", Namespace: "kollect-system"}},
 	}
 
 	cl := fake.NewClientBuilder().

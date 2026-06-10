@@ -5,9 +5,11 @@ package validation
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8svalidation "k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
@@ -44,8 +46,24 @@ func ValidateOptionalDurationInterval(d *metav1.Duration, path *field.Path) fiel
 	return ValidateDurationInterval(d.Duration, path)
 }
 
-// ValidateInventorySinkRefs checks structured sinkRefs on an inventory spec.
+// ValidateInventorySinkRefs checks structured sinkRefs on a namespaced inventory spec.
+// The per-ref namespace field is forbidden — namespaced inventories resolve sinks in their
+// own namespace (ADR-0208).
 func ValidateInventorySinkRefs(refs kollectdevv1alpha1.InventorySinkRefList, basePath *field.Path) field.ErrorList {
+	return validateInventorySinkRefs(refs, basePath, false)
+}
+
+// ValidateClusterInventorySinkRefs checks structured sinkRefs on a cluster inventory spec.
+// The per-ref namespace is optional and inherits spec.sinkNamespace when omitted (ADR-0208).
+func ValidateClusterInventorySinkRefs(refs kollectdevv1alpha1.InventorySinkRefList, basePath *field.Path) field.ErrorList {
+	return validateInventorySinkRefs(refs, basePath, true)
+}
+
+func validateInventorySinkRefs(
+	refs kollectdevv1alpha1.InventorySinkRefList,
+	basePath *field.Path,
+	allowNamespace bool,
+) field.ErrorList {
 	if basePath == nil {
 		basePath = field.NewPath("spec").Child("sinkRefs")
 	}
@@ -66,11 +84,27 @@ func ValidateInventorySinkRefs(refs kollectdevv1alpha1.InventorySinkRefList, bas
 			}
 			seen[ref.Name] = struct{}{}
 		}
+		allErrs = append(allErrs, validateInventorySinkRefNamespace(ref.Namespace, refPath.Child("namespace"), allowNamespace)...)
 		allErrs = append(allErrs, ValidateOptionalDurationInterval(
 			ref.ExportMinInterval, refPath.Child("exportMinInterval"))...)
 	}
 
 	return allErrs
+}
+
+func validateInventorySinkRefNamespace(namespace string, nsPath *field.Path, allowNamespace bool) field.ErrorList {
+	if strings.TrimSpace(namespace) == "" {
+		return nil
+	}
+	if !allowNamespace {
+		return field.ErrorList{field.Forbidden(nsPath,
+			"namespace is not allowed on namespaced inventory sink refs; sinks resolve in the inventory's namespace")}
+	}
+	if msgs := k8svalidation.IsDNS1123Label(namespace); len(msgs) > 0 {
+		return field.ErrorList{field.Invalid(nsPath, namespace, strings.Join(msgs, "; "))}
+	}
+
+	return nil
 }
 
 // InventoryDefaultInterval returns the inventory-level default debounce duration.

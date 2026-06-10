@@ -90,30 +90,6 @@ func TestKollectEventSinkValidator_validSpec(t *testing.T) {
 	}
 }
 
-func TestKollectClusterSnapshotSinkValidator_validate(t *testing.T) {
-	t.Parallel()
-
-	v := &kollectClusterSnapshotSinkValidator{}
-	_, err := v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterSnapshotSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "bad"},
-		Spec:       kollectdevv1alpha1.KollectSnapshotSinkSpec{Type: kollectdevv1alpha1.SnapshotSinkTypeGit},
-	})
-	if err == nil {
-		t.Fatal("expected git block required")
-	}
-
-	_, err = v.ValidateCreate(context.Background(), &kollectdevv1alpha1.KollectClusterSnapshotSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "s3"},
-		Spec: kollectdevv1alpha1.KollectSnapshotSinkSpec{
-			Type:        kollectdevv1alpha1.SnapshotSinkTypeS3,
-			ObjectStore: &kollectdevv1alpha1.ObjectStoreSpec{Format: "json"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("valid cluster snapshot: %v", err)
-	}
-}
-
 func TestFamilySinkValidators_updateDelete(t *testing.T) {
 	t.Parallel()
 
@@ -133,20 +109,5 @@ func TestFamilySinkValidators_updateDelete(t *testing.T) {
 	}
 	if _, err := v.ValidateDelete(context.Background(), snap); err != nil {
 		t.Fatalf("delete: %v", err)
-	}
-
-	cluster := &kollectClusterDatabaseSinkValidator{}
-	db := &kollectdevv1alpha1.KollectClusterDatabaseSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "pg"},
-		Spec: kollectdevv1alpha1.KollectDatabaseSinkSpec{
-			Type: kollectdevv1alpha1.DatabaseSinkTypePostgres,
-			Postgres: &kollectdevv1alpha1.PostgresSpec{
-				DatabaseRef: &kollectdevv1alpha1.SecretReference{Name: "pg"},
-				Table:       "inventory",
-			},
-		},
-	}
-	if _, err := cluster.ValidateDelete(context.Background(), db); err != nil {
-		t.Fatalf("cluster delete: %v", err)
 	}
 }

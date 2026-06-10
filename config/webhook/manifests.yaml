@@ -10,46 +10,6 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-kollect-dev-v1alpha1-kollectclusterdatabasesink
-  failurePolicy: Fail
-  name: vkollectclusterdatabasesink.kb.io
-  rules:
-  - apiGroups:
-    - kollect.dev
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - kollectclusterdatabasesinks
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
-      path: /validate-kollect-dev-v1alpha1-kollectclustereventsink
-  failurePolicy: Fail
-  name: vkollectclustereventsink.kb.io
-  rules:
-  - apiGroups:
-    - kollect.dev
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - kollectclustereventsinks
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
       path: /validate-kollect-dev-v1alpha1-kollectclusterinventory
   failurePolicy: Fail
   name: vkollectclusterinventory.kb.io
@@ -70,26 +30,6 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-kollect-dev-v1alpha1-kollectclusterprofile
-  failurePolicy: Fail
-  name: vkollectclusterprofile.kb.io
-  rules:
-  - apiGroups:
-    - kollect.dev
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - kollectclusterprofiles
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
       path: /validate-kollect-dev-v1alpha1-kollectclusterscope
   failurePolicy: Fail
   name: vkollectclusterscope.kb.io
@@ -103,26 +43,6 @@ webhooks:
     - UPDATE
     resources:
     - kollectclusterscopes
-  sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
-      path: /validate-kollect-dev-v1alpha1-kollectclustersnapshotsink
-  failurePolicy: Fail
-  name: vkollectclustersnapshotsink.kb.io
-  rules:
-  - apiGroups:
-    - kollect.dev
-    apiVersions:
-    - v1alpha1
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - kollectclustersnapshotsinks
   sideEffects: None
 - admissionReviewVersions:
   - v1

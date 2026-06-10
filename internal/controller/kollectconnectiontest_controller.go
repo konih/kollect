@@ -32,7 +32,6 @@ type KollectConnectionTestReconciler struct {
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectconnectiontests,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectconnectiontests/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectsnapshotsinks;kollectdatabasesinks;kollecteventsinks,verbs=get;list;watch
-// +kubebuilder:rbac:groups=kollect.dev,resources=kollectclustersnapshotsinks;kollectclusterdatabasesinks;kollectclustereventsinks,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 func (r *KollectConnectionTestReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -61,15 +60,12 @@ func (r *KollectConnectionTestReconciler) Reconcile(ctx context.Context, req ctr
 		}
 
 		binding := kollectdevv1alpha1.InventorySinkBinding{Name: sinkName, Family: family}
-		resolved, err := loadResolvedSink(ctx, r.Client, test.Namespace, binding, false)
-		if err != nil && apierrors.IsNotFound(err) {
-			resolved, err = loadResolvedSink(ctx, r.Client, test.Namespace, binding, true)
-		}
+		resolved, err := loadResolvedSink(ctx, r.Client, test.Namespace, binding)
 		if err != nil {
 			retErr = err
 			res, setErr := r.setProbeFailed(
 				ctx, &test, reasonSinkNotFound,
-				fmt.Sprintf("%s %q: %v", familySinkKind(family, resolved != nil && resolved.ClusterScoped), sinkName, err),
+				fmt.Sprintf("%s %q: %v", familySinkKind(family), sinkName, err),
 			)
 
 			return res, setErr
@@ -129,39 +125,18 @@ func (r *KollectConnectionTestReconciler) familySinkObject(
 	}
 	switch resolved.Family {
 	case kollectdevv1alpha1.SinkFamilySnapshot:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterSnapshotSink
-			if err := r.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return &obj, nil
-		}
 		var obj kollectdevv1alpha1.KollectSnapshotSink
 		if err := r.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err
 		}
 		return &obj, nil
 	case kollectdevv1alpha1.SinkFamilyDatabase:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterDatabaseSink
-			if err := r.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return &obj, nil
-		}
 		var obj kollectdevv1alpha1.KollectDatabaseSink
 		if err := r.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err
 		}
 		return &obj, nil
 	case kollectdevv1alpha1.SinkFamilyEvent:
-		if resolved.ClusterScoped {
-			var obj kollectdevv1alpha1.KollectClusterEventSink
-			if err := r.Get(ctx, client.ObjectKey{Name: resolved.Name}, &obj); err != nil {
-				return nil, err
-			}
-			return &obj, nil
-		}
 		var obj kollectdevv1alpha1.KollectEventSink
 		if err := r.Get(ctx, client.ObjectKey{Namespace: resolved.Namespace, Name: resolved.Name}, &obj); err != nil {
 			return nil, err

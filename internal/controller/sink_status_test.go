@@ -130,23 +130,11 @@ func TestFamilySinkConditions_AllFamiliesAndScopes(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "events", Namespace: "default"},
 		Status:     kollectdevv1alpha1.FamilySinkStatus{Conditions: []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}},
 	}
-	clusterSnapshot := &kollectdevv1alpha1.KollectClusterSnapshotSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "cluster-snap"},
-		Status:     kollectdevv1alpha1.FamilySinkStatus{Conditions: []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}},
-	}
-	clusterDatabase := &kollectdevv1alpha1.KollectClusterDatabaseSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "cluster-db"},
-		Status:     kollectdevv1alpha1.FamilySinkStatus{Conditions: []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}},
-	}
-	clusterEvent := &kollectdevv1alpha1.KollectClusterEventSink{
-		ObjectMeta: metav1.ObjectMeta{Name: "cluster-events"},
-		Status:     kollectdevv1alpha1.FamilySinkStatus{Conditions: []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}},
-	}
 
 	cl := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithObjects(snapshot, database, event, clusterSnapshot, clusterDatabase, clusterEvent).
-		WithStatusSubresource(snapshot, database, event, clusterSnapshot, clusterDatabase, clusterEvent).
+		WithObjects(snapshot, database, event).
+		WithStatusSubresource(snapshot, database, event).
 		Build()
 
 	tests := []struct {
@@ -156,9 +144,6 @@ func TestFamilySinkConditions_AllFamiliesAndScopes(t *testing.T) {
 		{name: "snapshot namespaced", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilySnapshot, Namespace: "default", Name: "snap"}},
 		{name: "database namespaced", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilyDatabase, Namespace: "default", Name: "db"}},
 		{name: "event namespaced", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilyEvent, Namespace: "default", Name: "events"}},
-		{name: "snapshot cluster", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilySnapshot, ClusterScoped: true, Name: "cluster-snap"}},
-		{name: "database cluster", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilyDatabase, ClusterScoped: true, Name: "cluster-db"}},
-		{name: "event cluster", resolved: &sink.ResolvedSink{Family: kollectdevv1alpha1.SinkFamilyEvent, ClusterScoped: true, Name: "cluster-events"}},
 	}
 
 	for _, tc := range tests {

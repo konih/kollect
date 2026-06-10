@@ -6,8 +6,8 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -20,34 +20,38 @@ func loadResolvedSink(
 	c client.Client,
 	namespace string,
 	binding kollectdevv1alpha1.InventorySinkBinding,
-	clusterScoped bool,
 ) (*sink.ResolvedSink, error) {
-	opts := sink.ResolveOptionsForBinding(namespace, binding, clusterScoped)
+	opts := sink.ResolveOptionsForBinding(namespace, binding)
 	resolved, err := sink.ResolveSink(ctx, c, opts)
 	if err != nil {
-		kind := familySinkKind(binding.Family, clusterScoped)
-		return nil, fmt.Errorf("get %s %q: %w", kind, binding.Name, err)
+		kind := familySinkKind(binding.Family)
+		return nil, fmt.Errorf("get %s %q in %q: %w", kind, binding.Name, namespace, err)
 	}
 
 	return resolved, nil
 }
 
-func familySinkKind(family string, clusterScoped bool) string {
-	prefix := "Kollect"
-	if clusterScoped {
-		prefix = "KollectCluster"
-	}
-
+func familySinkKind(family string) string {
 	switch family {
 	case kollectdevv1alpha1.SinkFamilySnapshot:
-		return prefix + "SnapshotSink"
+		return "KollectSnapshotSink"
 	case kollectdevv1alpha1.SinkFamilyDatabase:
-		return prefix + "DatabaseSink"
+		return "KollectDatabaseSink"
 	case kollectdevv1alpha1.SinkFamilyEvent:
-		return prefix + "EventSink"
+		return "KollectEventSink"
 	default:
-		return prefix + "Sink"
+		return "KollectSink"
 	}
+}
+
+// sinkBindingNamespace resolves the namespace for a cluster inventory sink ref: the per-ref
+// namespace when set, otherwise the inventory default sink namespace (ADR-0208).
+func sinkBindingNamespace(binding kollectdevv1alpha1.InventorySinkBinding, defaultNS string) string {
+	if ns := strings.TrimSpace(binding.Ref.Namespace); ns != "" {
+		return binding.Ref.Namespace
+	}
+
+	return defaultNS
 }
 
 func inventorySinkBindings(inv *kollectdevv1alpha1.KollectInventory) []kollectdevv1alpha1.InventorySinkBinding {
@@ -85,18 +89,14 @@ func sinkExportMinInterval(resolved *sink.ResolvedSink) *metav1.Duration {
 	return resolved.ExportMinInterval.ExportMinInterval
 }
 
+// loadClusterInventorySink resolves a cluster inventory sink ref in its effective namespace:
+// the per-ref namespace when set, otherwise the inventory default sink namespace. No cluster
+// fallback resolution is attempted (ADR-0208).
 func loadClusterInventorySink(
 	ctx context.Context,
 	c client.Client,
 	sinkNS string,
 	binding kollectdevv1alpha1.InventorySinkBinding,
 ) (*sink.ResolvedSink, error) {
-	resolved, err := loadResolvedSink(ctx, c, sinkNS, binding, false)
-	if err == nil {
-		return resolved, nil
-	}
-	if apierrors.IsNotFound(err) {
-		return loadResolvedSink(ctx, c, sinkNS, binding, true)
-	}
-	return nil, err
+	return loadResolvedSink(ctx, c, sinkBindingNamespace(binding, sinkNS), binding)
 }

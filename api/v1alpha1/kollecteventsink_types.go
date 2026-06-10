@@ -44,30 +44,6 @@ type KollectEventSinkList struct {
 	Items           []KollectEventSink `json:"items"`
 }
 
-// +kubebuilder:object:root=true
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster,shortName=kcevt
-
-// KollectClusterEventSink is a cluster-scoped event export sink.
-type KollectClusterEventSink struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              KollectEventSinkSpec `json:"spec"`
-	Status            FamilySinkStatus     `json:"status,omitempty"`
-}
-
-// +kubebuilder:object:root=true
-
-// KollectClusterEventSinkList contains a list of KollectClusterEventSink.
-type KollectClusterEventSinkList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KollectClusterEventSink `json:"items"`
-}
-
 func init() {
-	SchemeBuilder.Register(
-		&KollectEventSink{}, &KollectEventSinkList{},
-		&KollectClusterEventSink{}, &KollectClusterEventSinkList{},
-	)
+	SchemeBuilder.Register(&KollectEventSink{}, &KollectEventSinkList{})
 }

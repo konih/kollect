@@ -21,9 +21,6 @@ func setupFamilySinkWebhooks(mgr ctrl.Manager) error {
 		setupKollectSnapshotSinkWebhook,
 		setupKollectDatabaseSinkWebhook,
 		setupKollectEventSinkWebhook,
-		setupKollectClusterSnapshotSinkWebhook,
-		setupKollectClusterDatabaseSinkWebhook,
-		setupKollectClusterEventSinkWebhook,
 	}
 	for _, hook := range hooks {
 		if err := hook(mgr); err != nil {
@@ -144,105 +141,6 @@ func (v *kollectEventSinkValidator) validate(ctx context.Context, obj *kollectde
 	}
 	normalized := obj.Spec.ToKollectSinkSpec()
 	return validation.ValidateSinkConfigWarnings(&normalized), nil
-}
-
-type kollectClusterSnapshotSinkValidator struct{ client client.Client }
-
-var _ admission.Validator[*kollectdevv1alpha1.KollectClusterSnapshotSink] = &kollectClusterSnapshotSinkValidator{}
-
-//nolint:lll
-// +kubebuilder:webhook:path=/validate-kollect-dev-v1alpha1-kollectclustersnapshotsink,mutating=false,failurePolicy=fail,sideEffects=None,groups=kollect.dev,resources=kollectclustersnapshotsinks,verbs=create;update,versions=v1alpha1,name=vkollectclustersnapshotsink.kb.io,admissionReviewVersions=v1
-
-func setupKollectClusterSnapshotSinkWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr, &kollectdevv1alpha1.KollectClusterSnapshotSink{}).
-		WithValidator(&kollectClusterSnapshotSinkValidator{client: mgr.GetClient()}).
-		Complete()
-}
-
-func (v *kollectClusterSnapshotSinkValidator) ValidateCreate(ctx context.Context, obj *kollectdevv1alpha1.KollectClusterSnapshotSink) (admission.Warnings, error) {
-	return v.validate(obj)
-}
-func (v *kollectClusterSnapshotSinkValidator) ValidateUpdate(ctx context.Context, _ *kollectdevv1alpha1.KollectClusterSnapshotSink, obj *kollectdevv1alpha1.KollectClusterSnapshotSink) (admission.Warnings, error) {
-	if obj.DeletionTimestamp != nil {
-		return nil, nil
-	}
-	return v.validate(obj)
-}
-func (v *kollectClusterSnapshotSinkValidator) ValidateDelete(context.Context, *kollectdevv1alpha1.KollectClusterSnapshotSink) (admission.Warnings, error) {
-	return nil, nil
-}
-func (v *kollectClusterSnapshotSinkValidator) validate(obj *kollectdevv1alpha1.KollectClusterSnapshotSink) (admission.Warnings, error) {
-	errs := validation.ValidateSnapshotSinkSpec(&obj.Spec)
-	if len(errs) > 0 {
-		return nil, validation.ClusterSnapshotSinkInvalid(obj.Name, errs)
-	}
-	return nil, nil
-}
-
-type kollectClusterDatabaseSinkValidator struct{ client client.Client }
-
-var _ admission.Validator[*kollectdevv1alpha1.KollectClusterDatabaseSink] = &kollectClusterDatabaseSinkValidator{}
-
-//nolint:lll
-// +kubebuilder:webhook:path=/validate-kollect-dev-v1alpha1-kollectclusterdatabasesink,mutating=false,failurePolicy=fail,sideEffects=None,groups=kollect.dev,resources=kollectclusterdatabasesinks,verbs=create;update,versions=v1alpha1,name=vkollectclusterdatabasesink.kb.io,admissionReviewVersions=v1
-
-func setupKollectClusterDatabaseSinkWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr, &kollectdevv1alpha1.KollectClusterDatabaseSink{}).
-		WithValidator(&kollectClusterDatabaseSinkValidator{client: mgr.GetClient()}).
-		Complete()
-}
-
-func (v *kollectClusterDatabaseSinkValidator) ValidateCreate(ctx context.Context, obj *kollectdevv1alpha1.KollectClusterDatabaseSink) (admission.Warnings, error) {
-	return v.validate(obj)
-}
-func (v *kollectClusterDatabaseSinkValidator) ValidateUpdate(ctx context.Context, _ *kollectdevv1alpha1.KollectClusterDatabaseSink, obj *kollectdevv1alpha1.KollectClusterDatabaseSink) (admission.Warnings, error) {
-	if obj.DeletionTimestamp != nil {
-		return nil, nil
-	}
-	return v.validate(obj)
-}
-func (v *kollectClusterDatabaseSinkValidator) ValidateDelete(context.Context, *kollectdevv1alpha1.KollectClusterDatabaseSink) (admission.Warnings, error) {
-	return nil, nil
-}
-func (v *kollectClusterDatabaseSinkValidator) validate(obj *kollectdevv1alpha1.KollectClusterDatabaseSink) (admission.Warnings, error) {
-	errs := validation.ValidateDatabaseSinkSpec(&obj.Spec)
-	if len(errs) > 0 {
-		return nil, validation.ClusterDatabaseSinkInvalid(obj.Name, errs)
-	}
-	return nil, nil
-}
-
-type kollectClusterEventSinkValidator struct{ client client.Client }
-
-var _ admission.Validator[*kollectdevv1alpha1.KollectClusterEventSink] = &kollectClusterEventSinkValidator{}
-
-//nolint:lll
-// +kubebuilder:webhook:path=/validate-kollect-dev-v1alpha1-kollectclustereventsink,mutating=false,failurePolicy=fail,sideEffects=None,groups=kollect.dev,resources=kollectclustereventsinks,verbs=create;update,versions=v1alpha1,name=vkollectclustereventsink.kb.io,admissionReviewVersions=v1
-
-func setupKollectClusterEventSinkWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr, &kollectdevv1alpha1.KollectClusterEventSink{}).
-		WithValidator(&kollectClusterEventSinkValidator{client: mgr.GetClient()}).
-		Complete()
-}
-
-func (v *kollectClusterEventSinkValidator) ValidateCreate(ctx context.Context, obj *kollectdevv1alpha1.KollectClusterEventSink) (admission.Warnings, error) {
-	return v.validate(obj)
-}
-func (v *kollectClusterEventSinkValidator) ValidateUpdate(ctx context.Context, _ *kollectdevv1alpha1.KollectClusterEventSink, obj *kollectdevv1alpha1.KollectClusterEventSink) (admission.Warnings, error) {
-	if obj.DeletionTimestamp != nil {
-		return nil, nil
-	}
-	return v.validate(obj)
-}
-func (v *kollectClusterEventSinkValidator) ValidateDelete(context.Context, *kollectdevv1alpha1.KollectClusterEventSink) (admission.Warnings, error) {
-	return nil, nil
-}
-func (v *kollectClusterEventSinkValidator) validate(obj *kollectdevv1alpha1.KollectClusterEventSink) (admission.Warnings, error) {
-	errs := validation.ValidateEventSinkSpec(&obj.Spec)
-	if len(errs) > 0 {
-		return nil, validation.ClusterEventSinkInvalid(obj.Name, errs)
-	}
-	return nil, nil
 }
 
 type sinkInvalidFn func(string, field.ErrorList) error

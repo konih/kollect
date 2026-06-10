@@ -21,7 +21,7 @@ func cleanupSinkExports(
 	registry *sink.Registry,
 	sinkNamespace string,
 	bindings []kollectdevv1alpha1.InventorySinkBinding,
-	clusterFallback bool,
+	clusterScoped bool,
 	objectPath string,
 	generation int64,
 ) error {
@@ -35,10 +35,10 @@ func cleanupSinkExports(
 			resolved *sink.ResolvedSink
 			err      error
 		)
-		if clusterFallback {
+		if clusterScoped {
 			resolved, err = loadClusterInventorySink(ctx, c, sinkNamespace, binding)
 		} else {
-			resolved, err = loadResolvedSink(ctx, c, sinkNamespace, binding, false)
+			resolved, err = loadResolvedSink(ctx, c, sinkNamespace, binding)
 		}
 		if err != nil {
 			errs = append(errs, err)

@@ -5,7 +5,6 @@ package validation
 
 import (
 	"fmt"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -21,13 +20,7 @@ func ValidateClusterTargetSpec(spec *kollectdevv1alpha1.KollectClusterTargetSpec
 
 	var allErrs field.ErrorList
 	profilePath := field.NewPath("spec").Child("profileRef")
-
-	if strings.TrimSpace(spec.ProfileRef) == "" {
-		allErrs = append(allErrs, field.Required(profilePath, "profileRef is required"))
-	} else if strings.Contains(spec.ProfileRef, "/") {
-		allErrs = append(allErrs, field.Invalid(profilePath, spec.ProfileRef,
-			"profileRef must be a profile name in the platform namespace, not namespace/name"))
-	}
+	allErrs = append(allErrs, ValidateNamespacedObjectRef(spec.ProfileRef, profilePath, true)...)
 
 	nsPath := field.NewPath("spec").Child("namespaceSelector")
 	if spec.NamespaceSelector == nil || namespaceSelectorEmpty(spec.NamespaceSelector) {

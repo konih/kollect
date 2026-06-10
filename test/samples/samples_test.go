@@ -58,24 +58,33 @@ func TestSampleProfilesValidate(t *testing.T) {
 	}
 }
 
-func TestSampleClusterProfilesValidate(t *testing.T) {
+func TestSampleClusterTargetValidates(t *testing.T) {
 	t.Parallel()
 
 	root := filepath.Join("..", "..", "config", "samples")
-	path := filepath.Join(root, "kollect_v1alpha1_kollectclusterprofile.yaml")
-	//nolint:gosec // G304: path is under repo config/samples only
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read %s: %v", path, err)
-	}
+	path := filepath.Join(root, "kollect_v1alpha1_kollectclustertarget.yaml")
 
-	var profile kollectdevv1alpha1.KollectClusterProfile
-	decoder := yaml.NewYAMLOrJSONDecoder(strings.NewReader(string(data)), 4096)
-	if err := decoder.Decode(&profile); err != nil {
-		t.Fatalf("decode %s: %v", path, err)
-	}
+	var target kollectdevv1alpha1.KollectClusterTarget
+	decodeSample(t, path, &target)
 
-	if errs := validation.ValidateClusterProfile(&profile); len(errs) > 0 {
+	if errs := validation.ValidateClusterTargetSpec(&target.Spec); len(errs) > 0 {
+		t.Fatalf("%s: validation failed: %v", path, errs)
+	}
+	if target.Spec.ProfileRef.Namespace == "" {
+		t.Fatalf("%s: cluster target profileRef.namespace must be set", path)
+	}
+}
+
+func TestSampleClusterInventoryValidates(t *testing.T) {
+	t.Parallel()
+
+	root := filepath.Join("..", "..", "config", "samples")
+	path := filepath.Join(root, "kollect_v1alpha1_kollectclusterinventory.yaml")
+
+	var inv kollectdevv1alpha1.KollectClusterInventory
+	decodeSample(t, path, &inv)
+
+	if errs := validation.ValidateClusterInventorySpec(&inv.Spec); len(errs) > 0 {
 		t.Fatalf("%s: validation failed: %v", path, errs)
 	}
 }
@@ -147,7 +156,6 @@ func TestSampleKindsDecode(t *testing.T) {
 		"kollect_v1alpha1_kollectsnapshotsink.yaml",
 		"kollect_v1alpha1_kollecteventsink_kafka.yaml",
 		"kollect_v1alpha1_kollecteventsink_nats.yaml",
-		"kollect_v1alpha1_kollectclusterprofile.yaml",
 		"kollect_v1alpha1_kollectclustertarget.yaml",
 		"kollect_v1alpha1_kollectclusterinventory.yaml",
 	}

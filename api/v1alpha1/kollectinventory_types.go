@@ -25,7 +25,9 @@ type KollectInventorySpec struct {
 	EventSinkRefs InventorySinkRefList `json:"eventSinkRefs,omitempty"`
 
 	// exportMinInterval is the minimum time between identical exports for this inventory.
-	// Material changes (payload checksum or spec generation) bypass the interval.
+	// It debounces identical payloads only: material changes (payload checksum or spec
+	// generation) always export immediately, regardless of the interval. Zero means
+	// material-change only (no periodic re-export of identical payloads).
 	// +kubebuilder:default="30s"
 	// +optional
 	ExportMinInterval *metav1.Duration `json:"exportMinInterval,omitempty"`

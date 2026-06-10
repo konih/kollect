@@ -17,28 +17,43 @@ func TestFamilySinkKind(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		family        string
-		clusterScoped bool
-		want          string
+		name   string
+		family string
+		want   string
 	}{
 		{name: "snapshot namespaced", family: kollectdevv1alpha1.SinkFamilySnapshot, want: "KollectSnapshotSink"},
 		{name: "database namespaced", family: kollectdevv1alpha1.SinkFamilyDatabase, want: "KollectDatabaseSink"},
 		{name: "event namespaced", family: kollectdevv1alpha1.SinkFamilyEvent, want: "KollectEventSink"},
 		{name: "unknown namespaced", family: "custom", want: "KollectSink"},
-		{name: "snapshot cluster", family: kollectdevv1alpha1.SinkFamilySnapshot, clusterScoped: true, want: "KollectClusterSnapshotSink"},
-		{name: "database cluster", family: kollectdevv1alpha1.SinkFamilyDatabase, clusterScoped: true, want: "KollectClusterDatabaseSink"},
-		{name: "event cluster", family: kollectdevv1alpha1.SinkFamilyEvent, clusterScoped: true, want: "KollectClusterEventSink"},
-		{name: "unknown cluster", family: "custom", clusterScoped: true, want: "KollectClusterSink"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			if got := familySinkKind(tc.family, tc.clusterScoped); got != tc.want {
-				t.Fatalf("familySinkKind(%q, %t) = %q, want %q", tc.family, tc.clusterScoped, got, tc.want)
+			if got := familySinkKind(tc.family); got != tc.want {
+				t.Fatalf("familySinkKind(%q) = %q, want %q", tc.family, got, tc.want)
 			}
 		})
+	}
+}
+
+func TestSinkBindingNamespace(t *testing.T) {
+	t.Parallel()
+
+	withNS := kollectdevv1alpha1.InventorySinkBinding{
+		Name: "git",
+		Ref:  kollectdevv1alpha1.InventorySinkRef{Name: "git", Namespace: "team-a"},
+	}
+	if got := sinkBindingNamespace(withNS, "kollect-system"); got != "team-a" {
+		t.Fatalf("sinkBindingNamespace(explicit) = %q, want team-a", got)
+	}
+
+	noNS := kollectdevv1alpha1.InventorySinkBinding{
+		Name: "git",
+		Ref:  kollectdevv1alpha1.InventorySinkRef{Name: "git"},
+	}
+	if got := sinkBindingNamespace(noNS, "kollect-system"); got != "kollect-system" {
+		t.Fatalf("sinkBindingNamespace(default) = %q, want kollect-system", got)
 	}
 }
 

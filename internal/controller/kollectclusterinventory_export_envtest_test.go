@@ -108,7 +108,7 @@ var _ = Describe("KollectClusterInventory export (envtest)", func() {
 		target := &kollectdevv1alpha1.KollectClusterTarget{
 			ObjectMeta: metav1.ObjectMeta{Name: targetName},
 			Spec: kollectdevv1alpha1.KollectClusterTargetSpec{
-				ProfileRef: profileName,
+				ProfileRef: kollectdevv1alpha1.NamespacedObjectReference{Name: profileName, Namespace: sink.DefaultSecretNamespace},
 				NamespaceSelector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{tenantLabel: tenantLabelVal},
 				},

@@ -11,28 +11,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink"
 )
 
+// resolveClusterTargetProfile resolves a cluster target's profileRef to a namespaced
+// KollectProfile by explicit namespace + name. No cluster-scoped kind or platform-namespace
+// fallback is attempted (ADR-0208).
 func resolveClusterTargetProfile(
 	ctx context.Context,
 	c client.Client,
-	profileRef string,
+	profileRef kollectdevv1alpha1.NamespacedObjectReference,
 ) (*kollectdevv1alpha1.KollectProfile, error) {
-	var clusterProfile kollectdevv1alpha1.KollectClusterProfile
-	if err := c.Get(ctx, client.ObjectKey{Name: profileRef}, &clusterProfile); err == nil {
-		return clusterProfileAsProfile(&clusterProfile), nil
-	} else if !apierrors.IsNotFound(err) {
-		return nil, err
-	}
-
 	var profile kollectdevv1alpha1.KollectProfile
-	key := client.ObjectKey{Name: profileRef, Namespace: sink.DefaultSecretNamespace}
+	key := client.ObjectKey{Name: profileRef.Name, Namespace: profileRef.Namespace}
 	if err := c.Get(ctx, key, &profile); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, fmt.Errorf(
-				"profile %q not found as KollectClusterProfile or KollectProfile in %q",
-				profileRef, sink.DefaultSecretNamespace,
+				"KollectProfile %q not found in namespace %q",
+				profileRef.Name, profileRef.Namespace,
 			)
 		}
 
@@ -40,16 +35,4 @@ func resolveClusterTargetProfile(
 	}
 
 	return &profile, nil
-}
-
-func clusterProfileAsProfile(cp *kollectdevv1alpha1.KollectClusterProfile) *kollectdevv1alpha1.KollectProfile {
-	return &kollectdevv1alpha1.KollectProfile{
-		ObjectMeta: cp.ObjectMeta,
-		Spec: kollectdevv1alpha1.KollectProfileSpec{
-			TargetGVK:  cp.Spec.TargetGVK,
-			Attributes: cp.Spec.Attributes,
-			Export:     cp.Spec.Export,
-			Metrics:    cp.Spec.Metrics,
-		},
-	}
 }

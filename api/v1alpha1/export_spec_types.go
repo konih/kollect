@@ -3,7 +3,7 @@
 
 package v1alpha1
 
-// Export modes for KollectProfile / KollectClusterProfile (ADR-0306).
+// Export modes for KollectProfile (ADR-0306).
 const (
 	// ExportModeAttributes is the default: only spec.attributes[] are extracted.
 	ExportModeAttributes = "Attributes"
