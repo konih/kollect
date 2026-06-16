@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/../common.sh"
 readonly CLUSTER_NAME="${CLUSTER_NAME:-kollect-dev}"
 
 echo "=== kollect-dev status ==="
-echo "K8s version pin: ${K8S_VERSION} (${KIND_NODE_IMAGE})"
+echo "K8s version pin: ${K8S_VERSION} ($(_kind_effective_node_image))"
 
 if kind_cluster_exists "$CLUSTER_NAME"; then
   echo "Cluster: ${CLUSTER_NAME} (running)"
