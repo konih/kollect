@@ -17,7 +17,46 @@ k8s_version_from_gomod() {
 }
 
 readonly K8S_VERSION="${K8S_VERSION:-$(k8s_version_from_gomod)}"
-readonly KIND_NODE_IMAGE="${KIND_NODE_IMAGE:-kindest/node:v${K8S_VERSION}}"
+
+# kindest/node tags often lag go.mod patch bumps; walk down patch versions until one exists.
+kind_node_image_resolve() {
+  local version="$1"
+  if ! command -v docker >/dev/null 2>&1; then
+    printf 'kindest/node:v%s' "$version"
+    return 0
+  fi
+
+  local major="${version%%.*}"
+  local rest="${version#*.}"
+  local minor="${rest%%.*}"
+  local patch="${rest#*.}"
+  local p tag img
+
+  p="$patch"
+  while (( p >= 0 )); do
+    tag="v${major}.${minor}.${p}"
+    img="kindest/node:${tag}"
+    if docker manifest inspect "$img" >/dev/null 2>&1; then
+      if [[ "$p" != "$patch" ]]; then
+        _kind_log "kindest/node:v${version} is not published; using ${img} for the kind cluster."
+      fi
+      printf '%s' "$img"
+      return 0
+    fi
+    p=$((p - 1))
+  done
+
+  _kind_log "No published kindest/node image found for k8s ${version}; trying kindest/node:v${version}."
+  printf 'kindest/node:v%s' "$version"
+}
+
+_kind_effective_node_image() {
+  if [[ -n "${KIND_NODE_IMAGE:-}" ]]; then
+    printf '%s' "$KIND_NODE_IMAGE"
+    return 0
+  fi
+  kind_node_image_resolve "$K8S_VERSION"
+}
 
 readonly KOLLECT_NAMESPACE="${KOLLECT_NAMESPACE:-kollect-system}"
 readonly KOLLECT_RELEASE="${KOLLECT_RELEASE:-kollect}"
@@ -33,7 +72,7 @@ readonly KOLLECT_MANAGER_WAIT="${KOLLECT_MANAGER_WAIT:-300s}"
 readonly KIND_HOST_HTTP_PORT="${KIND_HOST_HTTP_PORT:-30080}"
 readonly KIND_HOST_HTTPS_PORT="${KIND_HOST_HTTPS_PORT:-30443}"
 
-_kind_log() { echo "[kind] $*"; }
+_kind_log() { echo "[kind] $*" >&2; }
 
 _kind_require() {
   local cmd="$1" hint="${2:-}"
@@ -90,18 +129,20 @@ kind_create_cluster() {
     kind delete cluster --name "$name"
   fi
 
-  _kind_log "Creating kind cluster ${name} (k8s ${K8S_VERSION}, image ${KIND_NODE_IMAGE})..."
+  local node_image
+  node_image="$(_kind_effective_node_image)"
+  _kind_log "Creating kind cluster ${name} (k8s ${K8S_VERSION}, image ${node_image})..."
   if ! kind create cluster \
     --name "$name" \
     --config "$config" \
-    --image "$KIND_NODE_IMAGE" \
+    --image "$node_image" \
     --wait "$KIND_CLUSTER_WAIT"; then
     _kind_log "kind create failed; deleting orphaned cluster ${name} and retrying once..."
     kind delete cluster --name "$name" 2>/dev/null || true
     kind create cluster \
       --name "$name" \
       --config "$config" \
-      --image "$KIND_NODE_IMAGE" \
+      --image "$node_image" \
       --wait "$KIND_CLUSTER_WAIT"
   fi
   kind_use_context "$name"
