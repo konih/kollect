@@ -119,6 +119,19 @@ func (r *KollectClusterTargetReconciler) Reconcile(ctx context.Context, req ctrl
 			return ctrl.Result{}, err
 		}
 
+		if clusterBinding.Enforced {
+			if err := scope.ValidateClusterScopeStaticRefNamespace(clusterBinding.Scope, ct.Spec.ProfileRef.Namespace); err != nil {
+				r.unregisterAll(&ct)
+				recordWarning(r.Recorder, &ct, scopeReasonNSDenied, err.Error())
+				if degErr := r.setDegraded(ctx, &ct, scopeReasonNSDenied, err.Error()); degErr != nil {
+					retErr = degErr
+					return ctrl.Result{}, degErr
+				}
+
+				return ctrl.Result{}, nil
+			}
+		}
+
 		ceiling := collect.ScopeCeiling{}
 		if clusterBinding.Enforced {
 			ceiling = collect.ScopeCeilingFromClusterScope(clusterBinding.Scope)

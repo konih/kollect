@@ -126,6 +126,24 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		}
 
 		bindings := clusterInventorySinkBindings(&inv)
+		clusterBinding, err := scope.LoadCluster(ctx, r.Client)
+		if err != nil {
+			retErr = err
+			return ctrl.Result{}, err
+		}
+		if clusterBinding.Enforced {
+			for _, ns := range scope.ClusterInventoryStaticRefNamespaces(&inv.Spec, sinkNS) {
+				if err := scope.ValidateClusterScopeStaticRefNamespace(clusterBinding.Scope, ns); err != nil {
+					recordWarning(r.Recorder, &inv, reasonSinkNamespaceDenied, err.Error())
+					return r.setDegraded(ctx, &inv, reasonSinkNamespaceDenied, err.Error())
+				}
+			}
+			if err := scope.ValidateClusterInventoryClusterScopeSinkRefs(clusterBinding.Scope, bindings); err != nil {
+				recordWarning(r.Recorder, &inv, scopeReasonSinkDenied, err.Error())
+				return r.setDegraded(ctx, &inv, scopeReasonSinkDenied, err.Error())
+			}
+		}
+
 		if len(bindings) > 0 {
 			sinkOK, sinkReason, sinkMsg := checkClusterInventorySinksReachable(ctx, r.Client, sinkNS, bindings)
 			setSinkReachableCondition(&inv.Status.Conditions, inv.Generation, sinkOK, sinkReason, sinkMsg)

@@ -30,6 +30,7 @@ const (
 	reasonProfileNotFound  = "ProfileNotFound"
 	reasonProfileForbidden = "ProfileForbidden"
 	reasonSinkForbidden    = "SinkForbidden"
+	reasonSinkNamespaceDenied = "SinkNamespaceDenied"
 )
 
 func setTargetCondition(
