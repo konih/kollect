@@ -23,7 +23,6 @@ import (
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
 	"github.com/konih/kollect/internal/metrics"
-	"github.com/konih/kollect/internal/scope"
 )
 
 // KollectClusterTargetReconciler wires cluster-scoped targets to the collection engine per
@@ -113,23 +112,13 @@ func (r *KollectClusterTargetReconciler) Reconcile(ctx context.Context, req ctrl
 			return ctrl.Result{}, err
 		}
 
-		clusterBinding, err := scope.LoadCluster(ctx, r.Client)
-		if err != nil {
-			retErr = err
-			return ctrl.Result{}, err
+		clusterBinding, scopeResult, scopeErr := r.loadClusterScopeBinding(ctx, &ct)
+		if scopeErr != nil {
+			retErr = scopeErr
+			return ctrl.Result{}, scopeErr
 		}
-
-		if clusterBinding.Enforced {
-			if err := scope.ValidateClusterScopeStaticRefNamespace(clusterBinding.Scope, ct.Spec.ProfileRef.Namespace); err != nil {
-				r.unregisterAll(&ct)
-				recordWarning(r.Recorder, &ct, scopeReasonNSDenied, err.Error())
-				if degErr := r.setDegraded(ctx, &ct, scopeReasonNSDenied, err.Error()); degErr != nil {
-					retErr = degErr
-					return ctrl.Result{}, degErr
-				}
-
-				return ctrl.Result{}, nil
-			}
+		if !scopeResult.IsZero() {
+			return scopeResult, nil
 		}
 
 		ceiling := collect.ScopeCeiling{}

@@ -126,22 +126,13 @@ func (r *KollectClusterInventoryReconciler) Reconcile(ctx context.Context, req c
 		}
 
 		bindings := clusterInventorySinkBindings(&inv)
-		clusterBinding, err := scope.LoadCluster(ctx, r.Client)
-		if err != nil {
-			retErr = err
-			return ctrl.Result{}, err
+		scopeResult, enforceErr := r.enforceClusterScopePolicy(ctx, &inv, sinkNS, bindings)
+		if enforceErr != nil {
+			retErr = enforceErr
+			return ctrl.Result{}, enforceErr
 		}
-		if clusterBinding.Enforced {
-			for _, ns := range scope.ClusterInventoryStaticRefNamespaces(&inv.Spec, sinkNS) {
-				if err := scope.ValidateClusterScopeStaticRefNamespace(clusterBinding.Scope, ns); err != nil {
-					recordWarning(r.Recorder, &inv, reasonSinkNamespaceDenied, err.Error())
-					return r.setDegraded(ctx, &inv, reasonSinkNamespaceDenied, err.Error())
-				}
-			}
-			if err := scope.ValidateClusterInventoryClusterScopeSinkRefs(clusterBinding.Scope, bindings); err != nil {
-				recordWarning(r.Recorder, &inv, scopeReasonSinkDenied, err.Error())
-				return r.setDegraded(ctx, &inv, scopeReasonSinkDenied, err.Error())
-			}
+		if !scopeResult.IsZero() {
+			return scopeResult, nil
 		}
 
 		if len(bindings) > 0 {
