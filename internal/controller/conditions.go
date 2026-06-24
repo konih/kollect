@@ -27,9 +27,9 @@ const (
 	reasonCleanupTerminal = "CleanupTerminal"
 
 	// ADR-0208 static-ref resolution reasons (forbidden classification on cross-namespace refs).
-	reasonProfileNotFound  = "ProfileNotFound"
-	reasonProfileForbidden = "ProfileForbidden"
-	reasonSinkForbidden    = "SinkForbidden"
+	reasonProfileNotFound     = "ProfileNotFound"
+	reasonProfileForbidden    = "ProfileForbidden"
+	reasonSinkForbidden       = "SinkForbidden"
 	reasonSinkNamespaceDenied = "SinkNamespaceDenied"
 )
 
