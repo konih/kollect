@@ -16,6 +16,8 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Refactoring
 
+- **controller:** Trim cluster target reconcile complexity [4d8e5ad](https://github.com/konih/kollect/commit/4d8e5ad9cac5967d09a8697fa249e5ce0525fcfe)
+
 - **controller:** Extract cluster scope enforcement [85daa4c](https://github.com/konih/kollect/commit/85daa4ccbc63ce983ee31ceba815fbb76c7df22d)
 
 ## [0.7.0-rc.1](https://github.com/konih/kollect/compare/v0.6.0-rc.2..v0.7.0-rc.1) - 2026-06-13
