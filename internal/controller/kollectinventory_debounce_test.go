@@ -4,15 +4,21 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	"github.com/konih/kollect/internal/collect"
+	"github.com/konih/kollect/internal/metrics"
 )
 
 func TestPerSinkCoalesceTracker(t *testing.T) {
@@ -89,6 +95,64 @@ func TestNamespaceFingerprintCache_SkipsRecomputeWhenVersionUnchanged(t *testing
 	}
 	if fp4 == fp3 {
 		t.Fatalf("different namespace returned same fingerprint as ns-a: %q", fp4)
+	}
+}
+
+// TestKollectInventoryReconciler_Reconcile_SkipsFingerprintRecomputeWhenNamespaceUnchanged
+// is the integration-level half of AR-10: TestNamespaceFingerprintCache above
+// only proves the cache helper works in isolation. This proves Reconcile
+// actually wires it in — a real reconciler, reconciling the same namespace
+// twice with no Store mutation in between, must record exactly one cache
+// miss (first reconcile, nothing cached yet) and one cache hit (second
+// reconcile, namespace version unchanged), via the
+// kollect_namespace_fingerprint_cache_total metric. If the wiring in
+// Reconcile were reverted to always recompute (deleting the optimization
+// this lane claims to deliver), this test would see two misses and zero
+// hits and fail.
+func TestKollectInventoryReconciler_Reconcile_SkipsFingerprintRecomputeWhenNamespaceUnchanged(t *testing.T) {
+	store := collect.NewStore()
+	store.Upsert(collect.Item{
+		TargetNamespace: "tenant-cache",
+		TargetName:      "deploys",
+		UID:             "1",
+		Namespace:       "tenant-cache",
+		Name:            "app",
+		Version:         "v1",
+		Kind:            "Deployment",
+	})
+
+	scheme := runtime.NewScheme()
+	if err := kollectdevv1alpha1.AddToScheme(scheme); err != nil {
+		t.Fatalf("AddToScheme: %v", err)
+	}
+
+	inv := &kollectdevv1alpha1.KollectInventory{
+		ObjectMeta: metav1.ObjectMeta{Name: "team-inventory", Namespace: "tenant-cache"},
+		Spec:       kollectdevv1alpha1.KollectInventorySpec{},
+	}
+
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(inv).WithStatusSubresource(inv).Build()
+	rec := &KollectInventoryReconciler{Client: cl, Scheme: scheme, Store: store}
+
+	hits := metrics.NamespaceFingerprintCacheTotal.WithLabelValues("KollectInventory", "hit")
+	misses := metrics.NamespaceFingerprintCacheTotal.WithLabelValues("KollectInventory", "miss")
+	hitsBefore := testutil.ToFloat64(hits)
+	missesBefore := testutil.ToFloat64(misses)
+
+	req := reconcile.Request{NamespacedName: types.NamespacedName{Name: "team-inventory", Namespace: "tenant-cache"}}
+
+	if _, err := rec.Reconcile(context.Background(), req); err != nil {
+		t.Fatalf("first Reconcile: %v", err)
+	}
+	if _, err := rec.Reconcile(context.Background(), req); err != nil {
+		t.Fatalf("second Reconcile: %v", err)
+	}
+
+	if got := testutil.ToFloat64(misses) - missesBefore; got != 1 {
+		t.Fatalf("miss delta = %v, want 1 (only the first reconcile should recompute)", got)
+	}
+	if got := testutil.ToFloat64(hits) - hitsBefore; got != 1 {
+		t.Fatalf("hit delta = %v, want 1 (the second reconcile must reuse the cached fingerprint)", got)
 	}
 }
 

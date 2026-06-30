@@ -82,6 +82,16 @@ func (c *namespaceFingerprintCache) getOrCompute(namespace string, version uint6
 	return fingerprint
 }
 
+// cacheResultLabel maps the namespaceFingerprintCache compute outcome to the
+// kollect_namespace_fingerprint_cache_total "result" label value.
+func cacheResultLabel(computed bool) string {
+	if computed {
+		return "miss"
+	}
+
+	return "hit"
+}
+
 func (r *KollectInventoryReconciler) exportDebounce(inv *kollectdevv1alpha1.KollectInventory) time.Duration {
 	return validation.ExportMinIntervalFor(&inv.Spec, 0)
 }
@@ -156,9 +166,11 @@ func (r *KollectInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		// would produce, so the (O(n) item-copy + JSON-marshal + hash) work
 		// is skipped in the common steady-state case.
 		var items []collect.Item
+		var itemsComputed bool
 		var fingerprintErr error
 		nsVersion := r.Store.NamespaceVersion(inv.Namespace)
 		fingerprint := r.nsFingerprintCache.getOrCompute(inv.Namespace, nsVersion, func() string {
+			itemsComputed = true
 			items = r.Store.SnapshotNamespace(inv.Namespace)
 			fp, err := export.ItemsFingerprint(items)
 			fingerprintErr = err
@@ -168,6 +180,8 @@ func (r *KollectInventoryReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		if fingerprintErr != nil {
 			return ctrl.Result{}, fingerprintErr
 		}
+
+		metrics.NamespaceFingerprintCacheTotal.WithLabelValues("KollectInventory", cacheResultLabel(itemsComputed)).Inc()
 
 		if totalInventorySinkRefs(&inv) > 0 {
 			if outcome, allDebounced := r.previewAllSinksDebounced(&inv, req.String(), fingerprint); allDebounced {

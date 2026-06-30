@@ -24,7 +24,6 @@ type Item struct {
 type storeShard struct {
 	mu      sync.RWMutex
 	targets map[string]map[string]Item // targetName -> uid -> Item
-	version uint64                     // bumped on every mutation (AR-10)
 }
 
 // Store holds collected items keyed by target namespace/name and resource UID.
@@ -39,6 +38,15 @@ type Store struct {
 	watchMu    sync.RWMutex
 	watchers   map[chan struct{}]struct{}
 	nsWatchers map[chan string]struct{}
+
+	// versionMu/versions track a per-namespace mutation counter (AR-10),
+	// deliberately kept separate from shards: RemoveCluster deletes the
+	// shard entirely, and a counter living on the shard would reset to 0
+	// and could re-issue a value a stale cache entry already holds. Keeping
+	// it in its own map (never deleted, only incremented) makes it survive
+	// shard deletion/recreation and stay strictly monotonic per namespace.
+	versionMu sync.Mutex
+	versions  map[string]uint64
 }
 
 // NewStore returns an empty in-memory collection store.
@@ -47,6 +55,7 @@ func NewStore() *Store {
 		shards:     make(map[string]*storeShard),
 		watchers:   make(map[chan struct{}]struct{}),
 		nsWatchers: make(map[chan string]struct{}),
+		versions:   make(map[string]uint64),
 	}
 }
 
@@ -142,24 +151,33 @@ func (s *Store) Upsert(item Item) {
 	}
 
 	sh.targets[item.TargetName][item.UID] = item
-	sh.version++
 	sh.mu.Unlock()
 
+	s.bumpNamespaceVersion(item.TargetNamespace)
 	s.notifyWatchers(item.TargetNamespace)
 }
 
+// bumpNamespaceVersion increments the mutation counter for namespace (AR-10).
+// Deliberately independent of the shard map: see the Store.versions doc comment.
+func (s *Store) bumpNamespaceVersion(namespace string) {
+	s.versionMu.Lock()
+	s.versions[namespace]++
+	s.versionMu.Unlock()
+}
+
 // NamespaceVersion returns a counter bumped on every mutation (Upsert/Remove/
-// RemoveTarget) scoped to this namespace (AR-10). Two reads returning the same
-// value guarantee the namespace's item content has not changed in between, so
-// callers can skip a full SnapshotNamespace + content fingerprint recompute
-// when the version is unchanged since the last one they computed.
+// RemoveTarget/RemoveCluster) scoped to this namespace (AR-10). Two reads
+// returning the same value guarantee the namespace's item content has not
+// changed in between, so callers can skip a full SnapshotNamespace + content
+// fingerprint recompute when the version is unchanged since the last one
+// they computed. The counter is strictly monotonic per namespace for the
+// lifetime of the Store — including across RemoveCluster, which deletes the
+// shard but never the version entry, so a value is never re-issued.
 func (s *Store) NamespaceVersion(namespace string) uint64 {
-	sh := s.shardFor(namespace)
+	s.versionMu.Lock()
+	defer s.versionMu.Unlock()
 
-	sh.mu.RLock()
-	defer sh.mu.RUnlock()
-
-	return sh.version
+	return s.versions[namespace]
 }
 
 // RemoveTarget drops all items for a target.
@@ -168,9 +186,9 @@ func (s *Store) RemoveTarget(targetNamespace, targetName string) {
 
 	sh.mu.Lock()
 	delete(sh.targets, targetName)
-	sh.version++
 	sh.mu.Unlock()
 
+	s.bumpNamespaceVersion(targetNamespace)
 	s.notifyWatchers(targetNamespace)
 }
 
@@ -184,6 +202,7 @@ func (s *Store) RemoveCluster(cluster string) {
 	delete(s.shards, cluster)
 	s.shardsMu.Unlock()
 
+	s.bumpNamespaceVersion(cluster)
 	s.notifyWatchers(cluster)
 }
 
@@ -235,15 +254,19 @@ func (s *Store) Remove(targetNamespace, targetName, uid string) {
 	sh := s.shardFor(targetNamespace)
 
 	sh.mu.Lock()
+	removed := false
 	if bucket, ok := sh.targets[targetName]; ok {
 		delete(bucket, uid)
 		if len(bucket) == 0 {
 			delete(sh.targets, targetName)
 		}
-		sh.version++
+		removed = true
 	}
 	sh.mu.Unlock()
 
+	if removed {
+		s.bumpNamespaceVersion(targetNamespace)
+	}
 	s.notifyWatchers(targetNamespace)
 }
 
