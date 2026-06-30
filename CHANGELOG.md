@@ -21,6 +21,11 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 - **scope:** Cluster static-ref namespace allowlist (#23) ([#23](https://github.com/konih/kollect/pull/23))[c55f538](https://github.com/konih/kollect/commit/c55f5380d99ab9cf30dbd3f4122c18f6ff4fb3dc)
 
 
+### Merge
+
+- **adr:** ADR-0801 pipeline CLI mode from worktree lane [f6022a0](https://github.com/konih/kollect/commit/f6022a081c8a57e1fe7cc32bd74ee0aa1068a323)
+
+
 ### Performance
 
 - **controller,collect:** Incremental namespace fingerprint cache (AR-10) (#37) ([#37](https://github.com/konih/kollect/pull/37))[f28b93e](https://github.com/konih/kollect/commit/f28b93ee20f86e2ad2e2f008fc70535b1eaba599)
