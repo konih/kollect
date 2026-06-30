@@ -180,46 +180,6 @@ func (s *Store) CountForTarget(targetNamespace, targetName string) int {
 	return len(sh.targets[targetName])
 }
 
-// CloneTargetItems returns a shallow copy of the target bucket for rollback.
-func (s *Store) CloneTargetItems(targetNamespace, targetName string) map[string]Item {
-	sh := s.shardFor(targetNamespace)
-
-	sh.mu.RLock()
-	defer sh.mu.RUnlock()
-
-	bucket := sh.targets[targetName]
-	if len(bucket) == 0 {
-		return nil
-	}
-
-	out := make(map[string]Item, len(bucket))
-	for uid, item := range bucket {
-		out[uid] = item
-	}
-
-	return out
-}
-
-// RestoreTarget replaces all items for a target (nil or empty prior removes the target).
-func (s *Store) RestoreTarget(targetNamespace, targetName string, prior map[string]Item) {
-	sh := s.shardFor(targetNamespace)
-
-	sh.mu.Lock()
-	if len(prior) == 0 {
-		delete(sh.targets, targetName)
-	} else {
-		cp := make(map[string]Item, len(prior))
-		for uid, item := range prior {
-			cp[uid] = item
-		}
-
-		sh.targets[targetName] = cp
-	}
-	sh.mu.Unlock()
-
-	s.notifyWatchers(targetNamespace)
-}
-
 // SnapshotTarget returns all items for one target.
 func (s *Store) SnapshotTarget(targetNamespace, targetName string) []Item {
 	sh := s.shardFor(targetNamespace)
