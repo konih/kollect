@@ -34,12 +34,14 @@ func mapContextResultsToExit(results []pipeline.ContextResult) int {
 }
 
 func exitCodeForContext(r pipeline.ContextResult) int {
+	degraded := len(r.Errs) > 0 || r.Skipped > 0
+
 	switch {
 	case r.Fatal != nil:
 		return ExitFatalError
-	case len(r.Errs) > 0 && r.Exported == 0:
+	case degraded && r.Exported == 0:
 		return ExitFatalError
-	case len(r.Errs) > 0:
+	case degraded:
 		return ExitPartialFailure
 	default:
 		return ExitSuccess

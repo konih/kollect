@@ -3,7 +3,10 @@
 
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"go.uber.org/zap/zapcore"
+)
 
 // collectFlags holds the parsed flags for the `collect` subcommand (ADR-0801).
 type collectFlags struct {
@@ -16,8 +19,12 @@ type collectFlags struct {
 	namespace  string
 }
 
-var validLogLevels = map[string]struct{}{
-	"debug": {}, "info": {}, "warn": {}, "error": {},
+// logLevels maps the --log-level flag value to a zap level; also used to validate the flag.
+var logLevels = map[string]zapcore.Level{
+	"debug": zapcore.DebugLevel,
+	"info":  zapcore.InfoLevel,
+	"warn":  zapcore.WarnLevel,
+	"error": zapcore.ErrorLevel,
 }
 
 func bindCollectFlags(cmd *cobra.Command, f *collectFlags) {

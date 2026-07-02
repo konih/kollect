@@ -11,6 +11,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -137,11 +138,51 @@ func renderPath(tmpl, namespace, name, cluster string) string {
 type ContextResult struct {
 	Context  string
 	Exported int
-	Errs     []error
+	// Skipped is the number of targets the runner could not fully collect (forbidden,
+	// transient List error, or GVK not found in the cluster) -- see collect.SkippedTarget.
+	// It is folded into exit-code aggregation: skips alone (no other errors) still degrade
+	// a run below ExitSuccess, matching the collect.RunResult contract this bridges from.
+	Skipped int
+	Errs    []error
 	// Fatal is set when this context could not even start (REST config / client / runner
 	// construction, or a structural collection failure). A fatal context does not stop the
 	// others from running.
 	Fatal error
+}
+
+// ApplyNamespaceOverride returns a copy of targets with spec.includedNamespaces forced to
+// [namespace] for every target, overriding whatever namespace selectors/lists they declared
+// (the --namespace flag's documented behavior). A blank namespace is a no-op: targets are
+// returned unchanged.
+func ApplyNamespaceOverride(targets []kollectdevv1alpha1.KollectTarget, namespace string) []kollectdevv1alpha1.KollectTarget {
+	if namespace == "" {
+		return targets
+	}
+
+	out := make([]kollectdevv1alpha1.KollectTarget, len(targets))
+	for i, t := range targets {
+		t.Spec.IncludedNamespaces = []string{namespace}
+		out[i] = t
+	}
+
+	return out
+}
+
+// buildContextResult assembles a ContextResult from a completed collection pass. It is
+// separated from runOneContext so the RunResult -> ContextResult bridge -- in particular,
+// that SkippedTargets must survive into the exit-code decision, not just get logged -- is
+// unit-testable without a cluster.
+func buildContextResult(contextName string, runResult collect.RunResult, exported int, exportErrs []error) ContextResult {
+	errs := make([]error, 0, len(runResult.Errors)+len(exportErrs))
+	errs = append(errs, runResult.Errors...)
+	errs = append(errs, exportErrs...)
+
+	return ContextResult{
+		Context:  contextName,
+		Exported: exported,
+		Skipped:  len(runResult.SkippedTargets),
+		Errs:     errs,
+	}
 }
 
 // RunAllContexts executes the full collect+export pipeline once per resolved context,
@@ -167,6 +208,20 @@ func RunAllContexts(
 	return results
 }
 
+// restConfigForContext builds a *rest.Config for the named context from kubeconfigPath.
+//
+// clientcmd.BuildConfigFromFlags(masterUrl, kubeconfigPath) is NOT the right call here even
+// though it looks like it: its first argument is a master-URL override, not a context name.
+// Passing a context name there silently sets the API server host to that literal string and
+// never selects the context at all -- every named context then dials a bogus host. Context
+// selection has to go through ConfigOverrides.CurrentContext instead.
+func restConfigForContext(kubeconfigPath, contextName string) (*rest.Config, error) {
+	loadingRules := &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath}
+	overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
+
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, overrides).ClientConfig()
+}
+
 func runOneContext(
 	ctx context.Context,
 	contextName string,
@@ -178,7 +233,7 @@ func runOneContext(
 	scrubKeys []string,
 	dryRun bool,
 ) ContextResult {
-	restCfg, err := clientcmd.BuildConfigFromFlags(contextName, kubeconfigPath)
+	restCfg, err := restConfigForContext(kubeconfigPath, contextName)
 	if err != nil {
 		return ContextResult{Context: contextName, Fatal: fmt.Errorf("build REST config for context %q: %w", contextName, err)}
 	}
@@ -215,9 +270,5 @@ func runOneContext(
 
 	exported, exportErrs := ExportTargets(ctx, runner.Store(), loaded.Targets, backend, sinkSpec, contextName, dryRun)
 
-	errs := make([]error, 0, len(runResult.Errors)+len(exportErrs))
-	errs = append(errs, runResult.Errors...)
-	errs = append(errs, exportErrs...)
-
-	return ContextResult{Context: contextName, Exported: exported, Errs: errs}
+	return buildContextResult(contextName, runResult, exported, exportErrs)
 }

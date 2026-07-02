@@ -6,13 +6,22 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/tools/clientcmd"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/konih/kollect/internal/pipeline"
 	"github.com/konih/kollect/internal/sink"
 )
+
+// setLoggerOnce guards ctrl.SetLogger: it mutates shared global state and is not safe to
+// call from multiple goroutines. A real CLI invocation only ever calls it once anyway (one
+// process, one collect command); Once makes that explicit and race-free under `go test -race`
+// with parallel subtests that each drive the full RunE path.
+var setLoggerOnce sync.Once
 
 // newCollectCmd builds the `collect` subcommand. The returned *int is written once RunE
 // finishes a full (non-flag-validation) run; main reads it after cmd.Execute() returns to
@@ -47,9 +56,14 @@ func runCollect(cmd *cobra.Command, flags *collectFlags) (int, error) {
 		return ExitFatalError, fmt.Errorf("--config is required")
 	}
 
-	if _, ok := validLogLevels[flags.logLevel]; !ok {
+	level, ok := logLevels[flags.logLevel]
+	if !ok {
 		return ExitFatalError, fmt.Errorf("invalid --log-level %q: must be one of debug|info|warn|error", flags.logLevel)
 	}
+
+	setLoggerOnce.Do(func() {
+		ctrl.SetLogger(zap.New(zap.Level(level)))
+	})
 
 	return runCollectPipeline(cmd, flags)
 }
@@ -86,6 +100,8 @@ func runCollectPipeline(cmd *cobra.Command, flags *collectFlags) (int, error) {
 	if err != nil {
 		return ExitFatalError, err
 	}
+
+	loaded.Targets = pipeline.ApplyNamespaceOverride(loaded.Targets, flags.namespace)
 
 	results := pipeline.RunAllContexts(cmd.Context(), contexts, kubeconfigPath, loaded,
 		sinkSpec, secretData, sink.NewRegistry(), nil, flags.dryRun)
