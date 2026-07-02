@@ -6,9 +6,11 @@ package pipeline
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
 	"github.com/konih/kollect/internal/collect"
@@ -275,4 +277,130 @@ func TestResolveSinkSecretData_notFoundReturnsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for unresolved secretRef, got nil")
 	}
+}
+
+func TestApplyNamespaceOverride_setsIncludedNamespaces(t *testing.T) {
+	t.Parallel()
+
+	tgt := testTarget("default", "t1")
+	tgt.Spec.NamespaceSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"team": "payments"}}
+	tgt.Spec.IncludedNamespaces = []string{"other-ns"}
+
+	got := ApplyNamespaceOverride([]kollectdevv1alpha1.KollectTarget{tgt}, "emb-test")
+
+	if len(got) != 1 {
+		t.Fatalf("got %d targets, want 1", len(got))
+	}
+	if diff := got[0].Spec.IncludedNamespaces; len(diff) != 1 || diff[0] != "emb-test" {
+		t.Errorf("IncludedNamespaces = %v, want [emb-test]", diff)
+	}
+}
+
+func TestApplyNamespaceOverride_emptyNamespaceIsNoop(t *testing.T) {
+	t.Parallel()
+
+	tgt := testTarget("default", "t1")
+	tgt.Spec.IncludedNamespaces = []string{"other-ns"}
+
+	got := ApplyNamespaceOverride([]kollectdevv1alpha1.KollectTarget{tgt}, "")
+
+	if len(got) != 1 || len(got[0].Spec.IncludedNamespaces) != 1 || got[0].Spec.IncludedNamespaces[0] != "other-ns" {
+		t.Errorf("expected targets unchanged when namespace override is empty, got %+v", got)
+	}
+}
+
+func TestBuildContextResult_foldsSkippedTargetsIntoResult(t *testing.T) {
+	t.Parallel()
+
+	runResult := collect.RunResult{
+		ItemCount:      0,
+		SkippedTargets: []collect.SkippedTarget{{Name: "default/t1", Reason: "forbidden"}},
+	}
+
+	got := buildContextResult("ctx-a", runResult, 0, nil)
+
+	if got.Skipped != 1 {
+		t.Errorf("Skipped = %d, want 1", got.Skipped)
+	}
+	if got.Exported != 0 {
+		t.Errorf("Exported = %d, want 0", got.Exported)
+	}
+}
+
+func TestBuildContextResult_combinesRunAndExportErrors(t *testing.T) {
+	t.Parallel()
+
+	runResult := collect.RunResult{Errors: []error{errors.New("namespace list failed")}}
+	exportErrs := []error{errors.New("export failed")}
+
+	got := buildContextResult("ctx-a", runResult, 1, exportErrs)
+
+	if len(got.Errs) != 2 {
+		t.Fatalf("Errs = %v, want 2 combined errors", got.Errs)
+	}
+}
+
+// TestRestConfigForContext_selectsNamedContextsServer guards against a real bug: passing
+// a context name as clientcmd.BuildConfigFromFlags' first argument (masterUrl) silently
+// ignores context selection and treats the context name as a server hostname override.
+// restConfigForContext must select each context's own cluster server.
+func TestRestConfigForContext_selectsNamedContextsServer(t *testing.T) {
+	t.Parallel()
+
+	path := writeMultiClusterFixtureKubeconfig(t)
+
+	cfgA, err := restConfigForContext(path, "ctx-a")
+	if err != nil {
+		t.Fatalf("restConfigForContext(ctx-a) error = %v", err)
+	}
+	if cfgA.Host != "https://server-a.example.invalid:6443" {
+		t.Errorf("ctx-a Host = %q, want https://server-a.example.invalid:6443", cfgA.Host)
+	}
+
+	cfgB, err := restConfigForContext(path, "ctx-b")
+	if err != nil {
+		t.Fatalf("restConfigForContext(ctx-b) error = %v", err)
+	}
+	if cfgB.Host != "https://server-b.example.invalid:6443" {
+		t.Errorf("ctx-b Host = %q, want https://server-b.example.invalid:6443", cfgB.Host)
+	}
+}
+
+func writeMultiClusterFixtureKubeconfig(t *testing.T) string {
+	t.Helper()
+
+	kubeconfig := `apiVersion: v1
+kind: Config
+clusters:
+- name: cluster-a
+  cluster:
+    server: https://server-a.example.invalid:6443
+- name: cluster-b
+  cluster:
+    server: https://server-b.example.invalid:6443
+contexts:
+- name: ctx-a
+  context:
+    cluster: cluster-a
+    user: user-a
+- name: ctx-b
+  context:
+    cluster: cluster-b
+    user: user-b
+current-context: ctx-a
+users:
+- name: user-a
+  user:
+    token: fake-token-a
+- name: user-b
+  user:
+    token: fake-token-b
+`
+	dir := t.TempDir()
+	path := dir + "/kubeconfig"
+	if err := os.WriteFile(path, []byte(kubeconfig), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	return path
 }

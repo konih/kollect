@@ -28,6 +28,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/redpanda v0.43.0
 	go.mongodb.org/mongo-driver v1.17.9
+	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.53.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.287.0
@@ -179,7 +180,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect

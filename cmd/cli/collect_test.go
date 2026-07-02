@@ -178,6 +178,32 @@ func TestMapContextResultsToExit_emptyResultsIsSuccess(t *testing.T) {
 	}
 }
 
+// TestMapContextResultsToExit_allTargetsSkippedNoErrsIsFatal guards against silently
+// reporting success when every target was forbidden/transient/gvk-not-found: skipped
+// targets produce no collect.RunResult.Errors entry (only SkippedTargets), so without this
+// case a run where an RBAC-forbidden target skips everything would still exit 0.
+func TestMapContextResultsToExit_allTargetsSkippedNoErrsIsFatal(t *testing.T) {
+	t.Parallel()
+
+	got := mapContextResultsToExit([]pipeline.ContextResult{
+		{Context: "a", Exported: 0, Skipped: 1},
+	})
+	if got != ExitFatalError {
+		t.Errorf("got %d, want ExitFatalError (nothing succeeded)", got)
+	}
+}
+
+func TestMapContextResultsToExit_someTargetsSkippedWithExportsIsPartial(t *testing.T) {
+	t.Parallel()
+
+	got := mapContextResultsToExit([]pipeline.ContextResult{
+		{Context: "a", Exported: 2, Skipped: 1},
+	})
+	if got != ExitPartialFailure {
+		t.Errorf("got %d, want ExitPartialFailure", got)
+	}
+}
+
 type errFixture struct{}
 
 func (errFixture) Error() string { return "fixture error" }
