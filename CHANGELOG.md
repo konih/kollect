@@ -21,6 +21,11 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 - **scope:** Cluster static-ref namespace allowlist (#23) ([#23](https://github.com/konih/kollect/pull/23))[c55f538](https://github.com/konih/kollect/commit/c55f5380d99ab9cf30dbd3f4122c18f6ff4fb3dc)
 
 
+### Performance
+
+- **controller,collect:** Incremental namespace fingerprint cache (AR-10) (#37) ([#37](https://github.com/konih/kollect/pull/37))[f28b93e](https://github.com/konih/kollect/commit/f28b93ee20f86e2ad2e2f008fc70535b1eaba599)
+
+
 ### Refactoring
 
 - **sink:** Extract shared secret-value-from-keys helper (dup audit) [72c878f](https://github.com/konih/kollect/commit/72c878fcd047e3a375d46dd35300029c811ec44b)
