@@ -11,6 +11,8 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
+- **cli:** Context selection, skip-to-exitcode, and dead --namespace flag [a300f9e](https://github.com/konih/kollect/commit/a300f9e23ca6bf1e521aac7898663685b470886d)
+
 - **controller:** Requeue on family-sink status conflict instead of dropping it [d1a9e24](https://github.com/konih/kollect/commit/d1a9e24f29c554c4dfd51f963d8a436c85350e6a)
 
 - **collect:** Block on dispatch backpressure instead of inline sync fallback [a3e8efb](https://github.com/konih/kollect/commit/a3e8efb4757bd469b75241e17a0633c49d58bd2d)
@@ -19,6 +21,16 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 
 ### Features
+
+- **cli:** Wire collect -> runner -> store -> sink end-to-end (P-005) [92b5814](https://github.com/konih/kollect/commit/92b5814cace601647a2435568304e4c86c9df434)
+
+- **cli:** Kollect-pipeline cobra entrypoint + multi-context resolution (P-001) [4364720](https://github.com/konih/kollect/commit/4364720b3dbfa02db79a077f41112a40df611a40)
+
+- **collect:** One-shot List-based collection runner (P-003) [99ab258](https://github.com/konih/kollect/commit/99ab2587f4a67bfc952bddef300a0817c5ccc722)
+
+- **sink:** Local filesystem sink backend (P-004) [5275ba3](https://github.com/konih/kollect/commit/5275ba3717e9b4e4d6dfc718e1e02dedb52d46c8)
+
+- **pipeline:** Local config loader (P-002) [0094eb5](https://github.com/konih/kollect/commit/0094eb5fc62f4ad77f0196caeaee41fa5e27fd7b)
 
 - **controller,sink:** Add TTL prune to coalesce tracker and backend pool [267cac7](https://github.com/konih/kollect/commit/267cac7230b267bf584d66b4a48d74551e050b6e)
 
