@@ -6,7 +6,11 @@ package git
 import (
 	"errors"
 	"fmt"
+	"io"
+	"syscall"
 	"testing"
+
+	gittransport "github.com/go-git/go-git/v5/plumbing/transport"
 
 	kollecterrors "github.com/konih/kollect/internal/errors"
 )
@@ -63,6 +67,68 @@ func TestClassifyExportError_preservesExistingTerminal(t *testing.T) {
 	term := kollecterrors.Terminal(errors.New("already terminal"))
 	if !kollecterrors.IsTerminal(ClassifyExportError(term)) {
 		t.Fatal("expected terminal wrapper preserved")
+	}
+}
+
+func TestClassifyExportError_nilReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	if err := ClassifyExportError(nil); err != nil {
+		t.Fatalf("ClassifyExportError(nil) = %v, want nil", err)
+	}
+}
+
+// TestClassifyExportError_unclassifiedPassesThrough ensures an error that matches
+// none of the auth/rejection/transient signals is returned verbatim (not wrapped as a
+// terminal error). Unknown git failures must stay retryable rather than being
+// force-classified terminal — the default classification for a bare error is transient.
+func TestClassifyExportError_unclassifiedPassesThrough(t *testing.T) {
+	t.Parallel()
+
+	orig := errors.New("something entirely unexpected happened")
+	got := ClassifyExportError(orig)
+	if !errors.Is(got, orig) {
+		t.Fatalf("expected original error passed through, got %v", got)
+	}
+	if kollecterrors.IsTerminal(got) {
+		t.Fatalf("unclassified git error must not be force-classified terminal: %v", got)
+	}
+}
+
+// TestClassifyExportError_authRequiredSentinelTerminal covers the errors.Is branch
+// in isAuthFailure: a wrapped go-git ErrAuthenticationRequired (whose message does
+// not contain the auth keyword strings) must still classify as terminal auth failure.
+func TestClassifyExportError_authRequiredSentinelTerminal(t *testing.T) {
+	t.Parallel()
+
+	err := ClassifyExportError(fmt.Errorf("push failed: %w", gittransport.ErrAuthenticationRequired))
+	if !kollecterrors.IsTerminal(err) {
+		t.Fatalf("expected terminal for wrapped ErrAuthenticationRequired, got %v", err)
+	}
+}
+
+func TestIsTransientTransportError_nilAndEOF(t *testing.T) {
+	t.Parallel()
+
+	if isTransientTransportError(nil) {
+		t.Fatal("nil error must not be transient")
+	}
+
+	// io.EOF is recognized by utilnet.IsProbableEOF as a probable connection
+	// termination and must be treated as transient/retryable.
+	if !isTransientTransportError(io.EOF) {
+		t.Fatal("io.EOF should be classified transient")
+	}
+}
+
+func TestIsTransientTransportError_connectionResetErrno(t *testing.T) {
+	t.Parallel()
+
+	// syscall.ECONNRESET is detected by utilnet.IsConnectionReset even when wrapped,
+	// exercising the errno branch rather than the string-match fallback.
+	err := fmt.Errorf("dial tcp: %w", syscall.ECONNRESET)
+	if !isTransientTransportError(err) {
+		t.Fatal("ECONNRESET should be classified transient")
 	}
 }
 

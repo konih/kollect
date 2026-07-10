@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -50,6 +51,46 @@ func TestTestConnection_TLSHandshakeErrorMentionsCustomCA(t *testing.T) {
 	}, Auth{})
 	if err == nil || !strings.Contains(err.Error(), "custom CA may be wrong or incomplete") {
 		t.Fatalf("TestConnection() error = %v, want custom CA hint", err)
+	}
+}
+
+// TestTestConnection_HTTPSchemeUsesLsRemote covers the plain-http branch of
+// TestConnection, which must skip the TLS handshake entirely and probe via ls-remote.
+// Pointing at a closed port yields a classified error, proving the branch was taken
+// (a TLS-handshake path would report a handshake error instead).
+func TestTestConnection_HTTPSchemeUsesLsRemote(t *testing.T) {
+	t.Parallel()
+
+	lsRemoteRefCache = newRefCache(defaultRefCacheTTL)
+	// Reserved TEST-NET-1 address / closed port -> ls-remote fails fast.
+	cfg := Config{Endpoint: "http://192.0.2.1:1/repo.git"}
+
+	err := TestConnection(t.Context(), cfg, Auth{})
+	if err == nil {
+		t.Fatal("expected error probing an unreachable http remote")
+	}
+	if strings.Contains(err.Error(), "TLS handshake") {
+		t.Fatalf("http scheme must not attempt a TLS handshake, got %v", err)
+	}
+}
+
+// TestLSRemoteUncached_FormatsGitFailure exercises the error-wrapping path in
+// lsRemoteUncached: ls-remote against a non-existent file:// repo fails and the
+// combined git output must be surfaced in the wrapped error.
+func TestLSRemoteUncached_FormatsGitFailure(t *testing.T) {
+	if _, lookErr := exec.LookPath("git"); lookErr != nil {
+		t.Skip("git not in PATH")
+	}
+
+	missing := t.TempDir() + "/does-not-exist.git"
+	cfg := Config{Endpoint: "file://" + missing}.withDefaults()
+
+	err := lsRemoteUncached(t.Context(), cfg, Auth{})
+	if err == nil {
+		t.Fatal("expected ls-remote failure against a missing repository")
+	}
+	if !strings.Contains(err.Error(), "git ls-remote failed") {
+		t.Fatalf("error = %v, want git ls-remote failed wrapper", err)
 	}
 }
 

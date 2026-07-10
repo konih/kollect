@@ -6,6 +6,7 @@ package git
 import (
 	"crypto/ed25519"
 	"crypto/rand"
+	"strings"
 	"testing"
 
 	"golang.org/x/crypto/ssh"
@@ -53,6 +54,18 @@ func TestSSHAuthMethod_knownHosts(t *testing.T) {
 	_, err = sshAuthMethod("git", key, SSHConfig{KnownHosts: known})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestSSHAuthMethod_rejectsUnparseableKey(t *testing.T) {
+	t.Parallel()
+
+	_, err := sshAuthMethod("git", []byte("not a valid pem key"), SSHConfig{InsecureSkipVerify: true})
+	if err == nil {
+		t.Fatal("expected error for unparseable private key")
+	}
+	if !strings.Contains(err.Error(), "parse ssh private key") {
+		t.Fatalf("error = %v, want parse ssh private key wrapper", err)
 	}
 }
 
