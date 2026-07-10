@@ -33,6 +33,14 @@ type InventorySinkRef struct {
 	// Zero means material-change only (no periodic re-export of identical payload).
 	// +optional
 	ExportMinInterval *metav1.Duration `json:"exportMinInterval,omitempty"`
+
+	// maxExportBytes overrides the inventory-wide export size ceiling for this sink
+	// ref (AR-01 / EC-P0-01). It may set a smaller or larger byte ceiling than
+	// spec.maxExportBytes; when omitted the inventory-wide ceiling (or the operator
+	// global cap) applies. The webhook rejects values above the operator global cap
+	// (ADR-0103). Payloads exceeding this ceiling are split into multiple export parts.
+	// +optional
+	MaxExportBytes *int64 `json:"maxExportBytes,omitempty"`
 }
 
 // InventorySinkRefList accepts plain sink name strings or structured InventorySinkRef objects.

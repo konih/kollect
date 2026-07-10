@@ -280,20 +280,7 @@ func (r *KollectInventoryReconciler) exportToSinks(
 	now := time.Now()
 	defaultInterval := r.exportDebounce(inv)
 	scopeFloor := r.scopeFloor(ctx, inv.Namespace)
-	maxExportBytes := r.maxExportBytes(inv)
-
-	snapshotParts, err := export.PartitionEnvelopes(items, export.Metadata{
-		Generation: inv.Generation,
-		ExportedAt: now.UTC(),
-	}, maxExportBytes)
-	if err != nil {
-		var outcome perSinkExportOutcome
-		outcome.ExportErr = kollecterrors.Terminal(err)
-		outcome.RequeueAfter = defaultInterval
-
-		return outcome
-	}
-	snapshotChecksum := export.PartitionsChecksum(snapshotParts)
+	inventoryCeiling := r.maxExportBytes(inv)
 
 	bindings := inventorySinkBindings(inv)
 	var outcome perSinkExportOutcome
@@ -301,11 +288,18 @@ func (r *KollectInventoryReconciler) exportToSinks(
 	outcome.SinkExports = make([]kollectdevv1alpha1.InventorySinkExportStatus, 0, len(bindings))
 
 	type sinkJob struct {
-		binding  kollectdevv1alpha1.InventorySinkBinding
-		ref      kollectdevv1alpha1.InventorySinkRef
-		resolved *sink.ResolvedSink
-		interval time.Duration
-		status   *kollectdevv1alpha1.InventorySinkExportStatus
+		binding      kollectdevv1alpha1.InventorySinkBinding
+		ref          kollectdevv1alpha1.InventorySinkRef
+		resolved     *sink.ResolvedSink
+		interval     time.Duration
+		status       *kollectdevv1alpha1.InventorySinkExportStatus
+		parts        []export.EnvelopePartition
+		sinkChecksum string
+	}
+
+	meta := export.Metadata{
+		Generation: inv.Generation,
+		ExportedAt: now.UTC(),
 	}
 
 	jobs := make([]sinkJob, 0, len(bindings))
@@ -325,9 +319,24 @@ func (r *KollectInventoryReconciler) exportToSinks(
 			sinkInterval = resolved.ExportMinInterval.ExportMinInterval
 		}
 		interval := validation.ResolveSinkExportInterval(ref, sinkInterval, defaultInterval, scopeFloor)
+
+		// Per-binding export ceiling: the ref override replaces the inventory-wide
+		// ceiling wholesale when set (AR-01 / EC-P0-01, Option B). A ceiling too
+		// small to hold a single item fails only this binding, not the reconcile.
+		ceiling := validation.ResolveBindingMaxExportBytes(ref.MaxExportBytes, inventoryCeiling)
+		parts, partitionErr := export.PartitionEnvelopes(items, meta, ceiling)
+		if partitionErr != nil {
+			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, partitionErr.Error())
+			outcome.addSinkFailure(exportKey, kollecterrors.Terminal(partitionErr))
+			continue
+		}
+
+		// Snapshot sinks debounce on the multipart digest so a ceiling change (which
+		// alters part boundaries) re-exports; non-snapshot sinks keep the raw content
+		// fingerprint. Generation bumps already invalidate the cache on a spec edit.
 		sinkChecksum := checksum
 		if binding.Family == kollectdevv1alpha1.SinkFamilySnapshot {
-			sinkChecksum = snapshotChecksum
+			sinkChecksum = export.PartitionsChecksum(parts)
 		}
 		if r.sinkCoalesce.shouldSkip(invKey, exportKey, inv.Generation, sinkChecksum, interval, now) {
 			outcome.DebouncedCount++
@@ -341,21 +350,13 @@ func (r *KollectInventoryReconciler) exportToSinks(
 			continue
 		}
 
-		jobs = append(jobs, sinkJob{binding: binding, ref: ref, resolved: resolved, interval: interval, status: status})
+		jobs = append(jobs, sinkJob{
+			binding: binding, ref: ref, resolved: resolved, interval: interval,
+			status: status, parts: parts, sinkChecksum: sinkChecksum,
+		})
 	}
 
 	if len(jobs) == 0 {
-		return outcome
-	}
-
-	envelope, err := export.MarshalEnvelope(items, export.Metadata{
-		Generation: inv.Generation,
-		ExportedAt: now.UTC(),
-	})
-	if err != nil {
-		outcome.ExportErr = err
-		outcome.FailedCount = len(jobs)
-
 		return outcome
 	}
 
@@ -370,28 +371,10 @@ func (r *KollectInventoryReconciler) exportToSinks(
 		go func(job sinkJob) {
 			defer wg.Done()
 
-			sinkChecksum := checksum
+			sinkChecksum := job.sinkChecksum
 			exportErr := error(nil)
-			if job.binding.Family == kollectdevv1alpha1.SinkFamilySnapshot {
-				sinkChecksum = snapshotChecksum
-				for _, part := range snapshotParts {
-					partPath := export.PartitionObjectPath(objectPath, part.Index, part.Total)
-					exportErr = sink.RunExportEnvelope(sink.ExportEnvelopeRequest{
-						Ctx:           ctx,
-						Client:        r.Client,
-						Registry:      r.Registry,
-						SinkNamespace: sink.SinkNamespaceForResolved(job.resolved, inv.Namespace),
-						SinkName:      job.binding.Name,
-						SinkUID:       job.resolved.UID,
-						ObjectPath:    partPath,
-						Envelope:      part.Envelope,
-						SinkSpec:      job.resolved.Spec,
-					})
-					if exportErr != nil {
-						break
-					}
-				}
-			} else {
+			for _, part := range job.parts {
+				partPath := export.PartitionObjectPath(objectPath, part.Index, part.Total)
 				exportErr = sink.RunExportEnvelope(sink.ExportEnvelopeRequest{
 					Ctx:           ctx,
 					Client:        r.Client,
@@ -399,10 +382,13 @@ func (r *KollectInventoryReconciler) exportToSinks(
 					SinkNamespace: sink.SinkNamespaceForResolved(job.resolved, inv.Namespace),
 					SinkName:      job.binding.Name,
 					SinkUID:       job.resolved.UID,
-					ObjectPath:    objectPath,
-					Envelope:      envelope,
+					ObjectPath:    partPath,
+					Envelope:      part.Envelope,
 					SinkSpec:      job.resolved.Spec,
 				})
+				if exportErr != nil {
+					break
+				}
 			}
 
 			mu.Lock()
