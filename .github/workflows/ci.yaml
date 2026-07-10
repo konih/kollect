@@ -339,3 +339,21 @@ jobs:
           version: 3.51.1
       - name: Build controller image
         run: task docker:build
+
+      # kollect-pipeline image (ADR-0801 P-006). release.yaml only builds it on v* tags, so this
+      # PR-time build+run smoke is the first place a broken Dockerfile.pipeline or entrypoint is
+      # caught. Single-arch (native runner) to stay fast; the release job builds multi-arch.
+      - name: Build kollect-pipeline image
+        run: task docker:build:pipeline
+
+      - name: Smoke test kollect-pipeline image (--help exits 0)
+        run: docker run --rm kollect-pipeline:dev --help
+
+      - name: Assert kollect-pipeline image runs as nonroot (UID 65532)
+        run: |
+          user="$(docker inspect --format '{{.Config.User}}' kollect-pipeline:dev)"
+          echo "image user: ${user}"
+          if [ "${user}" != "65532:65532" ]; then
+            echo "::error::kollect-pipeline image must run as 65532:65532, got '${user}'" >&2
+            exit 1
+          fi

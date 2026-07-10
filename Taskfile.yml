@@ -34,6 +34,7 @@ vars:
   MANAGER_BINARY: "{{.BIN_DIR}}/manager"
   PIPELINE_BINARY: "{{.BIN_DIR}}/kollect-pipeline"
   DOCKER_IMAGE: kollect-controller-manager:dev
+  PIPELINE_DOCKER_IMAGE: kollect-pipeline:dev
   CLUSTER_NAME:
     sh: echo "${CLUSTER_NAME:-kollect-smoke}"
 
@@ -254,6 +255,12 @@ tasks:
     deps: [build]
     cmds:
       - "{{.CONTAINER_TOOL | default `docker`}} build -t {{.DOCKER_IMAGE}} ."
+
+  docker:build:pipeline:
+    desc: Build the kollect-pipeline CLI container image (ADR-0801)
+    deps: [build:cli]
+    cmds:
+      - "{{.CONTAINER_TOOL | default `docker`}} build -f Dockerfile.pipeline -t {{.PIPELINE_DOCKER_IMAGE}} ."
 
   docker:build:local:
     desc: Build controller image for kind/minikube (ghcr.io/konih/kollect:local by default)
