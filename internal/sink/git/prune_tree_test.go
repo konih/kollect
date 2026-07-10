@@ -50,6 +50,51 @@ func TestRemoveBillyOrphans_MissingManagedDirIgnored(t *testing.T) {
 	}
 }
 
+// TestRemoveBillyOrphans_SubdirectoriesSurvive guards the safety property that prune
+// only deletes stale *files* in a managed directory and never descends into or removes
+// nested subdirectories (which belong to other, separately-managed inventories).
+func TestRemoveBillyOrphans_SubdirectoriesSurvive(t *testing.T) {
+	t.Parallel()
+
+	fs := memfs.New()
+	mustWriteBillyFile(t, fs, "inventory/team-a/keep.json", "{}")
+	mustWriteBillyFile(t, fs, "inventory/team-a/stale.json", "{}")
+	// A nested subdirectory under the managed dir, populated by another inventory.
+	mustWriteBillyFile(t, fs, "inventory/team-a/nested/child.json", "{}")
+
+	written := []string{"inventory/team-a/keep.json"}
+
+	if err := removeBillyOrphans(fs, written); err != nil {
+		t.Fatalf("removeBillyOrphans() error = %v", err)
+	}
+
+	assertBillyExists(t, fs, "inventory/team-a/keep.json", true)
+	assertBillyExists(t, fs, "inventory/team-a/stale.json", false)
+	// The subdirectory and its contents must be untouched by prune.
+	assertBillyExists(t, fs, "inventory/team-a/nested/child.json", true)
+}
+
+// TestRemoveDiskOrphans_SubdirectoriesSurvive is the CLI-engine analogue: a nested
+// subdirectory in a managed dir must survive prune of stale sibling files.
+func TestRemoveDiskOrphans_SubdirectoriesSurvive(t *testing.T) {
+	t.Parallel()
+
+	workdir := t.TempDir()
+	mustWriteDiskFile(t, workdir, "inventory/team-a/keep.json", "{}")
+	mustWriteDiskFile(t, workdir, "inventory/team-a/stale.json", "{}")
+	mustWriteDiskFile(t, workdir, "inventory/team-a/nested/child.json", "{}")
+
+	written := []string{"inventory/team-a/keep.json"}
+
+	if err := removeDiskOrphans(workdir, written); err != nil {
+		t.Fatalf("removeDiskOrphans() error = %v", err)
+	}
+
+	assertDiskExists(t, workdir, "inventory/team-a/keep.json", true)
+	assertDiskExists(t, workdir, "inventory/team-a/stale.json", false)
+	assertDiskExists(t, workdir, "inventory/team-a/nested/child.json", true)
+}
+
 func TestRemoveDiskOrphans_RemovesOnlyUnwrittenFiles(t *testing.T) {
 	t.Parallel()
 
