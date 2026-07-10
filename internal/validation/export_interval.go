@@ -87,9 +87,30 @@ func validateInventorySinkRefs(
 		allErrs = append(allErrs, validateInventorySinkRefNamespace(ref.Namespace, refPath.Child("namespace"), allowNamespace)...)
 		allErrs = append(allErrs, ValidateOptionalDurationInterval(
 			ref.ExportMinInterval, refPath.Child("exportMinInterval"))...)
+		allErrs = append(allErrs, validateSinkRefMaxExportBytes(
+			ref.MaxExportBytes, refPath.Child("maxExportBytes"))...)
 	}
 
 	return allErrs
+}
+
+// validateSinkRefMaxExportBytes rejects a per-binding maxExportBytes override that
+// is non-positive or above the operator global cap. It is validated against the
+// GLOBAL cap (not the inventory-wide value) so a binding may exceed spec.maxExportBytes
+// while staying under the operator ceiling (AR-01 / EC-P0-01).
+func validateSinkRefMaxExportBytes(maxExportBytes *int64, path *field.Path) field.ErrorList {
+	if maxExportBytes == nil {
+		return nil
+	}
+	if *maxExportBytes <= 0 {
+		return field.ErrorList{field.Invalid(path, *maxExportBytes, "must be positive when set")}
+	}
+	if *maxExportBytes > maxExportBytesGlobal {
+		return field.ErrorList{field.Invalid(path, *maxExportBytes,
+			fmt.Sprintf("must not exceed global cap %d bytes", maxExportBytesGlobal))}
+	}
+
+	return nil
 }
 
 func validateInventorySinkRefNamespace(namespace string, nsPath *field.Path, allowNamespace bool) field.ErrorList {

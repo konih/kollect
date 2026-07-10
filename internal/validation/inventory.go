@@ -31,6 +31,20 @@ func MaxExportBytesGlobal() int64 {
 	return maxExportBytesGlobal
 }
 
+// ResolveBindingMaxExportBytes returns the effective export size ceiling for one
+// sink binding (AR-01 / EC-P0-01). A per-binding override replaces the fallback
+// wholesale when positive — it is an override, not a clamp, so a binding may
+// diverge above or below the inventory-wide ceiling. Callers pass the
+// inventory-wide ceiling (namespaced) or the operator global cap (cluster) as
+// the fallback.
+func ResolveBindingMaxExportBytes(override *int64, fallback int64) int64 {
+	if override != nil && *override > 0 {
+		return *override
+	}
+
+	return fallback
+}
+
 // ValidateInventorySpec checks cross-field constraints on KollectInventory spec.
 func ValidateInventorySpec(spec *kollectdevv1alpha1.KollectInventorySpec) field.ErrorList {
 	if spec == nil {

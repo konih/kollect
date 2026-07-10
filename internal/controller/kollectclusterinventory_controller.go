@@ -248,6 +248,9 @@ func (r *KollectClusterInventoryReconciler) exportClusterToSinks(
 	var outcome perSinkExportOutcome
 	outcome.RequeueAfter = defaultInterval
 
+	meta := export.Metadata{Generation: inv.Generation, ExportedAt: now.UTC()}
+	objectPath := fmt.Sprintf("inventory/cluster/%s.json", inv.Name)
+
 	for _, binding := range clusterInventorySinkBindings(inv) {
 		ref := binding.Ref
 		exportKey := sinkExportKey(binding)
@@ -273,20 +276,42 @@ func (r *KollectClusterInventoryReconciler) exportClusterToSinks(
 			continue
 		}
 
-		if err := sink.RunExportItems(sink.ExportItemsRequest{
-			Ctx:           ctx,
-			Client:        r.Client,
-			Registry:      r.Registry,
-			SinkNamespace: sink.SinkNamespaceForResolved(resolved, sinkNS),
-			SinkName:      binding.Name,
-			SinkFamily:    binding.Family,
-			ObjectPath:    fmt.Sprintf("inventory/cluster/%s.json", inv.Name),
-			Items:         items,
-			Meta:          export.Metadata{Generation: inv.Generation},
-		}); err != nil {
-			log.Error(err, "cluster export failed", "sink", exportKey)
-			outcome.addSinkFailure(exportKey, err)
-			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, err.Error())
+		// Per-binding export ceiling: the ref override replaces the operator global
+		// cap wholesale when set (AR-01 / EC-P0-01, Option B). KollectClusterInventory
+		// has no spec-level maxExportBytes, so the global cap is the fallback. The
+		// rollup is size-bounded here — the previous RunExportItems path applied no
+		// ceiling and re-marshalled per binding.
+		ceiling := validation.ResolveBindingMaxExportBytes(ref.MaxExportBytes, validation.MaxExportBytesGlobal())
+		parts, partitionErr := export.PartitionEnvelopes(items, meta, ceiling)
+		if partitionErr != nil {
+			log.Error(partitionErr, "cluster export partition failed", "sink", exportKey)
+			outcome.addSinkFailure(exportKey, kollecterrors.Terminal(partitionErr))
+			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, partitionErr.Error())
+			continue
+		}
+
+		exportErr := error(nil)
+		for _, part := range parts {
+			partPath := export.PartitionObjectPath(objectPath, part.Index, part.Total)
+			exportErr = sink.RunExportEnvelope(sink.ExportEnvelopeRequest{
+				Ctx:           ctx,
+				Client:        r.Client,
+				Registry:      r.Registry,
+				SinkNamespace: sink.SinkNamespaceForResolved(resolved, sinkNS),
+				SinkName:      binding.Name,
+				SinkUID:       resolved.UID,
+				ObjectPath:    partPath,
+				Envelope:      part.Envelope,
+				SinkSpec:      resolved.Spec,
+			})
+			if exportErr != nil {
+				break
+			}
+		}
+		if exportErr != nil {
+			log.Error(exportErr, "cluster export failed", "sink", exportKey)
+			outcome.addSinkFailure(exportKey, exportErr)
+			setSinkExportSynced(status, inv.Generation, false, reasonExportFailed, exportErr.Error())
 			continue
 		}
 
