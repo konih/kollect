@@ -1,0 +1,33 @@
+# Build the kollect-pipeline CLI binary (ADR-0801 pipeline mode).
+# Same source tree, builder image, and hardening posture as the operator Dockerfile;
+# only the entrypoint (./cmd/cli vs ./cmd) and runtime base differ.
+FROM golang:1.26.5@sha256:63f132d58c1f589f0dcda584933a9bb44bfda1150f1506377f5a902f34d86033 AS builder
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /workspace
+# Copy the Go Modules manifests
+COPY go.mod go.mod
+COPY go.sum go.sum
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
+
+# Copy the Go source (relies on .dockerignore to filter)
+COPY . .
+
+# Build. GOARCH has no default so the binary matches the host/buildx platform.
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="-w -s" -a -o kollect-pipeline ./cmd/cli
+
+# Runtime image: distroless static nonroot. Unlike the operator image, the pipeline CLI does not
+# ship the git/openssh binaries: the git snapshot sink defaults to the pure-Go go-git engine
+# (internal/sink/git/config.go), which needs no external tooling. `git.engine: cli` and `file://`
+# git remotes (which shell out to git) are therefore unsupported in this minimal image; go-git over
+# HTTPS, the local filesystem sink, and the object-store sinks (s3/gcs) all work. ca-certificates
+# and tzdata ship in the distroless base, so TLS to sink endpoints works out of the box.
+FROM gcr.io/distroless/static:nonroot@sha256:963fa6c544fe5ce420f1f54fb88b6fb01479f054c8056d0f74cc2c6000df5240
+WORKDIR /
+COPY --from=builder /workspace/kollect-pipeline /kollect-pipeline
+USER 65532:65532
+
+ENTRYPOINT ["/kollect-pipeline"]

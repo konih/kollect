@@ -33,6 +33,26 @@ cosign verify \
   ${UI_IMAGE_REPO}@${UI_IMAGE_DIGEST}
 ```
 
+## Container image (kollect-pipeline)
+
+One-shot CI/CD collection CLI (ADR-0801) — collect inventory from a kubeconfig without installing
+the operator. See the [pipeline CLI guide](https://github.com/${GITHUB_REPOSITORY}/blob/main/docs/guides/pipeline-cli.md).
+
+```
+${PIPELINE_IMAGE_REPO}:${VERSION}
+```
+
+Multi-arch (`linux/amd64`, `linux/arm64`), distroless static nonroot base. The git snapshot sink
+uses the pure-Go go-git engine over HTTPS; `git.engine: cli` and `file://` remotes are not supported
+in this minimal image.
+
+```sh
+cosign verify \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp '^https://github.com/${GITHUB_REPOSITORY}/.+' \
+  ${PIPELINE_IMAGE_REPO}@${PIPELINE_IMAGE_DIGEST}
+```
+
 ## Install (Kustomize)
 
 ```sh
