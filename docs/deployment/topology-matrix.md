@@ -60,7 +60,7 @@ RBAC.
 
 | Aspect | Detail |
 | --- | --- |
-| Helm profile | [`values-minimal-rbac.yaml`](../../charts/kollect/values-minimal-rbac.yaml) — `tenantMode: true`, non-empty `watchNamespaces` |
+| Helm profile | [`values-minimal-rbac.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values-minimal-rbac.yaml) — `tenantMode: true`, non-empty `watchNamespaces` |
 | Manager RBAC | `Role` / `RoleBinding` in install namespace only |
 | CRD bootstrap | Still cluster-level (platform admin once per cluster) |
 | Workload RBAC | Team grants `Role` per scraped namespace for target GVKs; SAR pre-check before informers |

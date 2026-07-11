@@ -4,7 +4,7 @@ How Kollect captures **design decisions** and **pre-decision exploration** in pu
 The ADR corpus is the long-lived record; RFCs are optional scratch space before a decision is locked.
 
 **Related:** [ADR index](../adr/README.md) · [Platform decisions](../PLATFORM-DECISIONS.md) ·
-[Engineering guidelines](guidelines.md) · [Contributing](../../CONTRIBUTING.md)
+[Engineering guidelines](guidelines.md) · [Contributing](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md)
 
 ## When to write what
 
@@ -96,7 +96,7 @@ stateDiagram-v2
 2. **Review** — discussion in PR; link from [planned features](../roadmap/planned-features.md) or
    [ROADMAP.md](../ROADMAP.md) if user-visible.
 3. **Accepted** — merge with status **Current** (or RFC **Accepted** + companion ADR).
-4. **Superseded** — old ADR keeps history; add *Superseded by [ADR-0yyy](…)* at the top and update
+4. **Superseded** — old ADR keeps history; add *Superseded by* `[ADR-0yyy](…)` at the top and update
    [adr/README.md](../adr/README.md) table.
 5. **Implementation** — update [ROADMAP.md](../ROADMAP.md) checkmarks; CR docs in `docs/crds/` when API
    ships.
@@ -105,8 +105,8 @@ stateDiagram-v2
 
 | Path | Purpose |
 | --- | --- |
-| [`docs/adr/`](../adr/) | Numbered ADRs — canonical decisions |
-| [`docs/rfc/`](../rfc/) | Optional pre-ADR proposals (unnumbered) |
+| [`docs/adr/`](../adr/README.md) | Numbered ADRs — canonical decisions |
+| [`docs/rfc/`](../rfc/README.md) | Optional pre-ADR proposals (unnumbered) |
 | [`docs/roadmap/planned-features.md`](../roadmap/planned-features.md) | Backlog before ADR exists |
 | [`docs/PLATFORM-DECISIONS.md`](../PLATFORM-DECISIONS.md) | Curated summary of locked choices (not a substitute for ADRs) |
 
@@ -114,7 +114,7 @@ Register new ADRs in **two** places:
 
 1. The ADR file itself
 2. The themed table in [docs/adr/README.md](../adr/README.md)
-3. A nav entry in [`mkdocs.yml`](../../mkdocs.yml) under *Reference → Architecture decision records*
+3. A nav entry in [`mkdocs.yml`](https://github.com/platformrelay/kollect/blob/main/mkdocs.yml) under *Reference → Architecture decision records*
    (maintainers — keeps the docs site searchable)
 
 ## ADR template
@@ -211,7 +211,7 @@ Before merging an ADR or RFC PR:
 
 - [ ] Number in the correct **0Txx** theme (ADRs only)
 - [ ] [adr/README.md](../adr/README.md) table row added or updated
-- [ ] [mkdocs.yml](../../mkdocs.yml) nav entry (ADRs)
+- [ ] [mkdocs.yml](https://github.com/platformrelay/kollect/blob/main/mkdocs.yml) nav entry (ADRs)
 - [ ] [ROADMAP.md](../ROADMAP.md) or [planned features](../roadmap/planned-features.md) cross-links if user-facing
 - [ ] No secrets, internal hostnames, or non-public references
 - [ ] `task verify` / docs CI green if CRD or generated docs touched

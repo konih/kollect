@@ -14,9 +14,9 @@ knobs; the authoritative full list lives in the chart tree.
 
 | File | Purpose |
 | --- | --- |
-| [`charts/kollect/values.yaml`](../../charts/kollect/values.yaml) | All defaults |
-| [`charts/kollect/values.schema.json`](../../charts/kollect/values.schema.json) | JSON Schema validation (CI: `task helm-test`) |
-| [`charts/kollect/README.md`](../../charts/kollect/README.md) | Inventory HTTP auth, connection-test detail |
+| [`charts/kollect/values.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values.yaml) | All defaults |
+| [`charts/kollect/values.schema.json`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values.schema.json) | JSON Schema validation (CI: `task helm-test`) |
+| [`charts/kollect/README.md`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md) | Inventory HTTP auth, connection-test detail |
 
 !!! note "Do not duplicate the chart README"
     The oauth2-proxy sidecar layout and inventory HTTP RBAC examples are maintained in the chart
@@ -56,12 +56,12 @@ metrics:
       release: kube-prometheus-stack
 ```
 
-See [Metrics](metrics.md) for the alert catalog and [chart README — monitoring](../../charts/kollect/README.md#prometheus-operator-monitoring).
+See [Metrics](metrics.md) for the alert catalog and [chart README — monitoring](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md#prometheus-operator-monitoring).
 
 ## Per-team install (minimal RBAC)
 
 **Golden path:** platform cluster-wide operator + namespaced `KollectScope` per tenant.
-**Team path:** chart profile [`values-minimal-rbac.yaml`](../../charts/kollect/values-minimal-rbac.yaml)
+**Team path:** chart profile [`values-minimal-rbac.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values-minimal-rbac.yaml)
 ([ADR-0203](../adr/0203-namespaced-multi-tenancy.md)).
 
 ```bash
@@ -115,7 +115,7 @@ Optional HTTP and debug surfaces are **off by default** ([ADR-0704](../adr/0704-
 
 Inventory HTTP auth uses Kubernetes bearer tokens by default ([ADR-0404](../adr/0404-inventory-api-auth.md)).
 Optional `oauth2Proxy` sidecar is for browser/OIDC only — see the
-[chart README — Inventory HTTP authentication](../../charts/kollect/README.md#inventory-http-authentication).
+[chart README — Inventory HTTP authentication](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md#inventory-http-authentication).
 
 ## Connection tests
 

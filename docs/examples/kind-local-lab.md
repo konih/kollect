@@ -44,4 +44,4 @@
 !!! tip "Full showcase demo"
     For the guided wide-scope walkthrough (Trivy CVE inventory, cert-manager, Git export churn), run
     `bash hack/demo/kind-wide-scope/demo.sh` — see
-    [hack/demo/kind-wide-scope/README.md](../../hack/demo/kind-wide-scope/README.md).
+    [hack/demo/kind-wide-scope/README.md](https://github.com/platformrelay/kollect/blob/main/hack/demo/kind-wide-scope/README.md).

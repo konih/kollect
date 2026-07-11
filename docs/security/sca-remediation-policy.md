@@ -3,7 +3,7 @@
 Software Composition Analysis (SCA) covers **third-party dependencies** — `go.mod`, GitHub Actions,
 and container base images. Application SAST and secret scanning are out of scope here; see
 [Coding standards § Security](../development/coding-standards.md#security) and
-[SECURITY.md](../../SECURITY.md).
+[SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md).
 
 ## OSPS-VM-05.01 compliance
 
@@ -54,7 +54,7 @@ follow the severity-band SLA and are reviewed before tagging.
 
 ### License findings
 
-Kollect is [MIT-licensed](../../LICENSE). Dependencies must remain compatible with distributing the
+Kollect is [MIT-licensed](https://github.com/platformrelay/kollect/blob/main/LICENSE). Dependencies must remain compatible with distributing the
 operator and UI under MIT.
 
 | License class | SPDX examples | Remediation threshold | Merge / release |
@@ -72,11 +72,11 @@ These tools **find** SCA findings; remediation deadlines are in the table above.
 
 | Tool | Finds | When | Workflow |
 | --- | --- | --- | --- |
-| [**govulncheck**](https://go.dev/security/vuln/) | Known Go CVEs in **imported** packages | Every push and PR | [`ci.yaml` job **vulncheck**](../../.github/workflows/ci.yaml) · `task vulncheck` |
-| [**Dependabot**](https://docs.github.com/en/code-security/dependabot) | Advisory DB alerts; update PRs for `go.mod` and Actions | Continuous + weekly | [`.github/dependabot.yml`](../../.github/dependabot.yml) |
-| [**Trivy**](https://github.com/aquasecurity/trivy) | Fixable CRITICAL/HIGH in release images | On `v*.*.*` tag | [`release.yaml`](../../.github/workflows/release.yaml) |
+| [**govulncheck**](https://go.dev/security/vuln/) | Known Go CVEs in **imported** packages | Every push and PR | [`ci.yaml` job **vulncheck**](https://github.com/platformrelay/kollect/blob/main/.github/workflows/ci.yaml) · `task vulncheck` |
+| [**Dependabot**](https://docs.github.com/en/code-security/dependabot) | Advisory DB alerts; update PRs for `go.mod` and Actions | Continuous + weekly | [`.github/dependabot.yml`](https://github.com/platformrelay/kollect/blob/main/.github/dependabot.yml) |
+| [**Trivy**](https://github.com/aquasecurity/trivy) | Fixable CRITICAL/HIGH in release images | On `v*.*.*` tag | [`release.yaml`](https://github.com/platformrelay/kollect/blob/main/.github/workflows/release.yaml) |
 | **Release SBOM** | SPDX inventory for license review | On release | `sbom.spdx.json` / `sbom-ui.spdx.json` ([ADR-0705](../adr/0705-release-supply-chain.md)) |
-| **`depguard` / `gomodguard`** | Blocklisted imports and modules (`logrus`, `pkg/errors`, …) | Every push and PR | `task lint` in [`ci.yaml`](../../.github/workflows/ci.yaml) |
+| **`depguard` / `gomodguard`** | Blocklisted imports and modules (`logrus`, `pkg/errors`, …) | Every push and PR | `task lint` in [`ci.yaml`](https://github.com/platformrelay/kollect/blob/main/.github/workflows/ci.yaml) |
 
 Contributors run `task vulncheck` locally before opening a PR.
 
@@ -112,7 +112,7 @@ Be explicit about what automation **blocks** vs what maintainers **track** under
 | **License (Deny)** | Manual / SBOM review + lint blocklists | Maintainer blocks merge | SBOM spot-check before tag |
 
 GitHub branch protection requires **`preflight`** and **`test`** only
-([CONTRIBUTING.md](../../CONTRIBUTING.md)). All other CI jobs (including **vulncheck** and **lint**)
+([CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md)). All other CI jobs (including **vulncheck** and **lint**)
 run on every PR; maintainers treat failing SCA jobs as merge blockers even when not branch-protected.
 
 ### Pre-release checklist (OSPS-VM-05.02)
@@ -139,7 +139,7 @@ Record in **one** of:
 
 - GitHub issue labeled `security` (preferred for time-bound CVE deferrals);
 - ADR in `docs/adr/` (policy-level or long-lived);
-- [SECURITY.md § Exceptions](../../SECURITY.md) (short-lived govulncheck suppressions only).
+- [SECURITY.md § Exceptions](https://github.com/platformrelay/kollect/blob/main/SECURITY.md) (short-lived govulncheck suppressions only).
 
 ### Valid deferral reasons
 
@@ -159,7 +159,7 @@ Deferrals do **not** override **Trivy** release gates for fixable CRITICAL/HIGH 
 
 ## Related documents
 
-- [SECURITY.md](../../SECURITY.md) — disclosure, scanning overview, exception stub
+- [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md) — disclosure, scanning overview, exception stub
 - [Coding standards § Security](../development/coding-standards.md#security) — contributor CI gates
 - [ADR-0104: Security model](../adr/0104-security-model.md) — runtime threat model
 - [ADR-0705: Release supply chain](../adr/0705-release-supply-chain.md) — SBOM, Trivy, Dependabot

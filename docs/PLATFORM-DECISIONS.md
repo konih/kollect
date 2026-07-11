@@ -159,7 +159,7 @@ the corresponding code merges.
 
 ### Documentation status
 
-- [x] **CR reference guide** — scaffold at [CR-REFERENCE.md](CR-REFERENCE.md) + [crds/](crds/);
+- [x] **CR reference guide** — scaffold at [CR-REFERENCE.md](CR-REFERENCE.md) + the per-kind pages under `docs/crds/`;
   per-kind failure-mode detail is tracked in [CR-REFERENCE.md](CR-REFERENCE.md).
 - [x] **Architecture data flows** — [DATA-FLOWS.md](DATA-FLOWS.md) (debounce + collection + scope + connection test).
 - [x] **JSONPath `[*]` wildcard** — all array elements; deployment sample updated ([ADR-0302](adr/0302-cel-jsonpath-extraction.md)).

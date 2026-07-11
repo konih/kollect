@@ -8,7 +8,7 @@ pin the pre-0419 JSON document.
 
 For the **wide-scope sales-pitch demo** (8 GVK types including Trivy CVE reports, cert-manager
 Certificates, external-secrets, multi-namespace Targets, guided `demo.sh`, churn script), see
-[hack/demo/kind-wide-scope/README.md](../../hack/demo/kind-wide-scope/README.md).
+[hack/demo/kind-wide-scope/README.md](https://github.com/platformrelay/kollect/blob/main/hack/demo/kind-wide-scope/README.md).
 
 ## Prerequisites
 

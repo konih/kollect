@@ -128,4 +128,4 @@ inventory port — no oauth2-proxy hop.
 ## See also
 
 - [ADR-0103: Data storage and etcd limit](0103-etcd-limit.md) — HTTP API scope
-- [charts/kollect/README.md](../../charts/kollect/README.md) — Helm auth configuration
+- [charts/kollect/README.md](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md) — Helm auth configuration

@@ -2,7 +2,7 @@
 
 This document synthesizes Kollect's security claims, trust boundaries, and countermeasures.
 It supports OpenSSF Best Practices **assurance_case** criteria and complements
-[ADR-0104](adr/0104-security-model.md) (architecture) and [SECURITY.md](../SECURITY.md)
+[ADR-0104](adr/0104-security-model.md) (architecture) and [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md)
 (disclosure policy).
 
 **Last updated:** 2026-06-05
@@ -77,7 +77,7 @@ flowchart TB
 
 | Risk | Mitigation status | Owner action |
 | --- | --- | --- |
-| Solo maintainer (bus factor 1) | Documented in [GOVERNANCE.md](../GOVERNANCE.md) | Appoint co-maintainer when feasible |
+| Solo maintainer (bus factor 1) | Documented in [GOVERNANCE.md](https://github.com/platformrelay/kollect/blob/main/GOVERNANCE.md) | Appoint co-maintainer when feasible |
 | Encryption-at-rest for external sinks | **Recommended**, not enforced by operator | Adopter configures Postgres/S3 encryption |
 | Built-in secret-leak scanner on payloads | Open question (ADR-0104) | Defense-in-depth beyond `scrubKeys` |
 | Hub plain HTTP inside pod | TLS terminated at ingress/mesh | Documented in ADR-0503; deployer responsibility |

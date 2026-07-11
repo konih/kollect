@@ -186,7 +186,7 @@ cmd  →  wires everything
 
 CI enforces this graph with [go-arch-lint](https://github.com/fe3dback/go-arch-lint) via
 `task arch-lint` (also part of `task lint`). Rules and any baseline `todo(arch-NN)` exceptions are
-declared in [`.go-arch-lint.yml`](../.go-arch-lint.yml). Maintainer setup:
+declared in [`.go-arch-lint.yml`](https://github.com/platformrelay/kollect/blob/main/.go-arch-lint.yml). Maintainer setup:
 [tooling-setup.md](development/tooling-setup.md).
 
 Regenerate the visual overview with `task arch-lint:graph` (DI view, vendors included). The SVG is

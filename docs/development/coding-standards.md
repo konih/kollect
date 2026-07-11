@@ -7,7 +7,7 @@ lint, CI, and review.
 
 !!! tip "Before you open a PR"
     `task lint` · `task coverage` · `task coverage:race` (recommended) · `task verify` ·
-    `task scrub` — see [CONTRIBUTING.md](../../CONTRIBUTING.md#pull-request-process) and
+    `task scrub` — see [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md#pull-request-process) and
     [Testing strategy](testing.md).
 
 ## License headers
@@ -75,7 +75,7 @@ Short, actionable rules for Go code in this repo. Operator reconcile semantics a
 ### Container builds
 
 - **MUST** build the operator manager with `CGO_ENABLED=0` for the shipped image
-  ([`Dockerfile`](../../Dockerfile)); enable CGO locally only for `task coverage:race`. The runtime
+  ([`Dockerfile`](https://github.com/platformrelay/kollect/blob/main/Dockerfile)); enable CGO locally only for `task coverage:race`. The runtime
   stage is Debian bookworm-slim (nonroot UID 65532) with `git` and `openssh-client` for
   `spec.git.engine: cli` and `git ls-remote` probes; `go-git` (default) does not use those binaries.
 
@@ -83,8 +83,8 @@ Short, actionable rules for Go code in this repo. Operator reconcile semantics a
 
 | Tool | Config / command | Purpose |
 | --- | --- | --- |
-| **golangci-lint v2** | [`.golangci.yaml`](../../.golangci.yaml) · `task lint` | Static analysis, formatters, dependency policy |
-| **go-arch-lint** | [`.go-arch-lint.yml`](../../.go-arch-lint.yml) · `task arch-lint` | Package import boundaries |
+| **golangci-lint v2** | [`.golangci.yaml`](https://github.com/platformrelay/kollect/blob/main/.golangci.yaml) · `task lint` | Static analysis, formatters, dependency policy |
+| **go-arch-lint** | [`.go-arch-lint.yml`](https://github.com/platformrelay/kollect/blob/main/.go-arch-lint.yml) · `task arch-lint` | Package import boundaries |
 | **gofmt / goimports** | `task format:check` | Formatting drift gate (gofmt + goimports) |
 
 Run `task lint` locally before every PR. It includes golangci-lint **and** `go-arch-lint check`.
@@ -139,7 +139,7 @@ coverage profile.
 | **Secret scan** | `gitleaks` in CI; `task scrub` + `gitleaks protect --staged` before commit |
 | **Vulnerability scan** | `task vulncheck` (`govulncheck`) in CI |
 | **SCA policy** | [SCA remediation policy](../security/sca-remediation-policy.md) — CVE/license thresholds |
-| **Threat model** | [SECURITY.md](../../SECURITY.md) |
+| **Threat model** | [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md) |
 | **Security ADR** | [ADR-0104](../adr/0104-security-model.md) — TLS, RBAC, redaction, secrets |
 
 ### Secrets and scrubbing
@@ -180,7 +180,7 @@ mesh** before traffic reaches the operator (ADR-0503).
 
 ## Commits
 
-[CONTRIBUTING.md § Commit messages](../../CONTRIBUTING.md#commit-messages) defines the format:
+[CONTRIBUTING.md § Commit messages](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md#commit-messages) defines the format:
 
 - **[Conventional Commits](https://www.conventionalcommits.org/)** types and scopes
 - Optional **[gitmoji](https://gitmoji.dev/) shortcode** prefix (`:sparkles:`, not Unicode emoji)
@@ -194,7 +194,7 @@ Changelog entries are generated with [git-cliff](https://git-cliff.org/) (`hack/
 Package layout and dependency flow are documented in
 [ARCHITECTURE.md § Package boundaries](../ARCHITECTURE.md#package-boundaries).
 
-Import rules are enforced by [`.go-arch-lint.yml`](../../.go-arch-lint.yml) (`task arch-lint`).
+Import rules are enforced by [`.go-arch-lint.yml`](https://github.com/platformrelay/kollect/blob/main/.go-arch-lint.yml) (`task arch-lint`).
 When introducing a new `internal/` package or cross-component import:
 
 1. Update `.go-arch-lint.yml` to describe the intended graph.
@@ -210,7 +210,7 @@ Non-trivial API, tenancy, sink, or multi-cluster changes require an ADR before m
 `main` is protected: linear history, required checks **`preflight`**, **`test`**, and **`kind-smoke`**
 (E2E Tier 0), no force-push. Add **`kind-smoke`** in GitHub branch protection after the workflow
 has run green on `main` at least once. Use **Rebase and merge** on PRs
-([CONTRIBUTING.md § Changelog and releases](../../CONTRIBUTING.md#changelog-and-releases)).
+([CONTRIBUTING.md § Changelog and releases](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md#changelog-and-releases)).
 
 | Gate | Workflow / task | Blocks merge? |
 | --- | --- | --- |

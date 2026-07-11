@@ -29,7 +29,7 @@
 
 ## Manifest bundle
 
-Generator lives under [`hack/loadtest/100k/`](../../hack/loadtest/100k/):
+Generator lives under [`hack/loadtest/100k/`](https://github.com/platformrelay/kollect/tree/main/hack/loadtest/100k):
 
 ```bash
 cd hack/loadtest/100k

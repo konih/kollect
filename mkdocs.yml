@@ -200,10 +200,19 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.details
+  - pymdownx.snippets:
+      base_path:
+        - docs/_snippets
+      check_paths: true
   - toc:
       permalink: true
 
 plugins:
+  - search
+  - redirects:
+      # Old page -> new page entries land here as the docs restructure moves files
+      # (see agent-context/DOCS-REDESIGN-PLAN.md, lane D2).
+      redirect_maps: {}
   - social:
       cards_layout_options:
         background_color: "#0F172A"
@@ -211,6 +220,30 @@ plugins:
 
 docs_dir: docs
 site_dir: site
+
+# Include-fragments and local tooling artifacts are not pages.
+# _snippets/ holds snippet sources; node_modules/ is created locally by
+# `task lint:markdown` (gitignored) and must never be scanned as docs.
+exclude_docs: |
+  _snippets/
+  node_modules/
+
+# Pages intentionally reachable by URL but not (yet) in the nav tree.
+# Lane D2 folds each into the restructured nav and drops it from here.
+not_in_nav: |
+  /DEMO-GIF-GUIDE.md
+  /adr/0306-full-resource-export-pruning.md
+  /adr/0420-bigquery-database-sink.md
+  /adr/0801-pipeline-cli-mode.md
+  /development/git-sink-attribution.md
+  /examples/kollect-inventory-demo.md
+  /examples/ui-local-development.md
+  /rfc/sink-family-crds.md
+
+validation:
+  omitted_files: warn
+  unrecognized_links: warn
+  absolute_links: relative_to_docs
 
 extra:
   social:

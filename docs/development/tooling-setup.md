@@ -22,7 +22,7 @@ configure once.
 | `task vulncheck` | `govulncheck` (module CVE scan) |
 | `task sonar` / `task sonar:local` | Local SonarCloud upload (maintainer; needs `SONARCLOUD_TOKEN`) |
 
-Architecture rules live in [`.go-arch-lint.yml`](../../.go-arch-lint.yml).
+Architecture rules live in [`.go-arch-lint.yml`](https://github.com/platformrelay/kollect/blob/main/.go-arch-lint.yml).
 See [ARCHITECTURE.md](../ARCHITECTURE.md#package-boundaries) for the intended dependency direction.
 
 ### go-arch-lint baseline workflow
@@ -52,8 +52,8 @@ graph.
 ### golangci-lint dependency policy
 
 `depguard` (deny deprecated / non-standard logging and errors) and `gomodguard` (block `logrus`,
-`pkg/errors` in `go.mod`) are configured in [`.golangci.yaml`](../../.golangci.yaml). The
-**logcheck** plugin is built via [`hack/tooling/.custom-gcl.yml`](../../hack/tooling/.custom-gcl.yml) when `make lint` runs.
+`pkg/errors` in `go.mod`) are configured in [`.golangci.yaml`](https://github.com/platformrelay/kollect/blob/main/.golangci.yaml). The
+**logcheck** plugin is built via [`hack/tooling/.custom-gcl.yml`](https://github.com/platformrelay/kollect/blob/main/hack/tooling/.custom-gcl.yml) when `make lint` runs.
 Configuration changes should keep `task lint` green — adjust `depguard` / `gomodguard.blocked`
 rules if a legitimate new dependency is blocked.
 
@@ -96,7 +96,7 @@ task sonar:local    # runs task coverage, then sonar-scanner via Docker
 ```
 
 Requires Docker. Uploads to org **`platformrelay`**, project **`platformrelay_kollect`** per
-[`sonar-project.properties`](../../sonar-project.properties). First run may take a few minutes;
+[`sonar-project.properties`](https://github.com/platformrelay/kollect/blob/main/sonar-project.properties). First run may take a few minutes;
 confirm the project appears at [SonarCloud](https://sonarcloud.io/project/overview?id=platformrelay_kollect).
 
 ### 4. Quality gate (recommended)
@@ -114,7 +114,7 @@ After the first successful scan:
 | `.github/workflows/ci.yaml` job `sonarcloud` | Every push / PR (after `test`) | Downloads `coverage` artifact (`coverage.out`) |
 | `.github/workflows/sonarcloud.yaml` | `workflow_dispatch` manual | Re-runs `task coverage` then scans |
 
-Properties file: [`sonar-project.properties`](../../sonar-project.properties).
+Properties file: [`sonar-project.properties`](https://github.com/platformrelay/kollect/blob/main/sonar-project.properties).
 
 ## Codecov (maintainer setup)
 
@@ -140,7 +140,7 @@ No repository secret is required for uploads when CI uses OIDC (see below).
 | Item | Location |
 | --- | --- |
 | Upload step | `.github/workflows/ci.yaml` job **`test`** — `codecov/codecov-action` v6 with `use_oidc: true` |
-| Project / patch targets | [`codecov.yml`](../../codecov.yml) at repo root |
+| Project / patch targets | [`codecov.yml`](https://github.com/platformrelay/kollect/blob/main/codecov.yml) at repo root |
 | Merge gate (blocking) | `COVERAGE_MIN` env on the same job — independent of Codecov |
 
 The **`test`** job requests `id-token: write` so GitHub Actions can mint an OIDC token for
@@ -167,5 +167,5 @@ Contributors do not need Codecov accounts. Run `task coverage` before opening a 
 ## Further reading
 
 - [Testing strategy](testing.md) — coverage floors, CI matrix, Sonar as trend dashboard
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) — PR lint checklist
+- [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) — PR lint checklist
 - [DEVELOPMENT.md](../DEVELOPMENT.md) — local dev commands

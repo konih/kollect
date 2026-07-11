@@ -39,7 +39,7 @@ To install only CRDs without the operator Deployment, use your platform's CRD-on
 
 ### 2. Team operator (namespace admin)
 
-Use the chart profile [`values-minimal-rbac.yaml`](../../charts/kollect/values-minimal-rbac.yaml):
+Use the chart profile [`values-minimal-rbac.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values-minimal-rbac.yaml):
 
 ```bash
 helm upgrade --install kollect-team ./charts/kollect \
@@ -94,7 +94,7 @@ Repeat or extend rules for each GVK referenced by team `KollectProfile` objects.
 
 Apply namespaced `KollectScope`, `KollectProfile`, family sinks, `KollectTarget`, and
 `KollectInventory` in the team namespace. Sample bundle:
-[`config/samples/team-operator/`](../../config/samples/team-operator/).
+[`config/samples/team-operator/`](https://github.com/platformrelay/kollect/tree/main/config/samples/team-operator).
 
 ## Reconciler RBAC verbs (tenant mode)
 
@@ -137,4 +137,4 @@ install namespace.
 - [ADR-0203: Namespaced multi-tenancy](../adr/0203-namespaced-multi-tenancy.md)
 - [Helm values — per-team install](../operator-manual/helm-values.md#per-team-install-recommended-default)
 - [Multi-tenant watch scope example](../examples/multi-tenant-watch-namespaces.md)
-- [Chart `values-minimal-rbac.yaml`](../../charts/kollect/values-minimal-rbac.yaml)
+- [Chart `values-minimal-rbac.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values-minimal-rbac.yaml)

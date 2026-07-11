@@ -37,7 +37,7 @@ instead of hand-authoring every attribute — the foundation for audit/drift sna
 profiles, and GitOps debugging. It anchors the v0.6 export tranche ahead of the v0.7 sink work.
 
 See [ADR-0306](adr/0306-full-resource-export-pruning.md) — **Accepted; Phase 1 ✅ on `main`**
-(post-**`v0.5.0`** tag — listed under Unreleased in [CHANGELOG.md](../CHANGELOG.md) until next release).
+(post-**`v0.5.0`** tag — listed under Unreleased in [CHANGELOG.md](https://github.com/platformrelay/kollect/blob/main/CHANGELOG.md) until next release).
 
 | Scope item | Status |
 | --- | --- |
@@ -569,7 +569,7 @@ Full locked table: **[PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md)**.
 - [Platform decisions (2026-06-05)](PLATFORM-DECISIONS.md)
 - [Product requirements](REQUIREMENTS.md)
 - [Architecture](ARCHITECTURE.md)
-- [Helm chart README](../charts/kollect/README.md) — inventory HTTP auth
+- [Helm chart README](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md) — inventory HTTP auth
 - [ADR-0201: CRD model](adr/0201-crd-model.md)
 - [ADR-0103: etcd limit + HTTP API](adr/0103-etcd-limit.md)
 - [ADR-0301: Event-driven informers](adr/0301-event-driven-informers.md)

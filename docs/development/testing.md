@@ -6,7 +6,7 @@ Kollect is **TDD-first**. Quality gates follow a six-tier test pyramid (L0–L5)
 !!! tip "Quick local loop"
     Before opening a PR: `task lint` · `task coverage` · `task coverage:race` (recommended) ·
     `task verify` · `task scrub`. See [Coding standards](coding-standards.md) and
-    [CONTRIBUTING.md](../../CONTRIBUTING.md) for the full checklist.
+    [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) for the full checklist.
 
 ## Test pyramid (L0–L5)
 
@@ -125,7 +125,7 @@ Full local setup: [DEVELOPMENT.md](../DEVELOPMENT.md).
 ## Definition of done
 
 Per-change checklist: [guidelines § 6](guidelines.md#6-definition-of-done-per-change).
-PR workflow: [CONTRIBUTING.md § Pull request process](../../CONTRIBUTING.md#pull-request-process).
+PR workflow: [CONTRIBUTING.md § Pull request process](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md#pull-request-process).
 
 ## Further reading
 

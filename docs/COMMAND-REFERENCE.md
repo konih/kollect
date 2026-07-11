@@ -173,7 +173,7 @@ Or use a values file — see [Operator manual — Per-team install](OPERATOR-MAN
 | `featureGates.inventoryHttp.enabled` | `false` | Debug HTTP API |
 | `image.tag` | chart default | Pin in production |
 
-Full list: [`charts/kollect/values.yaml`](../charts/kollect/values.yaml). Validation:
+Full list: [`charts/kollect/values.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values.yaml). Validation:
 `task helm-test`.
 
 ### Uninstall

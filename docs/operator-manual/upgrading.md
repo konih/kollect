@@ -96,7 +96,7 @@ have issued or rotated the serving certificate ([ADR-0105](../adr/0105-webhook-s
 
 ## Values and behaviour changes
 
-Review [Helm values](helm-values.md) and the [chart README](../../charts/kollect/README.md) when
+Review [Helm values](helm-values.md) and the [chart README](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md) when
 bumping versions. Common upgrade touchpoints:
 
 | Area | Check |

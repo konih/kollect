@@ -210,7 +210,7 @@ Enforcement: [guidelines § 4](development/guidelines.md#4-testing),
 
 - [Engineering guidelines](development/guidelines.md) — operator engineering principles (enforcement of NFRs)
 - [coding-standards.md](development/coding-standards.md) — Go lint, testing, and CI gates
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — contribution process
+- [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) — contribution process
 - [PLATFORM-DECISIONS.md](PLATFORM-DECISIONS.md) — coordinator brief (locked decisions)
 - [ARCHITECTURE.md](ARCHITECTURE.md) — system overview
 - [adr/README.md](adr/README.md) — decision records, grouped by theme
