@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/export"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/export"
 )
 
 func TestRunExportEnvelope_GitAutoInfersResourceMode(t *testing.T) {

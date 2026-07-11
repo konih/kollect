@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 type upsertRow struct {

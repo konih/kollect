@@ -192,7 +192,7 @@ counted in exit code) rather than an error exit.
 ```yaml
 # .gitlab-ci.yml — reference example
 collect-inventory:
-  image: ghcr.io/konih/kollect-pipeline:v0.8.0
+  image: ghcr.io/platformrelay/kollect-pipeline:v0.8.0
   script:
     - kollect-pipeline collect
         --kubeconfig "$KUBECONFIG"

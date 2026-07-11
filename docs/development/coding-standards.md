@@ -51,7 +51,7 @@ Short, actionable rules for Go code in this repo. Operator reconcile semantics a
 
 ### Modules and dependencies
 
-- **MUST** keep module path `github.com/konih/kollect` (v0/v1); bump to `…/v2` only on a tagged
+- **MUST** keep module path `github.com/platformrelay/kollect` (v0/v1); bump to `…/v2` only on a tagged
   major release per [Go module path rules](https://go.dev/ref/mod#module-path).
 - **MUST** commit `go.sum`; run `go mod tidy` — preflight CI checks for drift.
 - **SHOULD NOT** vendor — no `vendor/` directory; rely on the module proxy and checked-in `go.sum`.

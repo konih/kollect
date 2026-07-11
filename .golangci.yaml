@@ -144,7 +144,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/konih/kollect
+        - github.com/platformrelay/kollect
   exclusions:
     generated: lax
     paths:

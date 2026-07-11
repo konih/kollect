@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/pathvalidate"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
 )
 
 const (

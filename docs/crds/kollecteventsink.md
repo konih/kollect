@@ -24,7 +24,7 @@ A `KollectEventSink` configures **stream/event** export backends — Kafka and N
 ## Example
 
 A Kafka event sink that emits one message per aggregated export
-([`config/samples/kollect_v1alpha1_kollecteventsink_kafka.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollecteventsink_kafka.yaml)):
+([`config/samples/kollect_v1alpha1_kollecteventsink_kafka.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollecteventsink_kafka.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1
@@ -42,7 +42,7 @@ spec:
 ```
 
 A NATS JetStream variant
-([`config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml);
+([`config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollecteventsink_nats.yaml);
 full consumer walkthrough in the [NATS event sink example](../examples/nats-event-sink.md)):
 
 ```yaml

@@ -6,8 +6,8 @@ package gitlab
 import (
 	"testing"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/git"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // inventoryFromObjectPath behavior is now centrally tested in

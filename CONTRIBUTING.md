@@ -132,7 +132,7 @@ Only `feat`, `fix`, `perf`, `refactor`, and breaking commits appear in the user-
 5. `git tag vX.Y.Z && git push origin vX.Y.Z` — CI publishes image and GitHub Release.
 
 Tagged releases (`v*.*.*`) trigger [`.github/workflows/release.yaml`](.github/workflows/release.yaml):
-multi-arch images to `ghcr.io/konih/kollect` and `ghcr.io/konih/kollect-ui`, Trivy scan, cosign
+multi-arch images to `ghcr.io/platformrelay/kollect` and `ghcr.io/platformrelay/kollect-ui`, Trivy scan, cosign
 signing, SPDX SBOMs, Helm chart (OCI), and GitHub Release assets (`install.yaml`, `install-crds.yaml`,
 chart tarball, checksums).
 
@@ -190,7 +190,7 @@ maintainers may ask you to amend commits if sign-off is missing on substantive c
 
 ## Reporting bugs
 
-**Open a [GitHub Issue](https://github.com/konih/kollect/issues/new)** for bugs, regressions, and
+**Open a [GitHub Issue](https://github.com/platformrelay/kollect/issues/new)** for bugs, regressions, and
 feature requests. Do **not** use issues for security vulnerabilities — email
 **konrad.heimel@gmail.com** per [SECURITY.md](SECURITY.md).
 
@@ -211,7 +211,7 @@ Looking for a small, review-friendly change? Try one of these:
 | **UI** | Small accessibility or copy fixes in `ui/src/` (keep PRs focused) |
 
 Search issues labeled
-[`good first issue`](https://github.com/konih/kollect/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+[`good first issue`](https://github.com/platformrelay/kollect/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 If none exist, pick a row above and mention it in your PR description.
 
 ## Code review

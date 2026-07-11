@@ -1,8 +1,8 @@
 site_name: Kollect
 site_description: Your cluster, in Git, diffable.
-site_url: https://konih.github.io/kollect/
-repo_url: https://github.com/konih/kollect
-repo_name: konih/kollect
+site_url: https://platformrelay.github.io/kollect/
+repo_url: https://github.com/platformrelay/kollect
+repo_name: platformrelay/kollect
 copyright: Copyright &copy; 2026 Konrad Heimel
 
 theme:
@@ -215,4 +215,4 @@ site_dir: site
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/konih/kollect
+      link: https://github.com/platformrelay/kollect

@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/konih/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
 )
 
 var (

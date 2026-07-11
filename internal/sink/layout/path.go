@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // LayoutPlaceholders are the placeholders allowed in layout.pathTemplate (ADR-0419).

@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"google.golang.org/api/googleapi"
 
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 // Sentinel errors for errors.Is classification of Export failure stages.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 
-	"github.com/konih/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 func TestRecordTargetSnapshotMetrics(t *testing.T) {

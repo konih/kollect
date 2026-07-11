@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/sink"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 func TestExportErrorReason(t *testing.T) {

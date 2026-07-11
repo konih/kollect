@@ -1,7 +1,7 @@
 # Local and test container images
 
 Production releases publish semver tags (`v0.3.0`, `0.3.0`, …) to
-[`ghcr.io/konih/kollect`](https://github.com/konih/kollect/pkgs/container/kollect) via
+[`ghcr.io/platformrelay/kollect`](https://github.com/platformrelay/kollect/pkgs/container/kollect) via
 [release workflow](../../.github/workflows/release.yaml). For manual maintainer testing against a
 real registry or a remote cluster, use **maintainer-only** tags that never collide with release
 semver.
@@ -16,15 +16,15 @@ Builds a single-platform image into the local daemon (default `linux/amd64`):
 
 ```sh
 task docker:build:local
-# → ghcr.io/konih/kollect:local
+# → ghcr.io/platformrelay/kollect:local
 
-kind load docker-image ghcr.io/konih/kollect:local --name kollect-dev
+kind load docker-image ghcr.io/platformrelay/kollect:local --name kollect-dev
 ```
 
 Override repository, tag, platform, or container tool:
 
 ```sh
-IMAGE_REPO=ghcr.io/konih/kollect IMAGE_TAG=dev-me PLATFORMS=linux/arm64 task docker:build:local
+IMAGE_REPO=ghcr.io/platformrelay/kollect IMAGE_TAG=dev-me PLATFORMS=linux/arm64 task docker:build:local
 CONTAINER_TOOL=podman task docker:build:local
 ```
 
@@ -44,10 +44,10 @@ Default tag is the current commit short SHA (`test-<short-sha>`):
 
 ```sh
 task docker:push:local
-# → ghcr.io/konih/kollect:test-a1b2c3d
+# → ghcr.io/platformrelay/kollect:test-a1b2c3d
 
 IMAGE_TAG=test-$(git rev-parse --short HEAD) task docker:push:local
-IMAGE_TAG=local-dev IMAGE_REPO=ghcr.io/konih/kollect task docker:push:local
+IMAGE_TAG=local-dev IMAGE_REPO=ghcr.io/platformrelay/kollect task docker:push:local
 ```
 
 Multi-arch push (optional):
@@ -63,7 +63,7 @@ accidentally overwrite release tags.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `IMAGE_REPO` | `ghcr.io/konih/kollect` | Registry repository |
+| `IMAGE_REPO` | `ghcr.io/platformrelay/kollect` | Registry repository |
 | `IMAGE_TAG` | `local` (build) / `test-<short-sha>` (push) | Maintainer-only tag |
 | `PLATFORMS` | `linux/amd64` | Single platform; comma-separated for multi-arch push |
 | `CONTAINER_TOOL` | `docker` | `docker` or `podman` |

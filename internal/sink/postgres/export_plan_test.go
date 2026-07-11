@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 func TestBuildUpsertRows_UsesScopeAndFallbackNamespaces(t *testing.T) {

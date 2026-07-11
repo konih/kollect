@@ -43,11 +43,11 @@ helm install kollect ./charts/kollect -n kollect-system --create-namespace
 Published releases push the chart to GHCR ([ADR-0705](adr/0705-release-supply-chain.md)):
 
 ```sh
-helm install kollect oci://ghcr.io/konih/kollect -n kollect-system --create-namespace
+helm install kollect oci://ghcr.io/platformrelay/kollect -n kollect-system --create-namespace
 ```
 
 Omitting `--version` installs the latest published chart. In production, pin a specific version
-(e.g. `--version 0.5.0` — see the [releases page](https://github.com/konih/kollect/releases)).
+(e.g. `--version 0.5.0` — see the [releases page](https://github.com/platformrelay/kollect/releases)).
 
 Pin `image.tag` to the release image when not using the chart default — see
 [Helm values reference](operator-manual/helm-values.md).
@@ -120,7 +120,7 @@ and connection probes ([ADR-0403](adr/0403-connection-test.md)).
 | `go-git` (default) | None beyond the manager binary | Pure Go transport; works on minimal images |
 | `cli` | `git` and `openssh-client` in `PATH` | Native clone/commit/push; SSH uses `GIT_SSH_COMMAND` with `openssh-client` |
 
-The published operator image (`ghcr.io/konih/kollect`) ships **Debian bookworm-slim** with
+The published operator image (`ghcr.io/platformrelay/kollect`) ships **Debian bookworm-slim** with
 `git`, `openssh-client`, and `ca-certificates` on UID/GID **65532**. Default `go-git` export is
 unchanged; the image change enables `engine: cli` and full `git ls-remote` connection probes.
 Custom images built from an older distroless base must install `git` (and `openssh-client` for SSH)

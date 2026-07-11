@@ -48,6 +48,6 @@ jobs:
           file: ui/Dockerfile
           platforms: linux/amd64
           push: false
-          tags: ghcr.io/konih/kollect-ui:ci
+          tags: ghcr.io/platformrelay/kollect-ui:ci
           cache-from: type=gha,scope=kollect-ui
           cache-to: type=gha,mode=max,scope=kollect-ui

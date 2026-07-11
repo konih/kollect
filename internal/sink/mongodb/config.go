@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/secretkv"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/secretkv"
 )
 
 // TypeName is the KollectSink.spec.type value for MongoDB sinks.

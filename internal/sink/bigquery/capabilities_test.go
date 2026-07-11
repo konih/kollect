@@ -6,7 +6,7 @@ package bigquery
 import (
 	"testing"
 
-	"github.com/konih/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 func TestBackendCapabilities(t *testing.T) {

@@ -10,7 +10,7 @@ createNamespace: false
 
 image:
   # -- Controller container image repository.
-  repository: ghcr.io/konih/kollect
+  repository: ghcr.io/platformrelay/kollect
   # -- Controller image tag (defaults to chart appVersion when empty).
   tag: latest
   # -- Controller image pull policy.
@@ -180,6 +180,6 @@ ui:
     enabled: false
   image:
     # -- kollect-ui container image repository.
-    repository: ghcr.io/konih/kollect-ui
+    repository: ghcr.io/platformrelay/kollect-ui
     # -- kollect-ui image tag (defaults to chart appVersion when empty).
     tag: ""

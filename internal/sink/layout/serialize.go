@@ -14,8 +14,8 @@ import (
 
 	sigsyaml "sigs.k8s.io/yaml"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // DefaultManifestKey is the Item.attributes key holding the embedded Kubernetes object for manifest

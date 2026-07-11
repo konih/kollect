@@ -6,7 +6,7 @@ package git
 import (
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 // RenderCommitPreview renders commit subject/body templates without a live git remote (ADR-0416).

@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 // Backend writes export payloads to a local output directory.

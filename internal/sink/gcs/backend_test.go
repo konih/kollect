@@ -6,8 +6,8 @@ package gcs
 import (
 	"testing"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 func TestNewBackend_wrongType(t *testing.T) {

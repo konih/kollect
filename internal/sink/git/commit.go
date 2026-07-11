@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/konih/kollect/internal/sink/objectstore"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
 )
 
 var generationPathPattern = regexp.MustCompile(`generation=(\d+)`)

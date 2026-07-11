@@ -13,7 +13,7 @@ import (
 	gittransport "github.com/go-git/go-git/v5/plumbing/transport"
 	utilnet "k8s.io/apimachinery/pkg/util/net"
 
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 // ClassifyExportError maps git transport and push failures to reconcile classes.

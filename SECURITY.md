@@ -42,7 +42,7 @@ handling, supply-chain checks in CI).
 
 Release builds ([`.github/workflows/release.yaml`](.github/workflows/release.yaml)) produce:
 
-- **OCI image** — `ghcr.io/konih/kollect` and `ghcr.io/konih/kollect-ui` with SBOM and SLSA provenance attestations
+- **OCI image** — `ghcr.io/platformrelay/kollect` and `ghcr.io/platformrelay/kollect-ui` with SBOM and SLSA provenance attestations
 - **cosign** keyless signatures (verify with release notes instructions)
 - **SPDX SBOM** — `sbom.spdx.json` and `sbom-ui.spdx.json` attached to GitHub Releases
 - **Checksums** — `sha256sum` manifest for install YAML and chart tarball
@@ -130,6 +130,6 @@ add a VEX statement and link the GitHub issue or ADR in the statement metadata.
 
 ## OpenSSF Scorecard
 
-Supply-chain posture is tracked via the [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/konih/kollect)
+Supply-chain posture is tracked via the [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/platformrelay/kollect)
 badge in `README.md`. Implemented checks, deferred solo-maintainer items, and rationale are documented in
 [ADR-0705 § OpenSSF Scorecard follow-ups](docs/adr/0705-release-supply-chain.md#openssf-scorecard-follow-ups).

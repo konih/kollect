@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/sink/git"
-	"github.com/konih/kollect/internal/sink/layout"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/layout"
 )
 
 // FileExporter is implemented by git/gitlab backends that can write a projected layout tree in a

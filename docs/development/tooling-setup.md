@@ -64,10 +64,10 @@ SonarCloud is **optional** until `SONAR_TOKEN` is configured. CI runs the scan w
 
 ### 1. Create organization and project
 
-1. Sign in at [SonarCloud](https://sonarcloud.io/) with GitHub (`konih` account).
-2. Create or import organization **`konih`** (must match `sonar.organization` in
+1. Sign in at [SonarCloud](https://sonarcloud.io/) with a GitHub account that administers the `platformrelay` organization.
+2. Create or import organization **`platformrelay`** (must match `sonar.organization` in
    `sonar-project.properties`).
-3. Add project **`konih_kollect`** (must match `sonar.projectKey`).
+3. Add project **`platformrelay_kollect`** (must match `sonar.projectKey`).
 4. Set visibility to **Public** (free for OSS).
 
 ### 2. Tokens (GitHub secret + local `.envrc`)
@@ -83,7 +83,7 @@ env var names by convention:
 Steps:
 
 1. SonarCloud → **My Account** → **Security** → **Generate Tokens** (project analysis token).
-2. GitHub → `konih/kollect` → add repository secret **`SONAR_TOKEN`** with that token.
+2. GitHub → `platformrelay/kollect` → add repository secret **`SONAR_TOKEN`** with that token.
 3. Locally, add `export SONARCLOUD_TOKEN="<same token>"` to `.envrc` (never commit).
 
 ### 3. Local Sonar scan
@@ -95,9 +95,9 @@ task sonar          # alias for sonar:local
 task sonar:local    # runs task coverage, then sonar-scanner via Docker
 ```
 
-Requires Docker. Uploads to org **`konih`**, project **`konih_kollect`** per
+Requires Docker. Uploads to org **`platformrelay`**, project **`platformrelay_kollect`** per
 [`sonar-project.properties`](../../sonar-project.properties). First run may take a few minutes;
-confirm the project appears at [SonarCloud](https://sonarcloud.io/project/overview?id=konih_kollect).
+confirm the project appears at [SonarCloud](https://sonarcloud.io/project/overview?id=platformrelay_kollect).
 
 ### 4. Quality gate (recommended)
 
@@ -129,9 +129,9 @@ when Codecov calls the GitHub API with a shared token instead of app credentials
 *“install Codecov GitHub App for reliable uploads/comments”* on a PR, complete this step once:
 
 1. Open [github.com/apps/codecov](https://github.com/apps/codecov) and click **Configure**.
-2. Select the **`konih`** account (user or org that owns `konih/kollect`).
+2. Select the **`platformrelay`** organization (owns `platformrelay/kollect`).
 3. Grant access to **`kollect`** (or all repositories if you prefer org-wide setup).
-4. Confirm the repo appears at [codecov.io/gh/konih/kollect](https://codecov.io/gh/konih/kollect).
+4. Confirm the repo appears at [codecov.io/gh/platformrelay/kollect](https://codecov.io/gh/platformrelay/kollect).
 
 No repository secret is required for uploads when CI uses OIDC (see below).
 
@@ -160,7 +160,7 @@ Contributors do not need Codecov accounts. Run `task coverage` before opening a 
 | --- | --- | --- |
 | `task lint` / `arch-lint` | Run before PR | Keep `.go-arch-lint.yml` todos current |
 | `SONAR_TOKEN` / `SONARCLOUD_TOKEN` | — | GitHub secret + `.envrc` (same token, different names) |
-| Codecov GitHub App | — | [Install app](https://github.com/apps/codecov) on `konih/kollect` for reliable PR comments |
+| Codecov GitHub App | — | [Install app](https://github.com/apps/codecov) on `platformrelay/kollect` for reliable PR comments |
 | `CODECOV_TOKEN` | — | Legacy optional; CI uses OIDC — safe to delete after upload verified |
 | SonarCloud quality gate blocking | — | Enable after baseline scan (Phase 1) |
 

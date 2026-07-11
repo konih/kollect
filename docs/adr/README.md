@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Architecture decisions for [Kollect](https://github.com/konih/kollect). Numbers are grouped by
+Architecture decisions for [Kollect](https://github.com/platformrelay/kollect). Numbers are grouped by
 **theme** (`0Txx`) so the index reads as a system overview — foundations → API → collection →
 export → fleet → observability → project engineering.
 

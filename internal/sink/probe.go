@@ -7,16 +7,16 @@ import (
 	"context"
 	"fmt"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/bigquery"
-	"github.com/konih/kollect/internal/sink/gcs"
-	"github.com/konih/kollect/internal/sink/git"
-	"github.com/konih/kollect/internal/sink/gitlab"
-	kafkasink "github.com/konih/kollect/internal/sink/kafka"
-	"github.com/konih/kollect/internal/sink/mongodb"
-	natssink "github.com/konih/kollect/internal/sink/nats"
-	"github.com/konih/kollect/internal/sink/postgres"
-	s3sink "github.com/konih/kollect/internal/sink/s3"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/bigquery"
+	"github.com/platformrelay/kollect/internal/sink/gcs"
+	"github.com/platformrelay/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/gitlab"
+	kafkasink "github.com/platformrelay/kollect/internal/sink/kafka"
+	"github.com/platformrelay/kollect/internal/sink/mongodb"
+	natssink "github.com/platformrelay/kollect/internal/sink/nats"
+	"github.com/platformrelay/kollect/internal/sink/postgres"
+	s3sink "github.com/platformrelay/kollect/internal/sink/s3"
 )
 
 type connectionTester func(context.Context, kollectdevv1alpha1.KollectSinkSpec, BuildContext) (string, error)

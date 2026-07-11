@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 const (

@@ -37,7 +37,7 @@ stored object shape.
 
 ### 1. Fetch release assets
 
-Download `install-crds.yaml` from the target [GitHub Release](https://github.com/konih/kollect/releases)
+Download `install-crds.yaml` from the target [GitHub Release](https://github.com/platformrelay/kollect/releases)
 or build locally:
 
 ```sh
@@ -71,7 +71,7 @@ helm upgrade kollect ./charts/kollect -n kollect-system -f values.yaml
 
 ```sh
 # pin the target release version, e.g. --version 0.5.0
-helm upgrade kollect oci://ghcr.io/konih/kollect \
+helm upgrade kollect oci://ghcr.io/platformrelay/kollect \
   --version <chart-version> \
   -n kollect-system \
   -f values.yaml
@@ -116,7 +116,7 @@ For Argo CD, Flux, or similar:
 1. Commit or sync **`install-crds.yaml`** in a separate wave or Job **before** the Helm release.
 2. Keep CRD manifests out of the same Helm hook that upgrades the Deployment unless you accept
    Helm's CRD non-upgrade semantics.
-3. Pin chart `version` and image digest in values; use OCI `oci://ghcr.io/konih/kollect` with an
+3. Pin chart `version` and image digest in values; use OCI `oci://ghcr.io/platformrelay/kollect` with an
    immutable tag.
 
 !!! note "Open question"

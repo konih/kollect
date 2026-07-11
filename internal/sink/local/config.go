@@ -9,7 +9,7 @@ package local
 import (
 	"fmt"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 // TypeName is the sink type string that selects this backend ("type: local").

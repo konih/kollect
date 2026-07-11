@@ -22,7 +22,7 @@ ingress by default (**OQ-10**).
 
 | Property | Value |
 | --- | --- |
-| **Image** | `ghcr.io/konih/kollect-ui` (alongside `ghcr.io/konih/kollect`) |
+| **Image** | `ghcr.io/platformrelay/kollect-ui` (alongside `ghcr.io/platformrelay/kollect`) |
 | **Contents** | Vite-built static assets from monorepo `ui/dist` |
 | **Server** | nginx or distroless static file server with security headers |
 | **Build** | `task build-ui` → Docker multi-stage (Node build + minimal runtime) |
@@ -58,7 +58,7 @@ charts/kollect-ui/
 ui:
   enabled: false          # default off — matches conservative feature gates ([ADR-0704](0704-helm-chart-crd-lifecycle.md))
   image:
-    repository: ghcr.io/konih/kollect-ui
+    repository: ghcr.io/platformrelay/kollect-ui
     tag: ""               # defaults to chart appVersion
   ingress:
     enabled: false

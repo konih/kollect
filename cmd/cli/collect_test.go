@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/konih/kollect/internal/pipeline"
+	"github.com/platformrelay/kollect/internal/pipeline"
 )
 
 func TestCollectCmd_helpExitsZero(t *testing.T) {

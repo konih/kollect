@@ -6,7 +6,7 @@ package export
 import (
 	"testing"
 
-	"github.com/konih/kollect/internal/validation"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 func TestAssessSpill(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 
 	parquetgo "github.com/parquet-go/parquet-go"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 func TestEncodeItemsHybridSchema(t *testing.T) {

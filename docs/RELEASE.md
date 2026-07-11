@@ -213,8 +213,8 @@ ls -la dist/
 
 | Output | Location |
 | --- | --- |
-| Container image (operator) | `ghcr.io/konih/kollect:<version>` (and `:v<version>`), `linux/amd64` + `arm64` |
-| Container image (kollect-ui) | `ghcr.io/konih/kollect-ui:<version>` (and `:v<version>`), `linux/amd64` + `arm64` |
+| Container image (operator) | `ghcr.io/platformrelay/kollect:<version>` (and `:v<version>`), `linux/amd64` + `arm64` |
+| Container image (kollect-ui) | `ghcr.io/platformrelay/kollect-ui:<version>` (and `:v<version>`), `linux/amd64` + `arm64` |
 | OCI SBOM + SLSA provenance | GHCR attestations on both images |
 | GitHub Release | git-cliff section + install footer; assets below |
 | `install-crds.yaml` | CRD bundle |
@@ -225,7 +225,7 @@ ls -la dist/
 | `checksums.txt` | SHA256 of release files |
 | `<asset>.sigstore.json` | Sigstore bundle for each release asset (cosign keyless) |
 | `release-provenance.intoto.jsonl` | Combined SLSA provenance attestation for release assets |
-| Helm chart (OCI) | `oci://ghcr.io/konih/kollect` |
+| Helm chart (OCI) | `oci://ghcr.io/platformrelay/kollect` |
 
 Release notes are assembled by [`hack/assemble-release-notes.sh`](../hack/assemble-release-notes.sh)
 and [`.github/release-notes-install.md`](../.github/release-notes-install.md).
@@ -236,28 +236,28 @@ and [`.github/release-notes-install.md`](../.github/release-notes-install.md).
 
 ```sh
 TAG=v0.2.0-rc.1   # or your release tag
-REPO=konih/kollect
+REPO=platformrelay/kollect
 
 OP_DIGEST="$(crane digest ghcr.io/${REPO}/kollect:${TAG#v})"
 UI_DIGEST="$(crane digest ghcr.io/${REPO}/kollect-ui:${TAG#v})"
 
 cosign verify \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  --certificate-identity-regexp '^https://github.com/platformrelay/kollect/.+' \
   "ghcr.io/${REPO}/kollect@${OP_DIGEST}"
 
 cosign verify \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  --certificate-identity-regexp '^https://github.com/platformrelay/kollect/.+' \
   "ghcr.io/${REPO}/kollect-ui@${UI_DIGEST}"
 ```
 
 SLSA provenance and SPDX SBOM attestations are published to GHCR (via `actions/attest`) and the
-repository [Attestations](https://github.com/konih/kollect/attestations) page:
+repository [Attestations](https://github.com/platformrelay/kollect/attestations) page:
 
 ```sh
 gh attestation verify "ghcr.io/${REPO}/kollect@${OP_DIGEST}" \
-  --owner konih --repo kollect
+  --owner platformrelay --repo kollect
 ```
 
 ### GitHub Release assets (OpenSSF Scorecard Signed-Releases)
@@ -274,7 +274,7 @@ cd /tmp/kollect-verify
 cosign verify-blob \
   --bundle "kollect-${VERSION}.tgz.sigstore.json" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp '^https://github.com/konih/kollect/.+' \
+  --certificate-identity-regexp '^https://github.com/platformrelay/kollect/.+' \
   "kollect-${VERSION}.tgz"
 ```
 

@@ -1,6 +1,6 @@
 # Kollect roadmap
 
-Phased delivery plan for [Kollect](https://github.com/konih/kollect) — a Kubernetes inventory
+Phased delivery plan for [Kollect](https://github.com/platformrelay/kollect) — a Kubernetes inventory
 operator that watches arbitrary GVKs, aggregates extracted attributes, and exports to **role-based
 pluggable sinks** — **`KollectSnapshotSink`** (Git, GitLab, S3, GCS), **`KollectDatabaseSink`**
 (Postgres, MongoDB), and **`KollectEventSink`** (Kafka, NATS) — with optional HTTP for debug. The

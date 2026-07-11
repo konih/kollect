@@ -34,7 +34,7 @@ kubeconfig ──▶ kollect-pipeline collect ──▶ inventory files (--outpu
 **Container image (CI):**
 
 ```sh
-docker run --rm ghcr.io/konih/kollect-pipeline:<version> --help
+docker run --rm ghcr.io/platformrelay/kollect-pipeline:<version> --help
 ```
 
 > The `kollect-pipeline` container image is published to GHCR as part of the release that ships
@@ -44,7 +44,7 @@ docker run --rm ghcr.io/konih/kollect-pipeline:<version> --help
 **Build from source:**
 
 ```sh
-git clone https://github.com/konih/kollect.git && cd kollect
+git clone https://github.com/platformrelay/kollect.git && cd kollect
 task build:cli            # produces ./bin/kollect-pipeline
 # or, without Task:
 go build -o bin/kollect-pipeline ./cmd/cli
@@ -170,13 +170,13 @@ Rules: substitution applies only when the whole value is a single `${env:VAR}` p
 rewritten); an **unset or empty** variable fails the run with an error naming the secret, key,
 and variable; literal `data`/`stringData` values keep working unchanged, and `stringData` wins
 over `data` for the same key. See the shipped
-[`git-sink` sample](https://github.com/konih/kollect/tree/main/config/samples/pipeline/git-sink)
+[`git-sink` sample](https://github.com/platformrelay/kollect/tree/main/config/samples/pipeline/git-sink)
 for the complete flow.
 
 ## Use case examples
 
 Ready-to-run config directories live in
-[`config/samples/pipeline/`](https://github.com/konih/kollect/tree/main/config/samples/pipeline):
+[`config/samples/pipeline/`](https://github.com/platformrelay/kollect/tree/main/config/samples/pipeline):
 
 | Use case | Directory | GVK |
 | --- | --- | --- |
@@ -254,7 +254,7 @@ stages: [collect]
 
 collect-inventory:
   stage: collect
-  image: ghcr.io/konih/kollect-pipeline:<version>
+  image: ghcr.io/platformrelay/kollect-pipeline:<version>
   script:
     - echo "$KUBECONFIG_B64" | base64 -d > /tmp/kubeconfig
     - kollect-pipeline collect
@@ -301,7 +301,7 @@ jobs:
             -v "$RUNNER_TEMP/kubeconfig:/kubeconfig:ro" \
             -v "${{ github.workspace }}/collect-config:/config:ro" \
             -v "${{ github.workspace }}/inventory:/out" \
-            ghcr.io/konih/kollect-pipeline:<version> \
+            ghcr.io/platformrelay/kollect-pipeline:<version> \
             collect --kubeconfig /kubeconfig --config /config --output /out
       - name: Commit inventory
         run: |

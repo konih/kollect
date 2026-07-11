@@ -97,7 +97,7 @@ Handlers: `src/mocks/handlers/` (inventory, status, SSE watch).
 Build the container image from the repo root:
 
 ```bash
-docker build -f ui/Dockerfile -t ghcr.io/konih/kollect-ui:dev ui/
+docker build -f ui/Dockerfile -t ghcr.io/platformrelay/kollect-ui:dev ui/
 ```
 
 Helm subchart: `charts/kollect-ui/` (enable with `ui.enabled: true` on the parent chart).

@@ -7,8 +7,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/sink/objectstore"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
 )
 
 type commitContextKey struct{}

@@ -13,10 +13,10 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/pathvalidate"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 const connectTimeout = 30 * time.Second

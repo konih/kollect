@@ -6,8 +6,8 @@ package controller
 import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/metrics"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 // staticRefResult classifies a cluster-kind static-ref resolution error into an ADR-0208 metric

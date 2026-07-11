@@ -1,6 +1,6 @@
 # Kollect Helm chart
 
-Installs the [Kollect](https://github.com/konih/kollect) operator and CRDs.
+Installs the [Kollect](https://github.com/platformrelay/kollect) operator and CRDs.
 
 ![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.0](https://img.shields.io/badge/AppVersion-0.8.0-informational?style=flat-square)
 
@@ -38,7 +38,7 @@ unchanged (`readOnlyRootFilesystem: true`, capabilities dropped, `/tmp` `emptyDi
 | featureGates.inventoryHttp.port | int | `8082` | Inventory HTTP listen port. |
 | fullnameOverride | string | `""` | Override the full resource name prefix (defaults to release name + chart name). |
 | image.pullPolicy | string | `"IfNotPresent"` | Controller image pull policy. |
-| image.repository | string | `"ghcr.io/konih/kollect"` | Controller container image repository. |
+| image.repository | string | `"ghcr.io/platformrelay/kollect"` | Controller container image repository. |
 | image.tag | string | `"latest"` | Controller image tag (defaults to chart appVersion when empty). |
 | imagePullSecrets | list | `[]` | Image pull secrets for private registries. |
 | largeCluster.controller.collectDispatchQueueSize | int | `2048` |  |
@@ -87,9 +87,9 @@ unchanged (`readOnlyRootFilesystem: true`, capabilities dropped, `/tmp` `emptyDi
 | sinkDefaults.connectionTest | bool | `false` | Default spec.connectionTest for sample sinks (CI/dev overlays often set true). |
 | tenantMode | bool | `false` | When true, render namespaced Role/RoleBinding instead of ClusterRole/ClusterRoleBinding. |
 | tolerations | list | `[]` |  |
-| ui | object | `{"enabled":false,"image":{"repository":"ghcr.io/konih/kollect-ui","tag":""},"ingress":{"enabled":false},"readApiUrl":"http://kollect:8082"}` | Optional kollect-ui subchart (static React SPA — default off). |
+| ui | object | `{"enabled":false,"image":{"repository":"ghcr.io/platformrelay/kollect-ui","tag":""},"ingress":{"enabled":false},"readApiUrl":"http://kollect:8082"}` | Optional kollect-ui subchart (static React SPA — default off). |
 | ui.enabled | bool | `false` | Enable the kollect-ui subchart. |
-| ui.image.repository | string | `"ghcr.io/konih/kollect-ui"` | kollect-ui container image repository. |
+| ui.image.repository | string | `"ghcr.io/platformrelay/kollect-ui"` | kollect-ui container image repository. |
 | ui.image.tag | string | `""` | kollect-ui image tag (defaults to chart appVersion when empty). |
 | ui.ingress.enabled | bool | `false` | Expose kollect-ui via Ingress. |
 | ui.readApiUrl | string | `"http://kollect:8082"` | Read API base URL injected into the UI bundle. |

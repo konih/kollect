@@ -11,7 +11,7 @@ import (
 
 	tc "github.com/testcontainers/testcontainers-go/modules/nats"
 
-	"github.com/konih/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/integrationtest"
 )
 
 func startNATSTestContainer(t *testing.T) string {

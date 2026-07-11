@@ -80,7 +80,7 @@ once in `kollect-system` and reference them from cluster inventories (ADR-0208,
 ## Example
 
 A platform rollup that aggregates one cluster target and exports to a Postgres sink in
-`kollect-system` ([`config/samples/kollect_v1alpha1_kollectclusterinventory.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectclusterinventory.yaml)):
+`kollect-system` ([`config/samples/kollect_v1alpha1_kollectclusterinventory.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectclusterinventory.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1

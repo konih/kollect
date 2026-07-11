@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/konih/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 func TestResolveProjectRef(t *testing.T) {

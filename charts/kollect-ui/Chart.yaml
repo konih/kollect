@@ -5,9 +5,9 @@ type: application
 version: 0.1.0
 appVersion: "0.1.0"
 kubeVersion: ">=1.28.0-0"
-home: https://github.com/konih/kollect
-icon: https://raw.githubusercontent.com/konih/kollect/main/docs/assets/logo.svg
+home: https://github.com/platformrelay/kollect
+icon: https://raw.githubusercontent.com/platformrelay/kollect/main/docs/assets/logo.svg
 sources:
-  - https://github.com/konih/kollect
+  - https://github.com/platformrelay/kollect
 annotations:
   artifacthub.io/license: MIT

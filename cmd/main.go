@@ -24,15 +24,15 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/controller"
-	"github.com/konih/kollect/internal/inventory"
-	"github.com/konih/kollect/internal/metrics"
-	"github.com/konih/kollect/internal/operator"
-	"github.com/konih/kollect/internal/sink"
-	"github.com/konih/kollect/internal/validation"
-	webhookv1alpha1 "github.com/konih/kollect/internal/webhook/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/controller"
+	"github.com/platformrelay/kollect/internal/inventory"
+	"github.com/platformrelay/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/operator"
+	"github.com/platformrelay/kollect/internal/sink"
+	"github.com/platformrelay/kollect/internal/validation"
+	webhookv1alpha1 "github.com/platformrelay/kollect/internal/webhook/v1alpha1"
 	// +kubebuilder:scaffold:imports
 )
 

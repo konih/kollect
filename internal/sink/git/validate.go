@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/konih/kollect/internal/pathvalidate"
-	"github.com/konih/kollect/internal/validation"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 func validateObjectPath(objectPath string) (string, error) {

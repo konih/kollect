@@ -38,7 +38,7 @@ spec:
 ```
 
 The namespaced [`KollectScope`](kollectscope.md) sample
-([`config/samples/kollect_v1alpha1_kollectscope_team-a.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectscope_team-a.yaml))
+([`config/samples/kollect_v1alpha1_kollectscope_team-a.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectscope_team-a.yaml))
 shows the same fields scoped to a single namespace.
 
 ## See also

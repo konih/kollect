@@ -62,7 +62,7 @@ Collection diagram: [DATA-FLOWS.md §2](../DATA-FLOWS.md#2-collection-pipeline).
 
 A target that binds the `deployment-images` profile to workloads labelled
 `app.kubernetes.io/name=nginx`
-([`config/samples/kollect_v1alpha1_kollecttarget.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollecttarget.yaml)):
+([`config/samples/kollect_v1alpha1_kollecttarget.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollecttarget.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1
@@ -79,7 +79,7 @@ spec:
 ```
 
 Opt-in watch and Argo/Helm targets live alongside it in
-[`config/samples/`](https://github.com/konih/kollect/tree/main/config/samples)
+[`config/samples/`](https://github.com/platformrelay/kollect/tree/main/config/samples)
 (`*_kollecttarget_opt-in.yaml`, `*_argo-applications.yaml`, `*_helm-releases.yaml`).
 
 ## Sample usage

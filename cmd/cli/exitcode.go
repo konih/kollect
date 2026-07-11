@@ -3,7 +3,7 @@
 
 package main
 
-import "github.com/konih/kollect/internal/pipeline"
+import "github.com/platformrelay/kollect/internal/pipeline"
 
 // Process exit codes (ADR-0801).
 const (

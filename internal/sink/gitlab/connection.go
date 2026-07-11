@@ -6,7 +6,7 @@ package gitlab
 import (
 	"context"
 
-	"github.com/konih/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // TestConnection verifies TLS to the GitLab remote and optionally runs git ls-remote.

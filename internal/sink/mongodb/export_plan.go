@@ -6,8 +6,8 @@ package mongodb
 import (
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
 )
 
 type exportScope struct {

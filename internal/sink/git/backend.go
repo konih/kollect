@@ -6,8 +6,8 @@ package git
 import (
 	"context"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 // Backend exports inventory payloads to a git remote.

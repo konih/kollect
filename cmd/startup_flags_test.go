@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/konih/kollect/internal/inventory"
-	"github.com/konih/kollect/internal/validation"
+	"github.com/platformrelay/kollect/internal/inventory"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 func TestBindStartupFlags_Defaults(t *testing.T) {
