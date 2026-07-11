@@ -3,7 +3,7 @@
 !!! warning "Program frozen"
     The read-only UI program is **frozen** on `main` until the v0.7.x+ band. The `ui/` tree is an
     early adopter preview (MSW mocks, CI smoke tests); production Helm wiring stays off by default
-    (`ui.enabled: false`). See [ROADMAP — Read API + UI console](ROADMAP.md#read-api-ui-console-frozen).
+    (`ui.enabled: false`). See [ROADMAP — Read API + UI console](../ROADMAP.md#read-api-ui-console-frozen).
 
 The **kollect-ui** SPA is a read-only console for inventory catalog browsing, export health, and
 Target status — backed by the optional [Read API](../adr/0408-read-api-ui-architecture.md) (`/v1alpha1/*`).
@@ -42,7 +42,7 @@ Open http://localhost:5173. MSW serves contract-faithful fixtures (team-a invent
 status, degraded targets, 120-row pagination catalog). Append `?debug=true` for the connection banner.
 
 See also [UI local development (mock vs live)](../examples/ui-local-development.md) and
-[`ui/README.md`](../../ui/README.md).
+[`ui/README.md`](https://github.com/platformrelay/kollect/blob/main/ui/README.md).
 
 ## Run against a live Read API
 
@@ -61,7 +61,7 @@ Populate the cluster first — [Kind local lab](../examples/kind-local-lab.md) o
 
 ## OpenAPI contract
 
-The Read API schema lives at [`openapi/v1alpha1/inventory.yaml`](../../openapi/v1alpha1/inventory.yaml).
+The Read API schema lives at [`openapi/v1alpha1/inventory.yaml`](https://github.com/platformrelay/kollect/blob/main/openapi/v1alpha1/inventory.yaml).
 The UI copies it to `ui/openapi/inventory.yaml` on `npm ci` (`postinstall`).
 
 Key response fields for the UI:

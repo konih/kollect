@@ -204,7 +204,7 @@ Summary for operators:
 - [Common errors](operator-manual/common-errors.md) — full catalog: conditions, metrics, and fixes
 - [FAQ](FAQ.md) — symptom-oriented troubleshooting
 - [Quick start](QUICKSTART.md) · [Development setup](DEVELOPMENT.md)
-- [Chart README](../charts/kollect/README.md) — inventory HTTP auth at source
+- [Chart README](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md) — inventory HTTP auth at source
 - [RELEASE](RELEASE.md) — version bumps and release artifacts
 - [ADR-0704: Helm chart and CRD lifecycle](adr/0704-helm-chart-crd-lifecycle.md)
 - [ADR-0501: Multi-cluster fleet](adr/0501-multi-cluster-fleet.md)

@@ -29,7 +29,7 @@ metrics:
       release: kube-prometheus-stack   # match your Prometheus ruleSelector
 ```
 
-See [`charts/kollect/ci/monitoring-values.yaml`](../../charts/kollect/ci/monitoring-values.yaml) for a full overlay.
+See [`charts/kollect/ci/monitoring-values.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/ci/monitoring-values.yaml) for a full overlay.
 
 ### Default alerts (`kollect.rules`)
 
@@ -125,4 +125,4 @@ Source of truth for registration: `internal/metrics/metrics.go` and `internal/me
 - [ADR-0602: Error taxonomy and metrics](../adr/0602-error-taxonomy.md)
 - [ADR-0603: Performance and scalability](../adr/0603-performance-scalability.md)
 - [Helm values — metrics](helm-values.md#resources-metrics-and-webhooks)
-- [Chart README — monitoring](../../charts/kollect/README.md#prometheus-operator-monitoring)
+- [Chart README — monitoring](https://github.com/platformrelay/kollect/blob/main/charts/kollect/README.md#prometheus-operator-monitoring)

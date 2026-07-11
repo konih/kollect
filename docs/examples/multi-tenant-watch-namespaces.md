@@ -6,7 +6,7 @@
 
 `tenantMode` + `watchNamespaces` + `KollectScope` ([ADR-0203](../adr/0203-namespaced-multi-tenancy.md)).
 
-**Team-owned install:** use chart profile [`values-minimal-rbac.yaml`](../../charts/kollect/values-minimal-rbac.yaml)
+**Team-owned install:** use chart profile [`values-minimal-rbac.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/values-minimal-rbac.yaml)
 and the full walkthrough in [Team-owned operator (minimal RBAC)](../deployment/team-operator.md).
 Apply `kubectl apply -k config/samples/team-operator/` after the Helm install.
 

@@ -12,7 +12,7 @@ independent third-party audit.
 | **Scope** | `main` branch — operator (`cmd/`, `internal/`), Helm chart, CRD webhooks, Read API, kollect-ui SPA, CI/release pipelines |
 | **Reviewers** | Konrad Heimel (maintainer, self-review) |
 | **Method** | ADR/threat-model walkthrough, CI control inventory, manual code-path review of secret handling, RBAC renders, sink validators, and release workflow |
-| **Related docs** | [ASSURANCE-CASE.md](ASSURANCE-CASE.md), [ADR-0104](adr/0104-security-model.md), [SECURITY.md](../SECURITY.md) |
+| **Related docs** | [ASSURANCE-CASE.md](ASSURANCE-CASE.md), [ADR-0104](adr/0104-security-model.md), [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md) |
 
 ## Scope summary
 
@@ -28,7 +28,7 @@ Reviewed components:
 - **UI** — static SPA; no cluster credentials in browser; API auth via deployer config
 
 Out of scope: production cluster hardening (NetworkPolicy, mesh, sink encryption-at-rest) —
-adopter responsibilities documented in [SECURITY.md](../SECURITY.md).
+adopter responsibilities documented in [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md).
 
 ## Findings summary
 
@@ -49,7 +49,7 @@ verified still present.
 
 | Risk | Likelihood | Impact | Notes |
 | --- | --- | --- | --- |
-| Maintainer unavailability | Low | High | Succession path in [GOVERNANCE.md](../GOVERNANCE.md) |
+| Maintainer unavailability | Low | High | Succession path in [GOVERNANCE.md](https://github.com/platformrelay/kollect/blob/main/GOVERNANCE.md) |
 | Misconfigured cluster RBAC grants excessive read scope | Medium | High | Document least-privilege; `task audit:rbac` for chart renders |
 | Adopter enables `insecureSkipVerify` on production sinks | Medium | High | Webhook warnings; status surfaces opt-in |
 | Zero-day in Go/stdlib dependency | Low | Medium | govulncheck + Dependabot; SCA SLAs |

@@ -123,7 +123,7 @@ notes in `CHANGELOG.md` before upgrading.
 
 Pre-beta CRD fields can change without conversion. After upgrading CRDs (`install-crds.yaml`),
 validate sample manifests and `kubectl explain` for renamed or removed fields. Breaking changes use
-`feat!:` or `BREAKING CHANGE:` in commit messages ([CONTRIBUTING.md](../CONTRIBUTING.md)).
+`feat!:` or `BREAKING CHANGE:` in commit messages ([CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md)).
 
 ### Is the export JSON format stable?
 

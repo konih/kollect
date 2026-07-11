@@ -4,7 +4,7 @@ Binding guidelines for the Kollect operator: error handling, robustness, securit
 Enforced by lint, CI, and review. ADRs in `../adr/` capture major decisions.
 
 **Related docs:** Go style and lint rules → [coding-standards.md](coding-standards.md);
-contribution process → [CONTRIBUTING.md](../../CONTRIBUTING.md); product requirements and NFRs →
+contribution process → [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md); product requirements and NFRs →
 [REQUIREMENTS.md](../REQUIREMENTS.md).
 
 ## 0. Product priorities (summary)
@@ -88,4 +88,4 @@ Operator test expectations. Pyramid tiers, coverage floors, and CI gates:
 - Status conditions and Events updated; no secrets in logs.
 - ADR updated when the decision is non-trivial.
 
-Full contributor checklist: [CONTRIBUTING.md § Pull request process](../../CONTRIBUTING.md#pull-request-process).
+Full contributor checklist: [CONTRIBUTING.md § Pull request process](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md#pull-request-process).

@@ -49,7 +49,7 @@ documented in the `CHANGELOG.md` header and `hack/release/cliff.toml`.
 The task does **not** push images or publish GitHub/OCI assets.
 
 **GitHub Release** — tagged `v*.*.*` pushes run
-[`.github/workflows/release.yaml`](../.github/workflows/release.yaml): GHCR image
+[`.github/workflows/release.yaml`](https://github.com/platformrelay/kollect/blob/main/.github/workflows/release.yaml): GHCR image
 (`ghcr.io/platformrelay/kollect`), Trivy, cosign, SPDX SBOM, Helm OCI chart, GitHub Release assets.
 
 **Manual release test** (`workflow_dispatch`): Actions → **Release** → enter an existing tag;
@@ -63,7 +63,7 @@ VERSION=0.1.0 task release-dry-run
 task changelog:verify
 ```
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) and [SECURITY.md](../SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) and [SECURITY.md](https://github.com/platformrelay/kollect/blob/main/SECURITY.md).
 
 ## Clone and build
 
@@ -120,7 +120,7 @@ Optional env vars:
 | `KOLLECT_DEV_MINIMAL=1` | Skip ingress, TLS, Grafana, Prometheus |
 | `KOLLECT_DEV_PROMETHEUS=1` | Install lightweight Prometheus in dev cluster |
 
-See [hack/kind/README.md](../hack/kind/README.md) for architecture and cluster comparison.
+See [hack/kind/README.md](https://github.com/platformrelay/kollect/blob/main/hack/kind/README.md) for architecture and cluster comparison.
 
 ### Run the manager on the host (alternative)
 
@@ -280,7 +280,7 @@ task ui-mock-prism   # optional real HTTP mock on :4010
 Live Read API: `VITE_MOCK_API=false VITE_READ_API_URL=http://127.0.0.1:8082 npm run dev` (from `ui/`).
 
 Full guide: [examples/ui-local-development.md](examples/ui-local-development.md) ·
-[ADR-0412](adr/0412-mock-read-api-for-ui-development.md) · [`ui/README.md`](../ui/README.md).
+[ADR-0412](adr/0412-mock-read-api-for-ui-development.md) · [`ui/README.md`](https://github.com/platformrelay/kollect/blob/main/ui/README.md).
 
 ## Lint and format
 

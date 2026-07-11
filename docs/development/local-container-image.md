@@ -2,7 +2,7 @@
 
 Production releases publish semver tags (`v0.3.0`, `0.3.0`, …) to
 [`ghcr.io/platformrelay/kollect`](https://github.com/platformrelay/kollect/pkgs/container/kollect) via
-[release workflow](../../.github/workflows/release.yaml). For manual maintainer testing against a
+[release workflow](https://github.com/platformrelay/kollect/blob/main/.github/workflows/release.yaml). For manual maintainer testing against a
 real registry or a remote cluster, use **maintainer-only** tags that never collide with release
 semver.
 

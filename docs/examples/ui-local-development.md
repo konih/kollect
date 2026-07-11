@@ -37,4 +37,4 @@ task ui-mock-prism
 VITE_MOCK_API=false VITE_READ_API_URL=http://127.0.0.1:4010 npm run dev
 ```
 
-More detail: [`ui/README.md`](../../ui/README.md) · [ADR-0412](../adr/0412-mock-read-api-for-ui-development.md).
+More detail: [`ui/README.md`](https://github.com/platformrelay/kollect/blob/main/ui/README.md) · [ADR-0412](../adr/0412-mock-read-api-for-ui-development.md).

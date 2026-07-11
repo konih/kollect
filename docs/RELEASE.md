@@ -2,19 +2,19 @@
 
 Step-by-step guide for maintainers publishing a **Kollect** release.
 
-Related: [CONTRIBUTING.md](../CONTRIBUTING.md) (commits), [DEVELOPMENT.md](DEVELOPMENT.md) (local tasks),
+Related: [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) (commits), [DEVELOPMENT.md](DEVELOPMENT.md) (local tasks),
 [ROADMAP.md](ROADMAP.md) (feature status).
 
 ## Overview
 
 Releases are **tag-driven**: push a tag `vX.Y.Z` on `main` and
-[`.github/workflows/release.yaml`](../.github/workflows/release.yaml) builds, scans, signs, and
+[`.github/workflows/release.yaml`](https://github.com/platformrelay/kollect/blob/main/.github/workflows/release.yaml) builds, scans, signs, and
 publishes artifacts. Version numbers are **not** bumped by CI — commit `charts/kollect/Chart.yaml`
 and `CHANGELOG.md` on `main` first.
 
 While the API is `v1alpha1`, use **minor** (`0.3.0`, `0.4.0`, …) for themed feature tranches or
 breaking operator behaviour; **patch** (`0.2.1`) for fixes on the current minor line. Breaking
-commits use `!` in the subject (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
+commits use `!` in the subject (see [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md)).
 
 ## Versioning policy
 
@@ -170,7 +170,7 @@ task changelog
 
 ### 3. Bump the Helm chart
 
-Edit [`charts/kollect/Chart.yaml`](../charts/kollect/Chart.yaml):
+Edit [`charts/kollect/Chart.yaml`](https://github.com/platformrelay/kollect/blob/main/charts/kollect/Chart.yaml):
 
 ```yaml
 version: 0.3.0
@@ -227,8 +227,8 @@ ls -la dist/
 | `release-provenance.intoto.jsonl` | Combined SLSA provenance attestation for release assets |
 | Helm chart (OCI) | `oci://ghcr.io/platformrelay/kollect` |
 
-Release notes are assembled by [`hack/assemble-release-notes.sh`](../hack/assemble-release-notes.sh)
-and [`.github/release-notes-install.md`](../.github/release-notes-install.md).
+Release notes are assembled by [`hack/assemble-release-notes.sh`](https://github.com/platformrelay/kollect/blob/main/hack/assemble-release-notes.sh)
+and [`.github/release-notes-install.md`](https://github.com/platformrelay/kollect/blob/main/.github/release-notes-install.md).
 
 ## Verify after release
 

@@ -80,6 +80,6 @@ not by a central hub process.
 
 ## References
 
-- Sample: [`config/samples/e2e/team-inventory.yaml`](../../config/samples/e2e/team-inventory.yaml) (single cluster); fleet walkthrough [`../examples/multi-cluster-fleet.md`](../examples/multi-cluster-fleet.md)
+- Sample: [`config/samples/e2e/team-inventory.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/e2e/team-inventory.yaml) (single cluster); fleet walkthrough [`../examples/multi-cluster-fleet.md`](../examples/multi-cluster-fleet.md)
 - Archive: `git show archive/hub-spoke-pre-removal:internal/hub/` (historical only)
 - Related: [ADR-0203](0203-namespaced-multi-tenancy.md) (tenancy + `KollectClusterInventory` federation), [ADR-0401](0401-sink-taxonomy-state-vs-stream.md), [ADR-0305](0305-aggregation-dedupe.md)
