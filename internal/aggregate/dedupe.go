@@ -8,9 +8,9 @@
 package aggregate
 
 import (
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/digest"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/digest"
 )
 
 // RowIdentity is the stable key for one collected row across targets.

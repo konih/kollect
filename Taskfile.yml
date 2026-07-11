@@ -263,7 +263,7 @@ tasks:
       - "{{.CONTAINER_TOOL | default `docker`}} build -f Dockerfile.pipeline -t {{.PIPELINE_DOCKER_IMAGE}} ."
 
   docker:build:local:
-    desc: Build controller image for kind/minikube (ghcr.io/konih/kollect:local by default)
+    desc: Build controller image for kind/minikube (ghcr.io/platformrelay/kollect:local by default)
     cmds:
       - bash hack/docker-local-image.sh build
     summary: |
@@ -325,7 +325,7 @@ tasks:
       RELEASE_VERSION:
         sh: echo "${VERSION:-0.0.0-dry-run}"
       IMAGE_REPO:
-        sh: echo "${IMAGE_REPO:-ghcr.io/konih/kollect}"
+        sh: echo "${IMAGE_REPO:-ghcr.io/platformrelay/kollect}"
     cmds:
       - bash hack/release-assets.sh "{{.RELEASE_VERSION}}" "{{.IMAGE_REPO}}"
       - echo "release assets in dist/ (image tag not pushed)"

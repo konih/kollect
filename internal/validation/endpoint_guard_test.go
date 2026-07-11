@@ -9,7 +9,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 func TestValidateSnapshotSinkSpec_endpointHostGuard(t *testing.T) {
@@ -25,7 +25,7 @@ func TestValidateSnapshotSinkSpec_endpointHostGuard(t *testing.T) {
 			spec: kollectdevv1alpha1.KollectSnapshotSinkSpec{
 				Type: kollectdevv1alpha1.SnapshotSinkTypeGit,
 				SinkCommonFields: kollectdevv1alpha1.SinkCommonFields{
-					Endpoint: "https://github.com/konih/kollect.git",
+					Endpoint: "https://github.com/platformrelay/kollect.git",
 				},
 				Git: &kollectdevv1alpha1.GitSpec{},
 			},
@@ -35,7 +35,7 @@ func TestValidateSnapshotSinkSpec_endpointHostGuard(t *testing.T) {
 			spec: kollectdevv1alpha1.KollectSnapshotSinkSpec{
 				Type: kollectdevv1alpha1.SnapshotSinkTypeGit,
 				SinkCommonFields: kollectdevv1alpha1.SinkCommonFields{
-					Endpoint: "git@github.com:konih/kollect.git",
+					Endpoint: "git@github.com:platformrelay/kollect.git",
 				},
 				Git: &kollectdevv1alpha1.GitSpec{},
 			},

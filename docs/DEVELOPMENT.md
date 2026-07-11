@@ -50,7 +50,7 @@ The task does **not** push images or publish GitHub/OCI assets.
 
 **GitHub Release** — tagged `v*.*.*` pushes run
 [`.github/workflows/release.yaml`](../.github/workflows/release.yaml): GHCR image
-(`ghcr.io/konih/kollect`), Trivy, cosign, SPDX SBOM, Helm OCI chart, GitHub Release assets.
+(`ghcr.io/platformrelay/kollect`), Trivy, cosign, SPDX SBOM, Helm OCI chart, GitHub Release assets.
 
 **Manual release test** (`workflow_dispatch`): Actions → **Release** → enter an existing tag;
 optional `draft` / `prerelease` flags.
@@ -68,7 +68,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and [SECURITY.md](../SECURITY.md).
 ## Clone and build
 
 ```sh
-git clone https://github.com/konih/kollect.git
+git clone https://github.com/platformrelay/kollect.git
 cd kollect
 ```
 
@@ -335,7 +335,7 @@ They are not in the public module graph.
 ### Confusing `go mod tidy` with local-only trees
 
 If tidy fails or pulls unexpected modules, check that no Go file imports from ignored reference
-paths. The module root is `github.com/konih/kollect` only.
+paths. The module root is `github.com/platformrelay/kollect` only.
 
 ### Image tag mismatch
 
@@ -345,8 +345,8 @@ paths. The module root is `github.com/konih/kollect` only.
 For kind, build and load the same tag Task uses, or override consistently:
 
 ```sh
-make docker-build docker-push IMG=ghcr.io/konih/kollect:dev
-make deploy IMG=ghcr.io/konih/kollect:dev
+make docker-build docker-push IMG=ghcr.io/platformrelay/kollect:dev
+make deploy IMG=ghcr.io/platformrelay/kollect:dev
 ```
 
 ### Sample CRs vs controller maturity
@@ -389,5 +389,5 @@ Configuration: `mkdocs.yml` at the repository root. GitHub Pages workflow:
 
 - [QUICKSTART.md](QUICKSTART.md) — operator install and first CRs
 - [ARCHITECTURE.md](ARCHITECTURE.md) — CRD model and reconciliation flow
-- [CONTRIBUTING.md](https://github.com/konih/kollect/blob/main/CONTRIBUTING.md) — commits, PR checks
+- [CONTRIBUTING.md](https://github.com/platformrelay/kollect/blob/main/CONTRIBUTING.md) — commits, PR checks
 - [ADRs](adr/README.md) — architecture decision records

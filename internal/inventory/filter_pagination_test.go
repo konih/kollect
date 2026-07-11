@@ -6,7 +6,7 @@ package inventory
 import (
 	"testing"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // EC-P2-10: pagination applies default limit and caps excessive requests.

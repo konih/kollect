@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/inventory"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/inventory"
 )
 
 func repoRoot(t *testing.T) string {

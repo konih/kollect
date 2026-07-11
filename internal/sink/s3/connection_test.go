@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 func TestTestConnection_missingBucket(t *testing.T) {

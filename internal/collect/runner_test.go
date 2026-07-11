@@ -20,7 +20,7 @@ import (
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	clienttesting "k8s.io/client-go/testing"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 var secretGVR = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "secrets"}

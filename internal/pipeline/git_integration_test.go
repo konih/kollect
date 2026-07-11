@@ -22,10 +22,10 @@ import (
 
 	"github.com/testcontainers/testcontainers-go/modules/forgejo"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/integrationtest"
-	"github.com/konih/kollect/internal/sink/git"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // TestPipelineCLI_collectAndPushToGit is the L3 integration tier for the pipeline CLI (ADR-0801,

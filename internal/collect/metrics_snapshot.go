@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/konih/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 // recordTargetSnapshotMetrics emits Phase 4 domain series from a target snapshot.

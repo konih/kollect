@@ -27,7 +27,7 @@ import (
 	"testing"
 )
 
-const modulePath = "github.com/konih/kollect"
+const modulePath = "github.com/platformrelay/kollect"
 
 // skipDirs are top-level (or anywhere) directories that contain no production
 // Go packages of this module or are explicitly out of scope.

@@ -46,7 +46,7 @@ after filters, not merely raw API object count.
 ### 1. Install operator
 
 ```bash
-helm upgrade --install kollect oci://ghcr.io/konih/kollect/charts/kollect \
+helm upgrade --install kollect oci://ghcr.io/platformrelay/kollect/charts/kollect \
   --namespace kollect-system --create-namespace \
   -f hack/loadtest/100k/values-large.yaml
 ```

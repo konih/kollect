@@ -17,11 +17,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/sink/cap"
-	"github.com/konih/kollect/internal/sink/objectstore"
-	parquetenc "github.com/konih/kollect/internal/sink/parquet"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
+	parquetenc "github.com/platformrelay/kollect/internal/sink/parquet"
 )
 
 // ErrEmptyPayload is returned when Export is called with a non-parquet,

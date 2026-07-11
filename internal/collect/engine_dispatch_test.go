@@ -11,8 +11,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/metrics"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 // newBlockedEngine builds an Engine with a full, undrained dispatch queue:

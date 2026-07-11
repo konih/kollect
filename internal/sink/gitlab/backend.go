@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/pathvalidate"
-	"github.com/konih/kollect/internal/sink/cap"
-	"github.com/konih/kollect/internal/sink/git"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // Backend exports inventory payloads to a GitLab git remote.

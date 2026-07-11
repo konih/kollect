@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // Metadata is export envelope metadata carried alongside item rows (ADR-0405).

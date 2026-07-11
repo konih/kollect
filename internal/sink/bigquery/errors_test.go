@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/bigquery"
 	"google.golang.org/api/googleapi"
 
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 func TestClassifyError_terminalAndTransient(t *testing.T) {

@@ -26,7 +26,7 @@ knobs; the authoritative full list lives in the chart tree.
 
 | Key | Description | Default |
 | --- | --- | --- |
-| `image.repository` | Controller image | `ghcr.io/konih/kollect` |
+| `image.repository` | Controller image | `ghcr.io/platformrelay/kollect` |
 | `image.tag` | Image tag | `latest` (**pin in production**) |
 | `replicaCount` | Manager pod replicas | `1` |
 | `leaderElection.enabled` | Controller-runtime leader election | `true` |

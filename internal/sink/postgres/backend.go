@@ -12,10 +12,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/pathvalidate"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/pathvalidate"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 // TypeName is the KollectSink.spec.type value for Postgres sinks.

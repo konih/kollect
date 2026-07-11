@@ -10,8 +10,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 const inventoryCleanupFinalizer = "kollect.dev/inventory-cleanup"

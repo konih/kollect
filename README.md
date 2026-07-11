@@ -1,24 +1,24 @@
 <p align="center">
-  <a href="https://konih.github.io/kollect/">
+  <a href="https://platformrelay.github.io/kollect/">
     <img src="docs/assets/branding/kollect-logo-light.png" alt="Kollect — durable Kubernetes inventory" width="360">
   </a>
 </p>
 
 <p align="center">
-<a href="https://github.com/konih/kollect/actions/workflows/ci.yaml"><img src="https://github.com/konih/kollect/actions/workflows/ci.yaml/badge.svg" alt="CI"></a>
-<a href="https://github.com/konih/kollect/actions/workflows/preflight.yaml"><img src="https://github.com/konih/kollect/actions/workflows/preflight.yaml/badge.svg" alt="Preflight"></a>
-<a href="https://github.com/konih/kollect/actions/workflows/e2e-smoke.yaml"><img src="https://github.com/konih/kollect/actions/workflows/e2e-smoke.yaml/badge.svg" alt="E2E"></a>
-<a href="https://konih.github.io/kollect/"><img src="https://img.shields.io/badge/documentation-GitHub%20Pages-2ea44f?logo=readthedocs&logoColor=white" alt="Documentation"></a>
-<a href="https://github.com/konih/kollect/actions/workflows/docs.yaml"><img src="https://github.com/konih/kollect/actions/workflows/docs.yaml/badge.svg" alt="Docs CI"></a>
-<a href="https://github.com/konih/kollect/actions/workflows/codeql.yaml"><img src="https://github.com/konih/kollect/actions/workflows/codeql.yaml/badge.svg" alt="CodeQL"></a>
-<a href="https://securityscorecards.dev/viewer/?uri=github.com/konih/kollect"><img src="https://api.securityscorecards.dev/projects/github.com/konih/kollect/badge" alt="OpenSSF Scorecard"></a>
-<a href="https://github.com/konih/kollect/blob/main/LICENSE"><img src="https://img.shields.io/github/license/konih/kollect" alt="License: MIT"></a>
-<a href="https://github.com/konih/kollect/releases"><img src="https://img.shields.io/github/v/release/konih/kollect" alt="Release"></a>
-<a href="https://codecov.io/gh/konih/kollect"><img src="https://codecov.io/gh/konih/kollect/graph/badge.svg" alt="codecov"></a>
-<a href="https://pkg.go.dev/github.com/konih/kollect"><img src="https://img.shields.io/github/go-mod/go-version/konih/kollect" alt="Go"></a>
-<a href="https://pkg.go.dev/github.com/konih/kollect"><img src="https://pkg.go.dev/badge/github.com/konih/kollect.svg" alt="Go Reference"></a>
-<a href="https://goreportcard.com/report/github.com/konih/kollect"><img src="https://goreportcard.com/badge/github.com/konih/kollect" alt="Go Report Card"></a>
-<a href="https://github.com/orgs/konih/packages?repo_name=kollect"><img src="https://img.shields.io/badge/ghcr.io-konih%2Fkollect-2496ED?logo=docker&logoColor=white" alt="Container"></a>
+<a href="https://github.com/platformrelay/kollect/actions/workflows/ci.yaml"><img src="https://github.com/platformrelay/kollect/actions/workflows/ci.yaml/badge.svg" alt="CI"></a>
+<a href="https://github.com/platformrelay/kollect/actions/workflows/preflight.yaml"><img src="https://github.com/platformrelay/kollect/actions/workflows/preflight.yaml/badge.svg" alt="Preflight"></a>
+<a href="https://github.com/platformrelay/kollect/actions/workflows/e2e-smoke.yaml"><img src="https://github.com/platformrelay/kollect/actions/workflows/e2e-smoke.yaml/badge.svg" alt="E2E"></a>
+<a href="https://platformrelay.github.io/kollect/"><img src="https://img.shields.io/badge/documentation-GitHub%20Pages-2ea44f?logo=readthedocs&logoColor=white" alt="Documentation"></a>
+<a href="https://github.com/platformrelay/kollect/actions/workflows/docs.yaml"><img src="https://github.com/platformrelay/kollect/actions/workflows/docs.yaml/badge.svg" alt="Docs CI"></a>
+<a href="https://github.com/platformrelay/kollect/actions/workflows/codeql.yaml"><img src="https://github.com/platformrelay/kollect/actions/workflows/codeql.yaml/badge.svg" alt="CodeQL"></a>
+<a href="https://securityscorecards.dev/viewer/?uri=github.com/platformrelay/kollect"><img src="https://api.securityscorecards.dev/projects/github.com/platformrelay/kollect/badge" alt="OpenSSF Scorecard"></a>
+<a href="https://github.com/platformrelay/kollect/blob/main/LICENSE"><img src="https://img.shields.io/github/license/platformrelay/kollect" alt="License: MIT"></a>
+<a href="https://github.com/platformrelay/kollect/releases"><img src="https://img.shields.io/github/v/release/platformrelay/kollect" alt="Release"></a>
+<a href="https://codecov.io/gh/platformrelay/kollect"><img src="https://codecov.io/gh/platformrelay/kollect/graph/badge.svg" alt="codecov"></a>
+<a href="https://pkg.go.dev/github.com/platformrelay/kollect"><img src="https://img.shields.io/github/go-mod/go-version/platformrelay/kollect" alt="Go"></a>
+<a href="https://pkg.go.dev/github.com/platformrelay/kollect"><img src="https://pkg.go.dev/badge/github.com/platformrelay/kollect.svg" alt="Go Reference"></a>
+<a href="https://goreportcard.com/report/github.com/platformrelay/kollect"><img src="https://goreportcard.com/badge/github.com/platformrelay/kollect" alt="Go Report Card"></a>
+<a href="https://github.com/orgs/platformrelay/packages?repo_name=kollect"><img src="https://img.shields.io/badge/ghcr.io-platformrelay%2Fkollect-2496ED?logo=docker&logoColor=white" alt="Container"></a>
 </p>
 
 <p align="center"><em>Git-simple to start · platform-grade to grow</em></p>
@@ -39,34 +39,34 @@ Postgres, Kafka, and object storage, and `KollectScope` keeps it multi-tenant �
 its inventory as **configuration, not code**, in its own namespace. Consumers read **export
 data**, never unbounded list/watch against the live cluster.
 
-**Read the docs:** **[konih.github.io/kollect](https://konih.github.io/kollect/)** — architecture,
+**Read the docs:** **[platformrelay.github.io/kollect](https://platformrelay.github.io/kollect/)** — architecture,
 quick start, CR reference, ADRs, and examples. This README is the front door; the site is the map.
 
 > **Pre-beta.** APIs and defaults may change until the first release candidate. See the
-> [roadmap](https://konih.github.io/kollect/ROADMAP/) for current status.
+> [roadmap](https://platformrelay.github.io/kollect/ROADMAP/) for current status.
 
 ## Why Kollect?
 
 - **Decoupled read model** — consumers query a sink, not the apiserver. No RBAC blast radius, no
-  watch-storm risk, no etcd size limits ([why](https://konih.github.io/kollect/adr/0103-etcd-limit/)).
+  watch-storm risk, no etcd size limits ([why](https://platformrelay.github.io/kollect/adr/0103-etcd-limit/)).
 - **Event-driven, no polling** — one shared informer per GVK keeps inventory current as the cluster
-  changes ([ADR-0301](https://konih.github.io/kollect/adr/0301-event-driven-informers/)).
+  changes ([ADR-0301](https://platformrelay.github.io/kollect/adr/0301-event-driven-informers/)).
 - **Schema-flexible** — declare the attributes you want in a `KollectProfile`; no bespoke collector
   per resource kind.
 - **Pluggable sinks, no privileged backend** — the same snapshot fans out to Git, Postgres, object
-  store, or an event stream ([sink taxonomy](https://konih.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/)).
+  store, or an event stream ([sink taxonomy](https://platformrelay.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/)).
 - **Multi-tenant by design** — `KollectScope` gates which teams, namespaces, and sinks each tenant
   may use.
 - **Fleet-ready** — **N single-mode operators → one shared sink**, partitioned by `spec.cluster`; no
-  central hub tier to operate ([ADR-0501](https://konih.github.io/kollect/adr/0501-multi-cluster-fleet/)).
+  central hub tier to operate ([ADR-0501](https://platformrelay.github.io/kollect/adr/0501-multi-cluster-fleet/)).
 - **Built for scale** — a **10,000-row baseline validated in CI**, a **100,000-row design target**
   per cluster with export sharding, plus tunable reconcile/dispatch concurrency
-  ([performance](https://konih.github.io/kollect/PERFORMANCE/)).
+  ([performance](https://platformrelay.github.io/kollect/PERFORMANCE/)).
 
 ## See it end-to-end
 
 A real pipeline is a handful of Kubernetes resources. This is the
-[Deployment-inventory walkthrough](https://konih.github.io/kollect/examples/deployment-inventory/) —
+[Deployment-inventory walkthrough](https://platformrelay.github.io/kollect/examples/deployment-inventory/) —
 collect container images from Deployments and export them to Postgres (for portals) and Git (for
 audit) at the same time:
 
@@ -97,7 +97,7 @@ Spin up the full pipeline on a local kind cluster in one command (needs Docker, 
 [Task](https://taskfile.dev/)):
 
 ```sh
-git clone https://github.com/konih/kollect.git && cd kollect
+git clone https://github.com/platformrelay/kollect.git && cd kollect
 task dev-up                       # build, create kind cluster, install operator + sample CRs
 kubectl get kinv,ktgt,ksnap,kdb -A    # watch the pipeline come up
 ```
@@ -108,15 +108,15 @@ applies the sample `Profile → Sink → Target → Inventory` pipeline. Watch t
 shows what the Git export looks like.
 
 **Full walkthrough** — prerequisites, Helm install, maturity notes:
-**[Quick start →](https://konih.github.io/kollect/QUICKSTART/)**
+**[Quick start →](https://platformrelay.github.io/kollect/QUICKSTART/)**
 
 ## How it works
 
 ![Kollect operator pipeline from Kubernetes API through shared informers, in-memory collect store, and debounced KollectInventory export to Git, GitLab, S3, GCS, Postgres, MongoDB, and Kafka sink projections.](docs/assets/illustrations/readme-how-it-works-dark.webp)
 
 The in-memory snapshot per inventory is **canonical**; every sink is a **projection** of it — no
-single backend is privileged ([sink roles](https://konih.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/)).
-Sinks are split into three CRD families ([ADR-0414](https://konih.github.io/kollect/adr/0414-sink-family-crds/)):
+single backend is privileged ([sink roles](https://platformrelay.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/)).
+Sinks are split into three CRD families ([ADR-0414](https://platformrelay.github.io/kollect/adr/0414-sink-family-crds/)):
 
 | Sink family | Examples | Good for |
 | --- | --- | --- |
@@ -126,7 +126,7 @@ Sinks are split into three CRD families ([ADR-0414](https://konih.github.io/koll
 
 ### Supported & planned sinks
 
-Honest maturity tiers — see the [roadmap](https://konih.github.io/kollect/ROADMAP/#supported-planned-sinks)
+Honest maturity tiers — see the [roadmap](https://platformrelay.github.io/kollect/ROADMAP/#supported-planned-sinks)
 for release timing.
 
 | Family CRD | `spec.type` | Status |
@@ -140,31 +140,31 @@ for release timing.
 | `KollectDatabaseSink` | `bigquery` | **Beta** — analytics SQL; v0.7.x hardening |
 | `KollectEventSink` | `kafka` | **Beta** |
 | `KollectEventSink` | `nats` | **Beta** — JetStream emitter; v0.7.x hardening |
-| `KollectSnapshotSink` | `azureblob` | **Planned** — needs real backend ([roadmap](https://konih.github.io/kollect/roadmap/planned-features/)) |
+| `KollectSnapshotSink` | `azureblob` | **Planned** — needs real backend ([roadmap](https://platformrelay.github.io/kollect/roadmap/planned-features/)) |
 | `KollectSnapshotSink` | Parquet on S3/GCS | **Planned** — layout on existing object-store sinks |
 
-Full payload lives in sinks; CR `.status` holds summaries only ([etcd limits](https://konih.github.io/kollect/adr/0103-etcd-limit/)).
+Full payload lives in sinks; CR `.status` holds summaries only ([etcd limits](https://platformrelay.github.io/kollect/adr/0103-etcd-limit/)).
 
 ## Performance
 
 Kollect is built for **large single clusters** and **multi-cluster fleets**, with honest, tested
-targets ([ADR-0603](https://konih.github.io/kollect/adr/0603-performance-scalability/)) — **10,000+**
+targets ([ADR-0603](https://platformrelay.github.io/kollect/adr/0603-performance-scalability/)) — **10,000+**
 rows validated in nightly load tests, **100,000-row** design target per cluster, and fleet fan-in
 with no hub merge tier. Tuning knobs (reconcile concurrency, export debounce, sharding) are in the
-**[performance guide](https://konih.github.io/kollect/PERFORMANCE/)**.
+**[performance guide](https://platformrelay.github.io/kollect/PERFORMANCE/)**.
 
 ## Learn more
 
 | Topic | Link |
 | --- | --- |
-| Problem statement, CRD model, reconciliation | [Architecture](https://konih.github.io/kollect/ARCHITECTURE/) |
-| Locked platform decisions | [Platform decisions](https://konih.github.io/kollect/PLATFORM-DECISIONS/) |
-| CR fields, RBAC, failure modes | [CR reference](https://konih.github.io/kollect/CR-REFERENCE/) |
-| Multi-cluster fleet | [ADR-0501](https://konih.github.io/kollect/adr/0501-multi-cluster-fleet/) |
-| Sink taxonomy (state vs stream) | [ADR-0401](https://konih.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/) |
-| Build-order phases and status | [Roadmap](https://konih.github.io/kollect/ROADMAP/) |
-| Examples index | [Examples](https://konih.github.io/kollect/examples/) |
-| Example: Deployment → Git export | [Walkthrough](https://konih.github.io/kollect/examples/deployment-inventory/) |
+| Problem statement, CRD model, reconciliation | [Architecture](https://platformrelay.github.io/kollect/ARCHITECTURE/) |
+| Locked platform decisions | [Platform decisions](https://platformrelay.github.io/kollect/PLATFORM-DECISIONS/) |
+| CR fields, RBAC, failure modes | [CR reference](https://platformrelay.github.io/kollect/CR-REFERENCE/) |
+| Multi-cluster fleet | [ADR-0501](https://platformrelay.github.io/kollect/adr/0501-multi-cluster-fleet/) |
+| Sink taxonomy (state vs stream) | [ADR-0401](https://platformrelay.github.io/kollect/adr/0401-sink-taxonomy-state-vs-stream/) |
+| Build-order phases and status | [Roadmap](https://platformrelay.github.io/kollect/ROADMAP/) |
+| Examples index | [Examples](https://platformrelay.github.io/kollect/examples/) |
+| Example: Deployment → Git export | [Walkthrough](https://platformrelay.github.io/kollect/examples/deployment-inventory/) |
 | Live demo inventory (Git sink) | [kollect-inventory-demo](https://github.com/konih/kollect-inventory-demo) |
 
 Developers: run `task lint`, `task test`, and `task verify` before opening a PR —

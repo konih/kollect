@@ -14,10 +14,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/sink"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 type failingBackend struct {

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/konih/kollect/internal/pipeline"
-	"github.com/konih/kollect/internal/validation"
+	"github.com/platformrelay/kollect/internal/pipeline"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 // TestPipelineSampleDirsLoad asserts every use-case directory under

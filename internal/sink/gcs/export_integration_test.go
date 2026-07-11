@@ -16,9 +16,9 @@ import (
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/testcontainers/testcontainers-go/modules/minio"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 
-	"github.com/konih/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/integrationtest"
 )
 
 func TestExportS3Compatible(t *testing.T) {

@@ -52,7 +52,7 @@ Enforcement diagram: [DATA-FLOWS.md §4](../DATA-FLOWS.md#4-kollectscope-enforce
 
 A scope that limits the `team-a` namespace to `Deployment`/`Service` collection, confines workload
 collection to its own namespace, and sets a 1-minute export floor
-([`config/samples/kollect_v1alpha1_kollectscope_team-a.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectscope_team-a.yaml)):
+([`config/samples/kollect_v1alpha1_kollectscope_team-a.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectscope_team-a.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1

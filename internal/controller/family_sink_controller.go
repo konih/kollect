@@ -11,7 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 // +kubebuilder:rbac:groups=kollect.dev,resources=kollectsnapshotsinks,verbs=get;list;watch;create;update;patch;delete

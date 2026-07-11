@@ -20,14 +20,14 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/metrics"
-	"github.com/konih/kollect/internal/scope"
-	"github.com/konih/kollect/internal/sink"
-	"github.com/konih/kollect/internal/validation"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/scope"
+	"github.com/platformrelay/kollect/internal/sink"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 // KollectInventoryReconciler reconciles a KollectInventory object

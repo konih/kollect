@@ -9,7 +9,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 const defaultMaxExportBytesGlobal int64 = 1572864 // 1.5 MiB per ADR-0103

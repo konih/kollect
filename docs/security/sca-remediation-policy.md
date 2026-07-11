@@ -108,7 +108,7 @@ Be explicit about what automation **blocks** vs what maintainers **track** under
 | **Reachable Go CVEs** | `govulncheck` CI job | No (not a required branch check) — **red job + maintainer policy**; contributors MUST fix before merge | Yes — release only from green CI on tag commit |
 | **Blocklisted modules** | `depguard` / `gomodguard` in `task lint` | Same as vulncheck (CI signal) | Same |
 | **Dependabot advisories** | GitHub alerts + security PRs | No — **SLA-tracked** (7 / 30 / 90 days by severity) | Reviewed before tag |
-| **Image CVEs** | Trivy on `ghcr.io/konih/kollect` (+ UI) | N/A | **Yes** — fixable CRITICAL/HIGH fails release workflow |
+| **Image CVEs** | Trivy on `ghcr.io/platformrelay/kollect` (+ UI) | N/A | **Yes** — fixable CRITICAL/HIGH fails release workflow |
 | **License (Deny)** | Manual / SBOM review + lint blocklists | Maintainer blocks merge | SBOM spot-check before tag |
 
 GitHub branch protection requires **`preflight`** and **`test`** only

@@ -10,9 +10,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/scope"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/scope"
 )
 
 func scopeCeilingForTarget(ctx context.Context, c client.Client, tenantNS string) collect.ScopeCeiling {

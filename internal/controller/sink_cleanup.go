@@ -9,10 +9,10 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/sink"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 func cleanupSinkExports(

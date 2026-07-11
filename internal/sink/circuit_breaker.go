@@ -10,7 +10,7 @@ import (
 
 	"github.com/sony/gobreaker/v2"
 
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 const (

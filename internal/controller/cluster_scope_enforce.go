@@ -9,9 +9,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/metrics"
-	"github.com/konih/kollect/internal/scope"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/scope"
 )
 
 func (r *KollectClusterInventoryReconciler) enforceClusterScopePolicy(

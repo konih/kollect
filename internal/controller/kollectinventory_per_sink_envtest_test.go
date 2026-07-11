@@ -18,10 +18,10 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/sink"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 var _ = Describe("KollectInventory per-sink export (envtest)", func() {

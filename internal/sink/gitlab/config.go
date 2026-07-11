@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/git"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // Config holds resolved GitLab sink settings (HTTPS git remote).

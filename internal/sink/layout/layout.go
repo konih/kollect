@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // DefaultDocumentPathTemplate is the single-file path for git/gitlab document mode (ADR-0419).

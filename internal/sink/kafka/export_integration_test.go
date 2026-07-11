@@ -15,10 +15,10 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/testcontainers/testcontainers-go/modules/redpanda"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/export"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/export"
 
-	"github.com/konih/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/integrationtest"
 )
 
 func TestExportKafka(t *testing.T) {

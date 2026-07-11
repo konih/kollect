@@ -87,7 +87,7 @@ Debouncing state machine: [DATA-FLOWS.md §1](../DATA-FLOWS.md#1-export-debounci
 ## Example
 
 A dual-cadence inventory: export to Postgres every 30s for portals, and to a Git audit repo
-hourly ([`config/samples/kollect_v1alpha1_kollectinventory.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory.yaml)):
+hourly ([`config/samples/kollect_v1alpha1_kollectinventory.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1
@@ -105,9 +105,9 @@ spec:
   suspend: false
 ```
 
-See [`config/samples/kollect_v1alpha1_kollectinventory_sharded.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory_sharded.yaml)
+See [`config/samples/kollect_v1alpha1_kollectinventory_sharded.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory_sharded.yaml)
 for a large-profile sharded variant, and
-[`config/samples/kollect_v1alpha1_kollectinventory_export-partitioning.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory_export-partitioning.yaml)
+[`config/samples/kollect_v1alpha1_kollectinventory_export-partitioning.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectinventory_export-partitioning.yaml)
 for a per-sink-binding `maxExportBytes` override (1 MiB inventory-wide ceiling, 512 KiB Git parts).
 
 ## Sample usage

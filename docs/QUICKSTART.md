@@ -36,7 +36,7 @@ live API access.
     image, and installs the operator (ingress/Grafana addons unless `KOLLECT_DEV_MINIMAL=1`):
 
     ```sh
-    git clone https://github.com/konih/kollect.git && cd kollect
+    git clone https://github.com/platformrelay/kollect.git && cd kollect
     task dev-up                       # build + kind cluster + operator + sample CRs
     ```
 
@@ -92,12 +92,12 @@ live API access.
     From a release (omit `--version` to install the latest published chart):
 
     ```sh
-    helm install kollect oci://ghcr.io/konih/kollect -n kollect-system --create-namespace
+    helm install kollect oci://ghcr.io/platformrelay/kollect -n kollect-system --create-namespace
     kubectl apply -k config/samples/
     ```
 
     To pin a specific chart version, add `--version` (e.g. `--version 0.5.0` — current versions in
-    `charts/kollect/Chart.yaml` and on the [releases page](https://github.com/konih/kollect/releases)).
+    `charts/kollect/Chart.yaml` and on the [releases page](https://github.com/platformrelay/kollect/releases)).
 
 <!-- markdownlint-disable MD046 -->
 

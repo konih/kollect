@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // EnvelopeMeta carries export envelope header fields for sink attribution (ADR-0415).

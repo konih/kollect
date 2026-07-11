@@ -13,9 +13,9 @@ import (
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/validation"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 const conditionSinkSynced = "Synced"

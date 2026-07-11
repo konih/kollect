@@ -13,8 +13,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/konih/kollect/internal/pipeline"
-	"github.com/konih/kollect/internal/sink"
+	"github.com/platformrelay/kollect/internal/pipeline"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 // setLoggerOnce guards ctrl.SetLogger: it mutates shared global state and is not safe to

@@ -15,10 +15,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
 
-	"github.com/konih/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/integrationtest"
 )
 
 func TestExportPostgres(t *testing.T) {

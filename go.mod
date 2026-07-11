@@ -1,4 +1,4 @@
-module github.com/konih/kollect
+module github.com/platformrelay/kollect
 
 go 1.26.5
 

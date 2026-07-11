@@ -19,8 +19,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 // Runner performs a one-shot List-based collection pass for a set of profiles and targets

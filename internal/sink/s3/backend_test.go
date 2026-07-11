@@ -18,10 +18,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/sink/cap"
-	"github.com/konih/kollect/internal/sink/objectstore"
-	parquetenc "github.com/konih/kollect/internal/sink/parquet"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
+	parquetenc "github.com/platformrelay/kollect/internal/sink/parquet"
 )
 
 func TestBackend_TypeAndCapabilities(t *testing.T) {

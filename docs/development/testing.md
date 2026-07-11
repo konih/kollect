@@ -52,7 +52,7 @@ coverage profile.
 **Path filters:** GitHub skips **CI**, **Preflight**, and **CodeQL** when a PR or push to `main`
 changes *only* documentation paths (`docs/**`, `mkdocs.yml`, root prose `*.md`, `CHANGELOG.md`,
 `LICENSE`, issue templates). The **Docs** workflow then runs `task lint:markdown`, `mkdocs build`,
-and (on `main` push) deploys to [konih.github.io/kollect](https://konih.github.io/kollect/). Any
+and (on `main` push) deploys to [platformrelay.github.io/kollect](https://platformrelay.github.io/kollect/). Any
 change under `api/`, `internal/`, `charts/`, `cmd/`, `config/`, `hack/`, `ui/`, `test/`, `go.mod`,
 or `.github/workflows/` — or a mixed docs+code PR — runs the full gate below. Release tags no
 longer trigger docs deploys; the site tracks `main` only.
@@ -130,7 +130,7 @@ PR workflow: [CONTRIBUTING.md § Pull request process](../../CONTRIBUTING.md#pul
 ## Further reading
 
 - [ADR-0706: Testing and merge-gate architecture](../adr/0706-testing-merge-gate-architecture.md)
-- [Engineering guidelines](https://github.com/konih/kollect/blob/main/docs/development/guidelines.md) §4 (testing rules)
+- [Engineering guidelines](https://github.com/platformrelay/kollect/blob/main/docs/development/guidelines.md) §4 (testing rules)
 - [REQUIREMENTS.md](../REQUIREMENTS.md) — NFR-TEST-* priorities
 - [PERFORMANCE.md](../PERFORMANCE.md) — scale bounds and perf-report workflow
 - [tooling-setup.md](tooling-setup.md) — arch-lint, depguard, SonarCloud maintainer steps

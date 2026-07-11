@@ -12,7 +12,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 type recordedQueryCall struct {

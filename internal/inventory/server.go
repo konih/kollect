@@ -12,8 +12,8 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 // Server serves read-only inventory HTTP endpoints backed by the collection store.

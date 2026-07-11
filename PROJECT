@@ -7,19 +7,19 @@ domain: kollect.dev
 layout:
 - go.kubebuilder.io/v4
 projectName: kollect
-repo: github.com/konih/kollect
+repo: github.com/platformrelay/kollect
 resources:
 - api:
     crdVersion: v1
   domain: kollect.dev
   kind: KollectProfile
-  path: github.com/konih/kollect/api/v1alpha1
+  path: github.com/platformrelay/kollect/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
   domain: kollect.dev
   kind: KollectSink
-  path: github.com/konih/kollect/api/v1alpha1
+  path: github.com/platformrelay/kollect/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -27,7 +27,7 @@ resources:
   controller: true
   domain: kollect.dev
   kind: KollectTarget
-  path: github.com/konih/kollect/api/v1alpha1
+  path: github.com/platformrelay/kollect/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -35,6 +35,6 @@ resources:
   controller: true
   domain: kollect.dev
   kind: KollectInventory
-  path: github.com/konih/kollect/api/v1alpha1
+  path: github.com/platformrelay/kollect/api/v1alpha1
   version: v1alpha1
 version: "3"

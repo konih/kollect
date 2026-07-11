@@ -7,7 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 func TestExport_MergeErrorStopsDeleteStale(t *testing.T) {

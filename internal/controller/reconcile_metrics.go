@@ -6,7 +6,7 @@ package controller
 import (
 	"time"
 
-	"github.com/konih/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 func trackReconcile(controller string) (finish func(err error)) {

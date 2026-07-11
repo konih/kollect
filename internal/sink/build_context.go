@@ -8,9 +8,9 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/operator"
-	"github.com/konih/kollect/internal/sink/git"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/operator"
+	"github.com/platformrelay/kollect/internal/sink/git"
 )
 
 // DefaultSecretNamespace is retained for callers outside operator/webhook packages.

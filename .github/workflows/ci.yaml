@@ -248,7 +248,7 @@ jobs:
               sed -n '1,24p' artifacts/perf-snapshot.md
               echo '```'
             fi
-            echo "Download \`perf-snapshot\` artifact for full report. Regenerate locally before scale work — see [PERFORMANCE.md](https://github.com/konih/kollect/blob/main/docs/PERFORMANCE.md)."
+            echo "Download \`perf-snapshot\` artifact for full report. Regenerate locally before scale work — see [PERFORMANCE.md](https://github.com/platformrelay/kollect/blob/main/docs/PERFORMANCE.md)."
           } >> "${GITHUB_STEP_SUMMARY}"
 
   fuzz:

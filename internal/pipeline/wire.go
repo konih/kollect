@@ -18,9 +18,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/sink"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 // LocalSinkType is the sink type string synthesized when --output is given instead of a

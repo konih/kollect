@@ -1,7 +1,7 @@
 # Project governance
 
 Kollect is an open-source Kubernetes operator maintained as a personal OSS project under
-[github.com/konih/kollect](https://github.com/konih/kollect). This document describes how
+[github.com/platformrelay/kollect](https://github.com/platformrelay/kollect). This document describes how
 decisions are made, who is responsible for what, and how the project continues if the
 maintainer is unavailable.
 
@@ -12,7 +12,7 @@ This governance model applies to:
 - The **kollect** operator, Helm chart, CRDs, and documentation in this repository
 - The **kollect-ui** static SPA (`ui/`) and its container image
 - Release artifacts published to GHCR and GitHub Releases
-- Public documentation at [konih.github.io/kollect](https://konih.github.io/kollect/)
+- Public documentation at [platformrelay.github.io/kollect](https://platformrelay.github.io/kollect/)
 
 It does **not** cover downstream deployments, fork-specific policies, or private runbooks.
 

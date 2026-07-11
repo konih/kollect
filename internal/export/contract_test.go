@@ -6,7 +6,7 @@ package export
 import (
 	"testing"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 func TestNormalizeSchemaVersion(t *testing.T) {

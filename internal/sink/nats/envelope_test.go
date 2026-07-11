@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/konih/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/export"
 )
 
 func repoRoot(t *testing.T) string {

@@ -13,7 +13,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // EnvelopePartition is one bounded export envelope slice.

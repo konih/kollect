@@ -22,7 +22,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	"github.com/konih/kollect/internal/sink"
+	"github.com/platformrelay/kollect/internal/sink"
 )
 
 // TestPipelineCLI_collectAndWrite is the L2 integration tier for the pipeline CLI (ADR-0801,

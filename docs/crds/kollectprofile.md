@@ -77,7 +77,7 @@ Full flow: [DATA-FLOWS.md](../DATA-FLOWS.md#2-collection-pipeline) ·
 ## Example
 
 A profile that extracts container images and a CEL-derived container count from `Deployment`
-objects ([`config/samples/kollect_v1alpha1_kollectprofile.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectprofile.yaml)):
+objects ([`config/samples/kollect_v1alpha1_kollectprofile.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectprofile.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1
@@ -106,7 +106,7 @@ spec:
       optional: true
 ```
 
-More schemas live in [`config/samples/`](https://github.com/konih/kollect/tree/main/config/samples):
+More schemas live in [`config/samples/`](https://github.com/platformrelay/kollect/tree/main/config/samples):
 `*_kollectprofile_helm-release-summary.yaml`, `*_certificate-summary.yaml`,
 `*_ingress-hosts.yaml`, `*_service-endpoints.yaml`, and the redaction-aware
 `*_helm-release-values-redacted.yaml`.

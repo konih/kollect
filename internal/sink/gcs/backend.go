@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/sink/cap"
-	"github.com/konih/kollect/internal/sink/s3"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/s3"
 )
 
 // TypeName is the KollectSink.spec.type value for GCS sinks.

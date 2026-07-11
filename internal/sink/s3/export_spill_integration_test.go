@@ -18,12 +18,12 @@ import (
 	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/testcontainers/testcontainers-go/modules/minio"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/integrationtest"
-	"github.com/konih/kollect/internal/sink"
-	"github.com/konih/kollect/internal/validation"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/integrationtest"
+	"github.com/platformrelay/kollect/internal/sink"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 // TestRunExportEnvelope_SpillsOversizedPayloadToMinIO proves the reconcile-time write path

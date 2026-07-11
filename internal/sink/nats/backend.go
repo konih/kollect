@@ -14,9 +14,9 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/digest"
-	"github.com/konih/kollect/internal/sink/cap"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/digest"
+	"github.com/platformrelay/kollect/internal/sink/cap"
 )
 
 // EventEnvelope is the JSON message published to NATS JetStream subjects.

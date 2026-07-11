@@ -14,10 +14,16 @@ import (
 
 	parquetgo "github.com/parquet-go/parquet-go"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
-const contentType = "application/vnd.apache.parquet"
+const (
+	contentType = "application/vnd.apache.parquet"
+
+	// unknownColumn is the fallback column name for attributes that sanitize
+	// to an empty string.
+	unknownColumn = "unknown"
+)
 
 var DefaultHotAttributes = []string{"image", "version"}
 
@@ -146,7 +152,7 @@ func columnName(attr string) string {
 func sanitizeColumn(attr string) string {
 	attr = strings.TrimSpace(strings.ToLower(attr))
 	if attr == "" {
-		return "unknown"
+		return unknownColumn
 	}
 
 	var b strings.Builder
@@ -160,7 +166,7 @@ func sanitizeColumn(attr string) string {
 	}
 
 	if b.Len() == 0 {
-		return "unknown"
+		return unknownColumn
 	}
 
 	return b.String()

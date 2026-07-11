@@ -12,7 +12,7 @@ import (
 
 	gittransport "github.com/go-git/go-git/v5/plumbing/transport"
 
-	kollecterrors "github.com/konih/kollect/internal/errors"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
 )
 
 func TestClassifyExportError_authTerminal(t *testing.T) {

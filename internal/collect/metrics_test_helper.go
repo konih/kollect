@@ -6,7 +6,7 @@ package collect
 import (
 	"sync"
 
-	"github.com/konih/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 var registerMetricsOnce sync.Once

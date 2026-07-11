@@ -6,7 +6,7 @@ package objectstore
 import (
 	"testing"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 func TestObjectPath_defaultTemplate(t *testing.T) {

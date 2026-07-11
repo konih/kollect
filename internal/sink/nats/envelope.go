@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/konih/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/export"
 )
 
 func marshalEventEnvelope(cluster, namespace string, payload []byte, at time.Time) ([]byte, error) {

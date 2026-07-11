@@ -8,7 +8,7 @@ import (
 
 	k8sfield "k8s.io/apimachinery/pkg/util/validation/field"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
 )
 
 func TestClusterScopeInvalid(t *testing.T) {

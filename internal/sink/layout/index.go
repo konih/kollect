@@ -4,7 +4,7 @@
 package layout
 
 import (
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // Index is the split-mode index sidecar: an envelope summary plus the row path list (ADR-0419).

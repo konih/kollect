@@ -8,8 +8,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/metrics"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/metrics"
 )
 
 func TestMetricPathsFromProfile(t *testing.T) {

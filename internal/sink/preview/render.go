@@ -11,12 +11,12 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/sink/git"
-	"github.com/konih/kollect/internal/sink/layout"
-	"github.com/konih/kollect/internal/sink/objectstore"
-	"github.com/konih/kollect/internal/sink/postgres"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/layout"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
+	"github.com/platformrelay/kollect/internal/sink/postgres"
 )
 
 const syntheticSampleSource = "synthetic"

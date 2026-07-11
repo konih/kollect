@@ -14,15 +14,15 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	kollecterrors "github.com/konih/kollect/internal/errors"
-	"github.com/konih/kollect/internal/export"
-	"github.com/konih/kollect/internal/metrics"
-	"github.com/konih/kollect/internal/sink/cap"
-	"github.com/konih/kollect/internal/sink/git"
-	"github.com/konih/kollect/internal/sink/objectstore"
-	"github.com/konih/kollect/internal/validation"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	kollecterrors "github.com/platformrelay/kollect/internal/errors"
+	"github.com/platformrelay/kollect/internal/export"
+	"github.com/platformrelay/kollect/internal/metrics"
+	"github.com/platformrelay/kollect/internal/sink/cap"
+	"github.com/platformrelay/kollect/internal/sink/git"
+	"github.com/platformrelay/kollect/internal/sink/objectstore"
+	"github.com/platformrelay/kollect/internal/validation"
 )
 
 // Capabilities describes sink backend projection behavior (ADR-0401, ADR-0406).

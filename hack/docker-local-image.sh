@@ -7,7 +7,7 @@ MODE="${1:?usage: $0 build|push}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${REPO_ROOT}"
 
-IMAGE_REPO="${IMAGE_REPO:-ghcr.io/konih/kollect}"
+IMAGE_REPO="${IMAGE_REPO:-ghcr.io/platformrelay/kollect}"
 PLATFORMS="${PLATFORMS:-linux/amd64}"
 CONTAINER_TOOL="${CONTAINER_TOOL:-docker}"
 

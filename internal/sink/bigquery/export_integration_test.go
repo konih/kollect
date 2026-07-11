@@ -20,9 +20,9 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
-	kollectdevv1alpha1 "github.com/konih/kollect/api/v1alpha1"
-	"github.com/konih/kollect/internal/collect"
-	"github.com/konih/kollect/internal/integrationtest"
+	kollectdevv1alpha1 "github.com/platformrelay/kollect/api/v1alpha1"
+	"github.com/platformrelay/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/integrationtest"
 )
 
 func TestExportBigQuery(t *testing.T) {

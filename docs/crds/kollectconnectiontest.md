@@ -51,7 +51,7 @@ Lifecycle: [DATA-FLOWS.md §5](../DATA-FLOWS.md#5-kollectconnectiontest-lifecycl
 ## Example
 
 A one-shot probe against a `KollectDatabaseSink`
-([`config/samples/kollect_v1alpha1_kollectconnectiontest.yaml`](https://github.com/konih/kollect/blob/main/config/samples/kollect_v1alpha1_kollectconnectiontest.yaml)):
+([`config/samples/kollect_v1alpha1_kollectconnectiontest.yaml`](https://github.com/platformrelay/kollect/blob/main/config/samples/kollect_v1alpha1_kollectconnectiontest.yaml)):
 
 ```yaml
 apiVersion: kollect.dev/v1alpha1

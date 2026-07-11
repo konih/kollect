@@ -6,7 +6,7 @@ package inventory
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/konih/kollect/internal/collect"
+	"github.com/platformrelay/kollect/internal/collect"
 )
 
 // ListFilter holds query parameters for inventory list endpoints.
