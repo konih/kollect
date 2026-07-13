@@ -1,0 +1,72 @@
+name: changelog-sync
+
+# Self-healing CHANGELOG.md sync.
+#
+# Why this exists: git-cliff renders each [Unreleased] entry with the commit's
+# SHA (hack/release/cliff.toml). Every squash/rebase merge assigns a NEW SHA that
+# the pre-merge CHANGELOG.md cannot know, so `task changelog:verify` drifts and
+# preflight goes red on main after any user-facing (feat/fix/perf/refactor) merge.
+# (test/docs/ci/chore/build/style commits are cliff-skipped and never drift.)
+# This workflow regenerates CHANGELOG.md after each push to main and commits the
+# result, so those merges self-heal instead of needing a manual post-merge sync.
+#
+# ACTIVATION (one-time, operator): pushing to `main` is gated by the `protect-main`
+# ruleset ("changes must be made through a pull request"). For the push below to
+# succeed, the CI identity must be a ruleset **bypass actor**:
+#   - simplest: add `github-actions[bot]` as a bypass actor (bypass_mode: always)
+#     and leave CHANGELOG_SYNC_TOKEN unset (uses GITHUB_TOKEN; its pushes also do
+#     not re-trigger workflows, so no extra loop guard is needed); or
+#   - set the `CHANGELOG_SYNC_TOKEN` secret to a PAT/App token whose identity is a
+#     bypass actor.
+# Until activated, the push soft-fails with a warning (this job is NOT a required
+# check, so it never blocks a merge).
+
+on:
+  push:
+    branches: [main]
+    # Loop guard: the sync commit only touches CHANGELOG.md, so ignoring it here
+    # prevents this workflow from re-triggering itself.
+    paths-ignore:
+      - "CHANGELOG.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-sync-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0 # git-cliff needs full history + tags
+          fetch-tags: true
+          token: ${{ secrets.CHANGELOG_SYNC_TOKEN || github.token }}
+      - uses: go-task/setup-task@01a4adf9db2d14c1de7a560f09170b6e0df736aa # v2.1.0
+        with:
+          version: 3.51.1
+      - name: Regenerate CHANGELOG.md
+        run: task changelog:write
+        env:
+          CI: "true"
+      - name: Commit & push if drifted
+        run: |
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "::notice title=changelog-sync::CHANGELOG.md already in sync — nothing to do."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          # [skip ci] keeps any PAT-authenticated push from re-triggering workflows.
+          git commit -m ":page_facing_up: docs: sync CHANGELOG.md [skip ci]"
+          if git push origin HEAD:main; then
+            echo "::notice title=changelog-sync::Pushed regenerated CHANGELOG.md to main."
+          else
+            echo "::warning title=changelog-sync::Could not push CHANGELOG.md — add the CI identity (github-actions[bot] or CHANGELOG_SYNC_TOKEN owner) as a protect-main ruleset bypass actor to activate. CHANGELOG.md remains drifted until then."
+          fi
