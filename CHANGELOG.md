@@ -11,7 +11,7 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
-- **validation:** Atomic maxExportBytesGlobal to remove admission/test data race [2a2d03e](https://github.com/platformrelay/kollect/commit/2a2d03e5cb70036dd1db948753438fb3b449ad2a)
+- **validation:** Atomic maxExportBytesGlobal to remove admission/test data race [afd5d3a](https://github.com/platformrelay/kollect/commit/afd5d3a1ad63b9a2a86dbc613ab9e05c155e288f)
 
 
 ### Features
