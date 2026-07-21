@@ -50,7 +50,7 @@ jobs:
       attestations: write
       artifact-metadata: write
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -74,7 +74,7 @@ jobs:
           echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
 
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
@@ -228,14 +228,14 @@ jobs:
           registry-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Attest operator image (SLSA provenance)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.image.outputs.repository }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
       - name: Attest operator image (SBOM)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.image.outputs.repository }}
           subject-digest: ${{ steps.build.outputs.digest }}
@@ -243,14 +243,14 @@ jobs:
           push-to-registry: true
 
       - name: Attest kollect-ui image (SLSA provenance)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.ui-image.outputs.repository }}
           subject-digest: ${{ steps.ui-build.outputs.digest }}
           push-to-registry: true
 
       - name: Attest kollect-ui image (SBOM)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.ui-image.outputs.repository }}
           subject-digest: ${{ steps.ui-build.outputs.digest }}
@@ -258,14 +258,14 @@ jobs:
           push-to-registry: true
 
       - name: Attest kollect-pipeline image (SLSA provenance)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.pipeline-image.outputs.repository }}
           subject-digest: ${{ steps.pipeline-build.outputs.digest }}
           push-to-registry: true
 
       - name: Attest kollect-pipeline image (SBOM)
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-name: ${{ steps.pipeline-image.outputs.repository }}
           subject-digest: ${{ steps.pipeline-build.outputs.digest }}
@@ -280,7 +280,7 @@ jobs:
 
       - name: Attest GitHub Release assets (SLSA provenance)
         id: attest-release
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.2.0
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
         with:
           subject-checksums: dist/checksums.txt
 
