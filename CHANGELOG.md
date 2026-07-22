@@ -11,6 +11,8 @@ on the default branch using [git-cliff](https://git-cliff.org/).
 
 ### Bug Fixes
 
+- **ci:** Correct Renovate scheduling [c46e722](https://github.com/platformrelay/kollect/commit/c46e72258e3eab5c72b3074b3bb3f954e95c8b9e)
+
 - **validation:** Atomic maxExportBytesGlobal to remove admission/test data race [afd5d3a](https://github.com/platformrelay/kollect/commit/afd5d3a1ad63b9a2a86dbc613ab9e05c155e288f)
 
 
