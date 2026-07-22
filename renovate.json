@@ -5,8 +5,6 @@
     ":disableDependencyDashboard"
   ],
   "labels": ["dependencies"],
-  "timezone": "Europe/Berlin",
-  "schedule": ["before 6am on Monday"],
   "semanticCommits": "disabled",
   "commitMessagePrefix": ":arrow_up:",
   "commitMessageAction": "chore(deps): update",
@@ -15,6 +13,12 @@
     "bin/**",
     ".task/**"
   ],
+  "pip-compile": {
+    "managerFilePatterns": ["/^docs/requirements-docs\\.txt$/"]
+  },
+  "pip_requirements": {
+    "enabled": false
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -104,7 +108,7 @@
       "groupName": "ui npm dependencies"
     },
     {
-      "matchManagers": ["pip_requirements"],
+      "matchManagers": ["pip-compile"],
       "matchFileNames": ["docs/**"],
       "groupName": "docs Python dependencies"
     },
