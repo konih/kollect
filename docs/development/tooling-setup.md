@@ -159,8 +159,8 @@ Contributors do not need Codecov accounts. Run `task coverage` before opening a 
 Renovate runs every Monday at 04:00 UTC and can also be started manually from the
 **Renovate** GitHub Actions workflow. It replaces scheduled Dependabot version-update PRs and
 groups updates for Go modules, Kubernetes libraries, GitHub Actions, container images, the docs
-and UI package locks, docs Python requirements, and pinned build tools. Dependabot vulnerability
-alerts and security updates remain enabled in repository settings; deleting
+and UI package locks, pip-compile's hashed docs requirements, and pinned build tools. Dependabot
+vulnerability alerts and security updates remain enabled in repository settings; deleting
 `.github/dependabot.yml` only retires its scheduled version-update jobs.
 
 The workflow needs a repository secret named `RENOVATE_TOKEN` whose GitHub App or fine-grained PAT
