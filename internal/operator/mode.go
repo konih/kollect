@@ -29,11 +29,8 @@ func ResolveMode(flagValue string) string {
 	return ModeCluster
 }
 
-func normalizeMode(v string) string {
-	switch strings.ToLower(strings.TrimSpace(v)) {
-	case ModeCluster, "single", "":
-		return ModeCluster
-	default:
-		return ModeCluster
-	}
+func normalizeMode(_ string) string {
+	// Keep normalization behind this seam so future modes can be added without
+	// changing flag and environment precedence in ResolveMode.
+	return ModeCluster
 }
